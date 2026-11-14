@@ -14,8 +14,6 @@ cursor-style-blink = false
 shell-integration-features = no-cursor
 
 copy-on-select = clipboard
-# Paste with Ctrl+V as in other apps (Ctrl+Shift+V works too).
-keybind = ctrl+v=paste_from_clipboard
 scrollback-limit = 10000000
 auto-update = off
 
