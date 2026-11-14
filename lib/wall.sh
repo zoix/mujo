@@ -29,8 +29,8 @@ next    The image after the current one in the wallpaper directory, by name.
 prev    The image before it.
 clear   No wallpaper: the plain background colour.
 dir     Show or set the wallpaper directory (default: ~/Pictures/Wallpapers).
-clock   Show or hide the clock on the desktop (and the bars beside it that
-        follow the music).
+clock   Show or hide a clock on the desktop (and the bars beside it that
+        follow the music). Off unless you switch it on.
 
 Every change is journaled and can be undone. The Quickshell UI draws the
 wallpaper. While '$KARMA_NAME theme mode' is auto (the default), a bright
@@ -320,7 +320,7 @@ cmd_wall() {
     clock)
       (( $# <= 1 )) || usage_error "too many arguments"
       local cur new
-      cur=$(config_read | jq -r '.desktop_clock != false')
+      cur=$(config_read | jq -r '.desktop_clock == true')
       if (( $# == 0 )); then
         say "Desktop clock: $([[ $cur == true ]] && echo on || echo off)"
         jq -n --argjson c "$cur" '{desktop_clock: $c}' | emit

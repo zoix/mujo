@@ -188,7 +188,7 @@ nmcli ask for the password; `--password-stdin` reads one line instead.
 | `next`, `prev` | yes | Cycle through the directory by name |
 | `clear` | yes | No wallpaper |
 | `dir [DIRECTORY]` | yes | Default `~/Pictures/Wallpapers`. Without an argument: `{directory}` |
-| `clock [on\|off\|toggle]` | yes | The clock on the desktop, with the bars that follow the music |
+| `clock [on\|off\|toggle]` | yes | A clock on the desktop, with bars that follow the music. Off by default |
 
 The choice is stored in `config.json` (`wallpaper`, `wallpaper_dir`) and sent
 to the UI (`wallpaper set PATH`), which draws it on every screen.
