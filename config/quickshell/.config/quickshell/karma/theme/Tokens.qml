@@ -79,6 +79,7 @@ Singleton {
     readonly property int borderFocus: t.borderFocus
     readonly property int frame: t.frame
     readonly property int bar: t.bar
+    readonly property int barButton: t.barButton
     readonly property int gapIn: t.gapIn
     readonly property int gapOut: t.gapOut
     readonly property int osdWidth: t.osdWidth

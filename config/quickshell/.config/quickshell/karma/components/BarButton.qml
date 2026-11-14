@@ -14,8 +14,8 @@ Rectangle {
     // button sits on a container that already has the default colour.
     property color hoverColor: Tokens.bgControl
 
-    implicitWidth: Tokens.spaceXxl
-    implicitHeight: Tokens.spaceXxl
+    implicitWidth: Tokens.barButton
+    implicitHeight: Tokens.barButton
     radius: Tokens.radiusSm
     color: area.containsMouse ? root.hoverColor : "transparent"
 
