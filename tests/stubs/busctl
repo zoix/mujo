@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Test double for busctl, for the power-profiles properties only. The
+# active profile lives in $STUB_STATE/profile.
+f=${STUB_STATE:?}/profile
+[[ -f $f ]] || echo balanced >"$f"
+case "$*" in
+  *"get-property"*"ActiveProfile") printf '{"type":"s","data":"%s"}\n' "$(<"$f")" ;;
+  *"get-property"*"Profiles")
+    echo '{"type":"aa{sv}","data":[{"Profile":{"type":"s","data":"power-saver"}},{"Profile":{"type":"s","data":"balanced"}},{"Profile":{"type":"s","data":"performance"}}]}' ;;
+  *"set-property"*"ActiveProfile s "*) all="$*"; echo "${all##* }" >"$f" ;;
+  *) exit 1 ;;
+esac

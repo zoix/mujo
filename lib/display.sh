@@ -170,6 +170,7 @@ display_cmd_night() {
   fi
   karma_lock
   config_set night_temperature "$temp"
+  config_set night_on "$new_on"
   change_end "$summary" "$cur" "$planned" \
     "$(json_array display night "$([[ $cur_on == true ]] && echo on || echo off)" --temp "$cur_temp")"
 }

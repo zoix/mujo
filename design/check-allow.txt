@@ -1,4 +1,5 @@
 # Exceptions for `karma theme check`'s hardcoded-value lint.
 # Format: <path glob relative to the repo>|<ERE matched against the line>|<reason>
 lib/theme.jq|"rgba?\(|the hypr/hypra filters build Hyprland rgb()/rgba() strings
+design/templates/quickshell/tokens.json.tmpl|accentColors|the swatches of the accent picker are the palette accents by name
 lib/theme.jq|_hsl\(|the wallpaper palette generator names the palette entries it replaces

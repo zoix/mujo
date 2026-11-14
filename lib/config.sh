@@ -20,4 +20,7 @@ config_set() {
   local new
   new=$(config_with "$1" "$2")
   printf '%s\n' "$new" | atomic_write "$KARMA_CONFIG_FILE"
+  # The interface shows several of these settings; tell it to read them again.
+  # (The installer uses this file without the rest of the CLI.)
+  if declare -F ui_ipc >/dev/null; then ui_ipc notify reload; fi
 }

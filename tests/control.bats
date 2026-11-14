@@ -441,6 +441,20 @@ journal_count() {
   [ "$(data '.entries[0].reversible')" = false ]
 }
 
+@test "power profile changes and undo restores it" {
+  run karma power profile --json
+  [ "$(data .profile)" = balanced ]
+  [ "$(data '.available | length')" = 3 ]
+  karma power profile power-saver
+  run karma power profile --json
+  [ "$(data .profile)" = power-saver ]
+  karma undo
+  run karma power profile --json
+  [ "$(data .profile)" = balanced ]
+  run karma power profile turbo
+  [ "$status" -eq 2 ]
+}
+
 @test "power lock needs the graphical session" {
   run karma power lock
   [ "$status" -eq 3 ]

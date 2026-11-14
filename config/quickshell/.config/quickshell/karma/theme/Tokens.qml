@@ -47,6 +47,7 @@ Singleton {
     readonly property color stateError: t.stateError
     readonly property color stateInfo: t.stateInfo
     readonly property string accentName: t.accentName
+    readonly property var accentColors: t.accentColors
     readonly property string mode: t.mode
 
     // Typography
