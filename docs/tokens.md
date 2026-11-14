@@ -12,6 +12,12 @@ written. Everything else reads roles from it through generated files.
 | `palette` | The 26 Catppuccin Mocha colours, lowercase `#rrggbb`. The only place raw names appear |
 | `light` | Overrides merged over everything else in light mode (`karma theme mode`): the Catppuccin Latte `palette`, the terminal `ansi` order and the `gtk` settings. The `console` colours (TTY, login screen) always resolve from the dark palette, so a mode change never touches `/etc` |
 | `gtk` | GTK theme name and dark preference for the current mode |
+
+With `karma theme palette wallpaper` the neutral palette entries (`base`,
+`mantle`, `crust`, `surface*`, `overlay*`, `subtext*`, `text`) are replaced at
+build time by colours of the wallpaper's hue, and a palette entry `wallpaper`
+is added for the accent (`_wallpaper_palette` in `lib/theme.jq`). Templates and
+roles do not change.
 | `accents` | The 14 names allowed as accent |
 | `color` | Roles: `bg.{frame,base,raised,control}`, `border.subtle`, `text.{primary,muted,on_accent}`, `accent`, `state.{success,warning,error,info}` |
 | `term` | Terminal `fg`, `bg`, `cursor`, `selection_bg` and 16 `ansi` colours (Catppuccin's mapping) |

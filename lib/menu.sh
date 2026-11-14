@@ -47,6 +47,8 @@ Display: brightness up${t}run${t}display brightness +10
 Display: brightness down${t}run${t}display brightness -10
 Display: night light on or off${t}run${t}display night toggle
 Theme: accent colour${t}accent${t}theme accent
+Theme: colours from the wallpaper${t}run${t}theme palette wallpaper
+Theme: Catppuccin colours${t}run${t}theme palette catppuccin
 Theme: gentle motion (slower, fades)${t}run${t}theme motion gentle
 Theme: normal motion${t}run${t}theme motion normal
 Theme: reduce motion on${t}run${t}theme reduce-motion on

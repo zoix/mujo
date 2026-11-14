@@ -286,6 +286,42 @@ journal_count() {
   [ "$(data '[.entries[] | select(.command == "theme accent blue")] | length')" = 1 ]
 }
 
+@test "the wallpaper palette tints the colours with the wallpaper's hue and follows it" {
+  walls=$BATS_TEST_TMPDIR/walls
+  mkdir -p "$walls"
+  touch "$walls/blue-lake.png" "$walls/grey.png"
+  karma theme build
+  tokens=$(conf)/quickshell/karma/theme/tokens.json
+  plain=$(jq -r .bgBase "$tokens")
+  console=$(sha256sum <"$(state)/theme/system/vtrgb/palette.vtrgb")
+  karma wall set "$walls/blue-lake.png"
+
+  karma theme palette wallpaper
+  run karma theme palette --json
+  [ "$(data .palette)" = wallpaper ]
+  [ "$(data '.hue >= 200 and .hue <= 240')" = true ]
+  tinted=$(jq -r .bgBase "$tokens")
+  [ "$tinted" != "$plain" ]
+  [ "$(jq -r .accentName "$tokens")" = wallpaper ]
+  # errors stay red, and the console palette in /etc is not affected
+  [ "$(jq -r .stateError "$tokens")" = "#f38ba8" ]
+  [ "$console" = "$(sha256sum <"$(state)/theme/system/vtrgb/palette.vtrgb")" ]
+  run karma theme check
+  [ "$status" -eq 0 ]
+
+  # a grey wallpaper has no hue to use: the plain colours come back
+  karma wall set "$walls/grey.png"
+  [ "$(jq -r .bgBase "$tokens")" = "$plain" ]
+  karma wall set "$walls/blue-lake.png"
+  [ "$(jq -r .bgBase "$tokens")" = "$tinted" ]
+
+  karma theme palette catppuccin
+  [ "$(jq -r .bgBase "$tokens")" = "$plain" ]
+  [ "$(jq -r .accentName "$tokens")" = blue ]
+  run karma theme palette neon
+  [ "$status" -eq 2 ]
+}
+
 @test "a fixed mode ignores the wallpaper" {
   walls=$BATS_TEST_TMPDIR/walls
   mkdir -p "$walls"

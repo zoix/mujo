@@ -31,6 +31,10 @@ Subcommands:
   check [ID...]          Fail on drift from the tokens or on hardcoded values
   accent [NAME|auto]     Show the accent, or set it and rebuild (journaled).
                          auto picks the accent closest to the wallpaper's colour
+  palette [catppuccin|wallpaper]
+                         Show the palette, or set it and rebuild (journaled).
+                         wallpaper tints backgrounds, borders and text with the
+                         wallpaper's main colour, in light and in dark mode
   mode [dark|light|auto] Show the mode, or set it and rebuild (journaled).
                          auto follows the wallpaper: light for a bright image
   motion [normal|gentle] Show the setting, or set it and rebuild (journaled).
@@ -59,6 +63,7 @@ cmd_theme() {
     check) theme_cmd_check "$@" ;;
     accent) theme_cmd_accent "$@" ;;
     mode) theme_cmd_mode "$@" ;;
+    palette) theme_cmd_palette "$@" ;;
     sync) theme_cmd_sync "$@" ;;
     motion) theme_cmd_motion "$@" ;;
     reduce-motion) theme_cmd_reduce_motion "$@" ;;
@@ -403,6 +408,56 @@ theme_set() {
     "$(jq -cn --arg k "$key" --argjson v "$new" '{($k): $v}')" "$undo" "$settings" "$key" "$new"
 }
 
+# The palette: catppuccin, or wallpaper (backgrounds and text tinted with
+# the wallpaper's hue).
+theme_palette_pref() {
+  config_read | jq -r '.palette // "catppuccin"'
+}
+
+theme_cmd_palette() {
+  (( $# <= 1 )) || usage_error "too many arguments"
+  local cur
+  cur=$(theme_palette_pref)
+  if (( $# == 0 )); then
+    say "Palette: $cur"
+    say "Available: catppuccin wallpaper"
+    jq -n --arg p "$cur" --argjson h "$(config_read | jq '.hue // null')" \
+      '{palette: $p, hue: $h, available: ["catppuccin", "wallpaper"]}' | emit
+    return 0
+  fi
+  local new=$1
+  [[ $new == catppuccin || $new == wallpaper ]] || usage_error "expected catppuccin or wallpaper, got '$new'"
+  (( OPT_DRY_RUN )) || karma_lock
+  if [[ $new == "$cur" ]]; then
+    say "The palette is already $new; nothing to do."
+    jq -n --arg p "$cur" '{journal_id: null, settings: {palette: $p}, files: []}' | emit
+    return 0
+  fi
+  local hue=null accent settings before after
+  if [[ $new == wallpaper ]]; then
+    hue=$(wall_hue "$(wall_current)") || hue=null
+    [[ $hue != null ]] || warn "the wallpaper has no dominant colour (or there is none); the Catppuccin colours stay until one does"
+  fi
+  # The accent follows, if it is on auto.
+  accent=$(theme_settings | jq -r .accent)
+  if [[ $(theme_accent_pref) == auto ]]; then
+    if [[ $new == wallpaper && $hue != null ]]; then
+      accent=wallpaper
+    else
+      accent=$(wall_accent "$(wall_current)") || accent=$(jq -r .defaults.accent "$THEME_TOKENS")
+    fi
+  fi
+  before=$(jq -cn --arg p "$cur" '{palette: $p}')
+  after=$(jq -cn --arg p "$new" --argjson h "$hue" --arg a "$accent" '{palette: $p, hue: $h, accent: $a}')
+  settings=$(theme_settings "$after")
+  theme_plan "$settings"
+  if (( ! OPT_DRY_RUN )); then
+    config_set hue "$hue"
+    config_set accent "\"$accent\""
+  fi
+  theme_commit "theme palette: $cur -> $new" "$before" "$after" "$(json_array theme palette "$cur")" "$settings" palette "\"$new\""
+}
+
 # The accent preference: a name, or auto (follow the wallpaper).
 theme_accent_pref() {
   config_read | jq -r '.accent_pref // "auto"'
@@ -413,6 +468,11 @@ theme_accent_pref() {
 # default accent when there is no wallpaper or it has no colour to speak of.
 theme_accent_wanted() {
   if [[ $1 == auto ]]; then
+    # With the wallpaper palette the accent is a colour of the wallpaper's own hue.
+    if [[ $(theme_palette_pref) == wallpaper ]] && wall_hue "$(wall_current)" >/dev/null; then
+      echo wallpaper
+      return 0
+    fi
     wall_accent "$(wall_current)" || jq -r .defaults.accent "$THEME_TOKENS"
   else
     echo "$1"
@@ -466,12 +526,17 @@ theme_cmd_sync() {
   # Lock first: when wallpapers change in quick succession, each sync must
   # see the wallpaper that is current when its turn comes, not an older one.
   (( OPT_DRY_RUN )) || karma_lock
-  local cur_mode cur_accent new_mode new_accent
+  local cur_mode cur_accent new_mode new_accent cur_hue new_hue
   cur_mode=$(theme_settings | jq -r .mode)
   cur_accent=$(theme_settings | jq -r .accent)
+  cur_hue=$(theme_settings | jq -r '.hue // "null"')
   new_mode=$(theme_mode_wanted "$(theme_mode_pref)")
   new_accent=$(theme_accent_wanted "$(theme_accent_pref)")
-  if [[ $new_mode == "$cur_mode" && $new_accent == "$cur_accent" ]]; then
+  new_hue=$cur_hue
+  if [[ $(theme_palette_pref) == wallpaper ]]; then
+    new_hue=$(wall_hue "$(wall_current)") || new_hue=null
+  fi
+  if [[ $new_mode == "$cur_mode" && $new_accent == "$cur_accent" && $new_hue == "$cur_hue" ]]; then
     say "Mode and accent already match the wallpaper; nothing to do."
     jq -n '{journal_id: null, settings: {}, files: []}' | emit
     return 0
@@ -479,12 +544,16 @@ theme_cmd_sync() {
   local settings before after summary="theme: "
   [[ $new_mode != "$cur_mode" ]] && summary+="mode $cur_mode -> $new_mode, "
   [[ $new_accent != "$cur_accent" ]] && summary+="accent $cur_accent -> $new_accent, "
+  [[ $new_hue != "$cur_hue" ]] && summary+="palette hue $cur_hue -> $new_hue, "
   summary="${summary%, } (from the wallpaper)"
-  before=$(jq -cn --arg m "$cur_mode" --arg a "$cur_accent" '{mode: $m, accent: $a}')
-  after=$(jq -cn --arg m "$new_mode" --arg a "$new_accent" '{mode: $m, accent: $a}')
+  before=$(jq -cn --arg m "$cur_mode" --arg a "$cur_accent" --argjson h "$cur_hue" '{mode: $m, accent: $a, hue: $h}')
+  after=$(jq -cn --arg m "$new_mode" --arg a "$new_accent" --argjson h "$new_hue" '{mode: $m, accent: $a, hue: $h}')
   settings=$(theme_settings "$after")
   theme_plan "$settings"
-  (( OPT_DRY_RUN )) || config_set accent "\"$new_accent\""
+  if (( ! OPT_DRY_RUN )); then
+    config_set accent "\"$new_accent\""
+    config_set hue "$new_hue"
+  fi
   theme_commit "$summary" "$before" "$after" null "$settings" mode "\"$new_mode\""
 }
 

@@ -74,16 +74,17 @@ wall_thumb() {
   printf '%s\n' "$thumb"
 }
 
-# wall_info FILE: print "MODE ACCENT" for an image, from the cache if it is
-# there. ACCENT is "-" when the image has no colour to speak of.
+# wall_info FILE: print "MODE ACCENT HUE" for an image, from the cache if it
+# is there. ACCENT and HUE are "-" when the image has no colour to speak of.
 wall_info() {
-  local file=$1 thumb info mode accent
+  local file=$1 thumb info mode colour
   thumb=$(wall_thumb "$file") || return 1
   info=${thumb%.jpg}.info
-  if [[ ! -s $info ]]; then
+  # (An entry with fewer than three fields is from an older version.)
+  if [[ ! -s $info || $(wc -w <"$info") -lt 3 ]]; then
     mode=$(wall_measure_mode "$thumb") || return 1
-    accent=$(wall_measure_accent "$thumb") || accent=-
-    printf '%s %s\n' "$mode" "$accent" >"$info"
+    colour=$(wall_measure_accent "$thumb") || colour="- -"
+    printf '%s %s\n' "$mode" "$colour" >"$info"
   fi
   cat -- "$info"
 }
@@ -97,18 +98,29 @@ wall_mode() {
     return 0
   fi
   info=$(wall_info "$1") || return 1
-  printf '%s\n' "${info% *}"
+  printf '%s\n' "${info%% *}"
 }
 
 # wall_accent FILE: the accent closest to the image's dominant colour. Fails
 # without a wallpaper or for a nearly grey image, so that the caller falls
 # back to the default accent.
 wall_accent() {
-  local info
+  local info accent
   [[ -n $1 ]] || return 1
   info=$(wall_info "$1") || return 1
-  [[ ${info#* } != - ]] || return 1
-  printf '%s\n' "${info#* }"
+  read -r _ accent _ <<<"$info"
+  [[ $accent != - ]] || return 1
+  printf '%s\n' "$accent"
+}
+
+# wall_hue FILE: the hue (0-359) of the image's dominant colour. Fails like wall_accent.
+wall_hue() {
+  local info hue
+  [[ -n $1 ]] || return 1
+  info=$(wall_info "$1") || return 1
+  read -r _ _ hue <<<"$info"
+  [[ $hue =~ ^[0-9]+$ ]] || return 1
+  printf '%s\n' "$hue"
 }
 
 wall_measure_mode() {
@@ -118,7 +130,7 @@ wall_measure_mode() {
   if (( mean >= 55 )); then echo light; else echo dark; fi
 }
 
-# The accent whose hue is closest to the image's dominant colour.
+# The accent whose hue is closest to the image's dominant colour, and that hue.
 wall_measure_accent() {
   local file=$1
   local accents
@@ -150,7 +162,7 @@ wall_measure_accent() {
           split(lines[i], kv, " "); d = hexhue(kv[2]) - besthue; if (d < 0) d = -d; if (d > 180) d = 360 - d
           if (d < bestd) { bestd = d; name = kv[1] }
         }
-        print name
+        print name, int(besthue)
       }'
 }
 
@@ -192,7 +204,7 @@ wall_apply() {
   # and a dark one back; with the accent on auto it follows the wallpaper's
   # dominant colour. A separate karma run, so it gets its own lock,
   # journal entry and reloads; its output is not part of this command's.
-  if [[ $(theme_mode_pref) == auto || $(theme_accent_pref) == auto ]]; then
+  if [[ $(theme_mode_pref) == auto || $(theme_accent_pref) == auto || $(theme_palette_pref) == wallpaper ]]; then
     flock -u 9 2>/dev/null || true
     local out
     if out=$("$KARMA_BIN" theme sync 2>&1 3>&1); then

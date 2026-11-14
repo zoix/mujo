@@ -6,15 +6,56 @@ def _refpat: "^\\{[a-z0-9_.]+\\}$";
 def _path($ref): $ref | split(".") | map(if test("^[0-9]+$") then tonumber else . end);
 
 # Effective settings: tokens.json defaults, then config.json, then a one-off override.
+# The accent "wallpaper" (a colour made from the wallpaper's hue) only exists
+# with the wallpaper palette and a known hue; otherwise the default accent is used.
 def settings($tok; $cfg; $over):
   ($tok.defaults
-   + ($cfg | {accent, reduce_motion, mode, motion} | with_entries(select(.value != null)))
+   + ($cfg | {accent, reduce_motion, mode, motion, palette, hue} | with_entries(select(.value != null)))
    + $over)
+  | if .accent == "wallpaper" and (.palette != "wallpaper" or .hue == null) then .accent = $tok.defaults.accent else . end
   | if (.accent | type) != "string" then error("accent must be a string")
+    elif (.palette != "catppuccin" and .palette != "wallpaper") then error("palette must be catppuccin or wallpaper")
+    elif (.hue != null and ((.hue | type) != "number" or .hue < 0 or .hue >= 360)) then error("hue must be a number from 0 to 359")
     elif (.reduce_motion | type) != "boolean" then error("reduce_motion must be true or false")
     elif (.mode != "dark" and .mode != "light") then error("mode must be dark or light")
     elif (.motion != "normal" and .motion != "gentle") then error("motion must be normal or gentle")
     else . end;
+
+# Hue 0-360, saturation 0-100, lightness 0-100, as "#rrggbb".
+def _hsl($h; $s; $l):
+  ($s / 100) as $S | ($l / 100) as $L
+  | ((1 - ((2 * $L - 1) | fabs)) * $S) as $c
+  | ($h / 60) as $hp
+  | ($c * (1 - ((($hp - (($hp / 2 | floor) * 2)) - 1) | fabs))) as $x
+  | ($L - $c / 2) as $m
+  | ($hp | floor) as $i
+  | (if $i == 0 then [$c, $x, 0] elif $i == 1 then [$x, $c, 0] elif $i == 2 then [0, $c, $x]
+     elif $i == 3 then [0, $x, $c] elif $i == 4 then [$x, 0, $c] else [$c, 0, $x] end)
+  | map((. + $m) * 255 | round
+        | [(. / 16 | floor), (. % 16)] | map(if . < 10 then . + 48 else . + 87 end) | implode)
+  | "#" + join("");
+
+# The wallpaper palette: the neutral colours (backgrounds, borders, text)
+# take the wallpaper's hue, and "wallpaper" becomes an accent in that hue.
+# The named colours (red, green, blue, ...) stay as they are: errors must
+# stay red whatever the wallpaper looks like.
+def _wallpaper_palette($s):
+  if $s.palette != "wallpaper" or $s.hue == null then . else
+    $s.hue as $h
+    | .palette += (if $s.mode == "light" then {
+        base: _hsl($h; 30; 95), mantle: _hsl($h; 26; 92), crust: _hsl($h; 24; 88),
+        surface0: _hsl($h; 20; 83), surface1: _hsl($h; 16; 76), surface2: _hsl($h; 13; 69),
+        overlay0: _hsl($h; 10; 62), overlay1: _hsl($h; 10; 55), overlay2: _hsl($h; 10; 48),
+        subtext0: _hsl($h; 14; 40), subtext1: _hsl($h; 16; 33), text: _hsl($h; 24; 22),
+        wallpaper: _hsl($h; 62; 40)
+      } else {
+        base: _hsl($h; 20; 13), mantle: _hsl($h; 20; 10.5), crust: _hsl($h; 22; 8),
+        surface0: _hsl($h; 16; 20), surface1: _hsl($h; 13; 28), surface2: _hsl($h; 11; 36),
+        overlay0: _hsl($h; 10; 45), overlay1: _hsl($h; 10; 53), overlay2: _hsl($h; 10; 61),
+        subtext0: _hsl($h; 18; 72), subtext1: _hsl($h; 22; 80), text: _hsl($h; 32; 90),
+        wallpaper: _hsl($h; 70; 78)
+      } end)
+  end;
 
 def _resolve_once($root; $accent):
   walk(if type == "string" and test(_refpat) then
@@ -27,7 +68,7 @@ def _resolve_once($root; $accent):
 # One pass over a token tree whose palette is already chosen.
 def _resolve_tree($s):
   if .schema_version != 1 then error("tokens.json: unsupported schema_version \(.schema_version)") else . end
-  | if (any(.accents[]; . == $s.accent) | not)
+  | if ((.palette | has($s.accent)) | not) or ($s.accent != "wallpaper" and (any(.accents[]; . == $s.accent) | not))
     then error("unknown accent '\($s.accent)'; valid: \(.accents | join(", "))") else . end
   | ([.palette | to_entries[]
       | select((.value | type) != "string" or (.value | test("^#[0-9a-f]{6}$") | not)) | .key]) as $bad
@@ -49,10 +90,14 @@ def _resolve_tree($s):
 # console palette (TTY and login screen, installed in /etc) stays dark in
 # both modes, so that a mode change never touches system files.
 def resolve($s):
-  (del(.light) | _resolve_tree($s)) as $dark
-  | if $s.mode == "light"
-    then ((. * (.light // {})) | del(.light) | _resolve_tree($s) | .console = $dark.console)
-    else $dark end;
+  .defaults.accent as $fallback
+  # The console never uses the wallpaper palette or its accent.
+  | (del(.light) | _resolve_tree($s | if .accent == "wallpaper" then .accent = $fallback else . end)) as $console
+  | (if $s.mode == "light" then (. * (.light // {})) else . end)
+  | del(.light)
+  | _wallpaper_palette($s)
+  | _resolve_tree($s)
+  | .console = $console.console;
 
 # ---- filters -----------------------------------------------------------------
 

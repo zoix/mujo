@@ -318,6 +318,7 @@ best effort and never fatal. `qs -c karma ipc show` lists the targets:
 | `build [ID...]` | yes | Render all or the given consumers. Journaled; undo restores the previous files |
 | `check [ID...]` | no | Exit 1 on drift or hardcoded values |
 | `accent [NAME\|auto]` | yes | Without NAME: show. With NAME: set in config.json, rebuild, journal. `auto` (the default) picks the accent closest to the wallpaper's main colour |
+| `palette [catppuccin\|wallpaper]` | yes | `wallpaper` tints backgrounds, borders and text with the wallpaper's main colour and makes the accent a colour of that hue (when the accent is `auto`); red, green and the other named colours stay. A wallpaper without a clear colour keeps the Catppuccin colours. Without a word: `{palette, hue, available}` |
 | `mode [dark\|light\|auto]` | yes | Dark (Catppuccin Mocha) or light (Latte) palette for every app. `auto` (the default) follows the wallpaper: light when the image is bright. Without a word: `{mode, preference, available}` |
 | `motion [normal\|gentle]` | yes | `gentle` makes every animation about twice as slow and has Hyprland fade instead of slide. Without a word: `{motion, reduce_motion, available}` |
 | `reduce-motion [on\|off]` | yes | `on` switches every animation off |

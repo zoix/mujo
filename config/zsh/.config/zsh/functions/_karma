@@ -87,6 +87,7 @@ _karma() {
               'build:render every consumer from the tokens'
               'check:fail on drift or hardcoded values'
               'accent:show or set the accent colour'
+              'palette:catppuccin, or colours from the wallpaper'
               'mode:dark, light or auto (follow the wallpaper)'
               'motion:normal or gentle animations'
               'reduce-motion:show or set reduce_motion'
@@ -99,6 +100,7 @@ _karma() {
           else
             case $words[2] in
               accent) _karma_accents ;;
+              palette) _values 'palette' catppuccin wallpaper ;;
               mode) _values 'mode' dark light auto ;;
               motion) _values 'motion' normal gentle ;;
               reduce-motion) _values 'state' on off ;;
