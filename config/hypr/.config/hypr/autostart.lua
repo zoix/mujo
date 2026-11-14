@@ -8,7 +8,11 @@ hl.on("hyprland.start", function()
     -- The karma interface: frame, bar, notifications, OSD, wallpaper, lock
     -- screen. It owns the notification service, so it starts first.
     -- Run as a user service so that it is restarted if it ever crashes.
-    hl.exec_cmd("systemctl --user restart karma-ui.service")
+    -- The service, and every app started from its launcher, must see the
+    -- same environment as apps started by a key (the Wayland hints for
+    -- Electron apps in compat.lua, the cursor size, ...), so the session's
+    -- environment is handed to systemd first.
+    hl.exec_cmd("dbus-update-activation-environment --systemd --all; systemctl --user restart karma-ui.service")
     -- Locks after a while without input, and before sleep (hypridle.conf).
     hl.exec_cmd("hypridle")
     -- Clipboard history for `karma clip`.

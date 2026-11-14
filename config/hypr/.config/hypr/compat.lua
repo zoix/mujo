@@ -12,6 +12,20 @@ hl.config({
     },
 })
 
+-- With force_zero_scaling above, XWayland apps draw at the screen's real
+-- resolution and must be told how dense it is, or everything in them is
+-- tiny on a 2x screen. X apps read that from the "Xft.dpi" resource: 96 dots
+-- per inch times the scale. Bitwarden needs this: since its Electron 39
+-- update it runs through XWayland on purpose, whatever the hints below say.
+-- XWayland has one value for all screens, so the largest scale is used; on
+-- a screen with a smaller scale X apps then come out a little large, never
+-- small.
+-- Old line: exec-once = xrdb -merge ~/.Xresources (the file no longer
+-- exists; this sets the one value it is needed for).
+hl.on("hyprland.start", function()
+    hl.exec_cmd([[sh -c 'dpi=$(hyprctl monitors -j | jq "[.[].scale] | max * 96 | round"); [ -n "$dpi" ] && echo "Xft.dpi: $dpi" | xrdb -merge']])
+end)
+
 -- Zen Browser 1.17 crashes at start on Hyprland 0.57 with "Wayland protocol
 -- error: interface 'wp_image_description_v1' has no event 2": Hyprland
 -- offers a newer colour-management protocol than Zen's bundled libraries
