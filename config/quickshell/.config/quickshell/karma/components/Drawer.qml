@@ -114,6 +114,18 @@ Item {
         }
     }
 
+    // A strip over the seam with the frame. The turned shape can land half a
+    // pixel off the frame edge, which shows as a hairline gap; the strip
+    // overlaps both sides in the same colour.
+    Rectangle {
+        readonly property real t: Tokens.borderFocus
+        color: Tokens.bgFrame
+        x: root.vertical ? (root.edge === "right" ? root.width - t : -t) : 0
+        y: root.vertical ? 0 : (root.edge === "bottom" ? root.height - t : -t)
+        width: root.vertical ? t + t : root.width
+        height: root.vertical ? root.height : t + t
+    }
+
     // The content keeps its full size and is uncovered as the panel grows,
     // staying attached to the panel's leading side.
     Item {

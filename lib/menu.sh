@@ -22,6 +22,8 @@ EOF
 
 # Entries: label <TAB> kind <TAB> command
 #   run     run `karma <command>`, show the result, return to the menu
+#   show    the same for commands with long or interactive output: from the
+#           interface they get a floating terminal that stays open
 #   tui     replace the menu with `karma <command>`
 #   app     replace the menu with a program
 #   shot    close the menu, then run `karma <command>` (so it is not in the picture)
@@ -62,6 +64,9 @@ System monitor${t}app${t}btop
 Status: everything at a glance${t}run${t}status
 Journal: recent actions${t}run${t}log
 Journal: undo the last action${t}run${t}undo
+System: health check (doctor)${t}show${t}doctor
+System: update karma and packages${t}show${t}update
+System: show what uninstall would do${t}show${t}uninstall --dry-run
 Power: lock${t}run${t}power lock
 Power: suspend${t}run${t}power suspend
 Power: log out${t}confirm${t}power logout
@@ -116,6 +121,14 @@ menu_run() {
       say "$out"
       ;;
     tui) "$KARMA_BIN" "${argv[@]}" --window ;;
+    show)
+      require_wayland
+      need kitty
+      # A floating terminal that runs the command and waits, so the output
+      # can be read (and sudo can ask for the password).
+      tui_detach kitty --class "$KARMA_NAME-tui-show" --title "$KARMA_NAME ${argv[*]}" -o remember_window_size=no \
+        -e sh -c '"$@"; printf "\nPress Enter to close "; read -r _' sh "$KARMA_BIN" "${argv[@]}"
+      ;;
     app)
       require_wayland
       need kitty "${argv[0]}"
@@ -183,7 +196,7 @@ menu_loop() {
         [[ $answer == [yY]* ]] || continue
         "$KARMA_BIN" "${argv[@]}" --yes || tui_pause
         ;;
-      run)
+      run|show)
         "$KARMA_BIN" "${argv[@]}" || true
         tui_pause
         ;;
