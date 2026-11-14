@@ -1,5 +1,6 @@
 // Every workspace as a miniature of its screen, with the windows on it.
-// Click a miniature to go there. Shown as a page of the dashboard.
+// Click a miniature to go there, or move with the arrow keys (or H and L,
+// or Tab) and press Enter. Shown as a page of the dashboard.
 import QtQuick
 import Quickshell
 import Quickshell.Widgets
@@ -14,12 +15,49 @@ Flow {
 
     property bool active: false
     readonly property var spaces: Hyprland.workspaces.values.filter(w => w.id > 0)
+    // The miniature the keyboard is on.
+    property int index: 0
+
+    function step(by: int): void {
+        if (root.spaces.length > 0)
+            root.index = (root.index + by + root.spaces.length) % root.spaces.length;
+    }
+
+    function go(): void {
+        const space = root.spaces[root.index];
+        if (space)
+            space.activate();
+        Ui.closeDashboard();
+    }
+
+    Item {
+        id: keys
+        focus: true
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Escape) {
+                Ui.closeDashboard();
+            } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down || event.key === Qt.Key_L || event.key === Qt.Key_J || event.key === Qt.Key_Tab) {
+                root.step(1);
+            } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Up || event.key === Qt.Key_H || event.key === Qt.Key_K || event.key === Qt.Key_Backtab) {
+                root.step(-1);
+            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+                root.go();
+            } else {
+                return;
+            }
+            event.accepted = true;
+        }
+    }
 
     spacing: Tokens.spaceSm
 
     onActiveChanged: {
-        if (active)
-            Hyprland.refreshToplevels();
+        if (!active)
+            return;
+        Hyprland.refreshToplevels();
+        // Start on the workspace in view.
+        root.index = Math.max(0, root.spaces.findIndex(w => w.focused));
+        keys.forceActiveFocus();
     }
 
     Repeater {
@@ -31,6 +69,8 @@ Flow {
             id: mini
 
             required property HyprlandWorkspace modelData
+            required property int index
+            readonly property bool chosen: root.index === index
             readonly property HyprlandMonitor monitor: modelData.monitor
             // Screen size in the layout's units, and how much the miniature shrinks it.
             readonly property real screenWidth: monitor ? monitor.width / monitor.scale : 1
@@ -41,9 +81,14 @@ Flow {
             height: width * screenHeight / screenWidth
             radius: Tokens.radiusMd
             color: Tokens.bgBase
-            border.width: modelData.focused ? Tokens.borderFocus : 0
+            border.width: mini.chosen ? Tokens.borderFocus + Tokens.borderThin : 0
             border.color: Tokens.accent
             clip: true
+            scale: mini.chosen ? 1 : 0.94
+
+            Behavior on scale {
+                Anim {}
+            }
 
             Repeater {
                 model: mini.modelData.toplevels
@@ -106,11 +151,10 @@ Flow {
 
             MouseArea {
                 anchors.fill: parent
+                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    mini.modelData.activate();
-                    Ui.dashboard = false;
-                }
+                onEntered: root.index = mini.index
+                onClicked: root.go()
             }
         }
     }

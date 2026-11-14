@@ -16,6 +16,25 @@ Item {
 
     property bool active: false
     property string page: "quick"
+    // 0 to 1 while a newly chosen page comes in.
+    property real reveal: 1
+
+    onPageChanged: pageIn.restart()
+
+    NumberAnimation {
+        id: pageIn
+        target: root
+        property: "reveal"
+        from: 0
+        to: 1
+        duration: Tokens.durationNormal
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: Tokens.easeEnter
+    }
+
+    Behavior on implicitHeight {
+        Anim {}
+    }
     property int brightness: -1
     property string profile: ""
     property var profiles: []
@@ -136,6 +155,10 @@ Item {
         // ---- Quick
         Grid {
             visible: root.page === "quick"
+            opacity: root.reveal
+            transform: Translate {
+                x: (1 - root.reveal) * Tokens.spaceXl
+            }
             columns: 2
             spacing: Tokens.spaceSm
 
@@ -179,6 +202,7 @@ Item {
 
         Row {
             visible: root.page === "quick"
+            opacity: root.reveal
             width: parent.width
             spacing: Tokens.spaceSm
 
@@ -197,6 +221,7 @@ Item {
 
         ListView {
             visible: root.page === "quick" && count > 0
+            opacity: root.reveal
             width: parent.width
             height: Math.min(contentHeight, Tokens.osdHeight + Tokens.osdHeight)
             clip: true
@@ -246,6 +271,10 @@ Item {
         // ---- Look
         Column {
             visible: root.page === "look"
+            opacity: root.reveal
+            transform: Translate {
+                x: (1 - root.reveal) * Tokens.spaceXl
+            }
             width: parent.width
             spacing: Tokens.spaceSm
 
@@ -378,6 +407,10 @@ Item {
         // ---- Sound and screen
         Column {
             visible: root.page === "sound"
+            opacity: root.reveal
+            transform: Translate {
+                x: (1 - root.reveal) * Tokens.spaceXl
+            }
             width: parent.width
             spacing: Tokens.spaceSm
 

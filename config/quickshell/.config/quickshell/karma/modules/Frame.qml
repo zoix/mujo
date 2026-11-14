@@ -156,7 +156,12 @@ Scope {
             id: dashboardLinger
             interval: 400
             running: !edgeHover.hovered && !dashboardHover.hovered
-            onTriggered: overlay.dashboardHovered = false
+            onTriggered: {
+                overlay.dashboardHovered = false;
+                // Next time the top edge opens "Today" again.
+                if (!Ui.dashboard)
+                    Ui.closeDashboard();
+            }
         }
 
         property bool dashboardHovered: false

@@ -39,3 +39,34 @@ cmd_dnd() {
   change_end "dnd: $word_cur -> $word_new" "$before" "$after" "$(json_array dnd "$word_cur")"
   ui_ipc notify reload
 }
+
+karma_register notify "Go to the newest notification's app, or dismiss all"
+
+help_notify() {
+  cat <<EOF
+Usage: $KARMA_NAME notify open
+       $KARMA_NAME notify clear
+
+open   Do what a click on the newest notification on screen does: bring the
+       app that sent it forward, on whatever workspace it is.
+clear  Dismiss every notification on screen.
+
+Both need the interface (exit 3 without it).
+EOF
+}
+
+cmd_notify() {
+  local sub=${1:-}
+  (( $# == 1 )) || usage_error "expected 'open' or 'clear'"
+  karma_set_cmd "notify $sub"
+  case $sub in
+    open|clear) ;;
+    *) usage_error "unknown subcommand '$sub'" ;;
+  esac
+  require_wayland
+  need qs
+  timeout 2 qs -c "$KARMA_NAME" ipc call notify "$sub" >/dev/null 2>&1 \
+    || die "$EXIT_ENV" "the interface is not running"
+  say "notify $sub"
+  jq -n --arg a "$sub" '{action: $a}' | emit
+}

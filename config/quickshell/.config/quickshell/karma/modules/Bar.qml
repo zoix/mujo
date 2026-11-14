@@ -55,7 +55,7 @@ Item {
                         Hyprland.refreshToplevels();
                         Ui.hoverIcon("window", root.screen.name, titleArea.mapToItem(null, 0, titleArea.height / 2).y);
                     } else {
-                        Ui.leaveIcon();
+                        Ui.leaveIcon("window");
                     }
                 }
             }

@@ -1,6 +1,7 @@
 // Notifications: a panel in the top-right corner that is part of the frame.
 // It grows as cards arrive and shrinks back into the corner when the last
-// one leaves. Click a card to dismiss it; hovering keeps it on screen.
+// one leaves. Click a card to go to the app that sent it; right click
+// dismisses it; hovering keeps it on screen.
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
@@ -151,7 +152,13 @@ Item {
                         id: hover
                     }
 
+                    // Left click goes to the app; right or middle click just dismisses.
                     TapHandler {
+                        onTapped: Notifs.open(card.modelData)
+                    }
+
+                    TapHandler {
+                        acceptedButtons: Qt.RightButton | Qt.MiddleButton
                         onTapped: card.modelData.dismiss()
                     }
 
@@ -200,11 +207,11 @@ Item {
                         Flow {
                             Layout.fillWidth: true
                             Layout.topMargin: Tokens.spaceXs
-                            visible: card.modelData.actions.length > 0
+                            visible: card.modelData.actions.some(a => a.identifier !== "default")
                             spacing: Tokens.spaceSm
 
                             Repeater {
-                                model: card.modelData.actions
+                                model: card.modelData.actions.filter(a => a.identifier !== "default")
 
                                 delegate: Rectangle {
                                     id: action

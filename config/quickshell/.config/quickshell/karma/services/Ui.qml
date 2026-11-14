@@ -41,7 +41,12 @@ Singleton {
             popoutOpen.restart();
     }
 
-    function leaveIcon(): void {
+    // The pointer left the icon of KIND. Moving from one icon to its
+    // neighbour reports "entered the new one" before "left the old one", so
+    // a leave only counts if it is for the icon the pop-out is showing.
+    function leaveIcon(kind: string): void {
+        if (kind !== root.popoutWanted)
+            return;
         popoutOpen.stop();
         if (!root.popoutHeld)
             popoutClose.restart();
@@ -90,7 +95,10 @@ Singleton {
     // The menu of a tray icon, shown in the pop-out beside the bar.
     property var trayMenu: null
 
-    readonly property bool modal: launcher || session || sidebar
+    // The workspace overview takes the keyboard (arrows, Enter, Escape).
+    readonly property bool overview: dashboard && dashboardPage === "workspaces"
+
+    readonly property bool modal: launcher || session || sidebar || overview
 
     function focusedScreen(): string {
         return Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : (Quickshell.screens.length > 0 ? Quickshell.screens[0].name : "");
@@ -112,12 +120,28 @@ Singleton {
     // Asking for the page that is already open closes the dashboard.
     function toggleDashboard(page: string): void {
         if (root.dashboard && root.dashboardPage === page) {
-            root.dashboard = false;
+            root.closeDashboard();
             return;
         }
         root.screen = root.focusedScreen();
         root.dashboardPage = page;
         root.dashboard = true;
+    }
+
+    // Closing the dashboard puts it back on its first page, once it has
+    // slid away, so that the top edge always opens "Today".
+    function closeDashboard(): void {
+        root.dashboard = false;
+        dashboardReset.restart();
+    }
+
+    Timer {
+        id: dashboardReset
+        interval: Tokens.durationSlow + 50
+        onTriggered: {
+            if (!root.dashboard)
+                root.dashboardPage = "today";
+        }
     }
 
     function toggleSidebar(): void {
@@ -150,6 +174,8 @@ Singleton {
         root.launcher = false;
         root.session = false;
         root.sidebar = false;
+        if (root.dashboard)
+            root.closeDashboard();
     }
 
     function showOsd(kind: string, value: int, muted: bool): void {

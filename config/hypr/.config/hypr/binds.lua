@@ -25,6 +25,7 @@ bind(mod .. " + W", hl.dsp.exec_cmd(karma .. "net tui --window"), "Open the Wi-F
 bind(mod .. " + SHIFT + W", hl.dsp.exec_cmd(karma .. "wall pick --window"), "Choose a wallpaper")
 bind(mod .. " + D", hl.dsp.exec_cmd(karma .. "sys --window"), "Open the dashboard")
 bind(mod .. " + Tab", hl.dsp.exec_cmd(karma .. "sys workspaces --window"), "Show all workspaces")
+bind(mod .. " + N", hl.dsp.exec_cmd(karma .. "notify open"), "Go to the newest notification")
 bind(mod .. " + A", hl.dsp.exec_cmd(karma .. "status --window"), "Open quick settings")
 bind(mod .. " + slash", hl.dsp.exec_cmd(karma .. "keys tui --window"), "Show the keybindings")
 

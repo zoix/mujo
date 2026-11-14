@@ -13,8 +13,9 @@ screen. `SUPER` is the Windows key.
 | `SUPER + Space` | Launcher (`karma launch`); type `>` for commands |
 | `SUPER + X` | System menu (`karma menu`) |
 | `SUPER + V` | Clipboard history (`karma clip`) |
+| `SUPER + N` | Go to the app of the newest notification (the same as clicking it) |
 | `SUPER + A` | Quick settings: toggles, notification history, look, sound and screen |
-| `SUPER + Tab` | All workspaces as miniatures |
+| `SUPER + Tab` | All workspaces as miniatures; arrows (or H/L, Tab) move, Enter goes there, Escape closes |
 | `SUPER + D` | Dashboard: calendar, system gauges, media (`karma sys`); also opens when the pointer touches the middle of the top edge |
 | `SUPER + W` | Wi-Fi picker (`karma net tui`) |
 | `SUPER + Shift + W` | Wallpaper picker (`karma wall pick`) |

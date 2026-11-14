@@ -149,6 +149,10 @@ ShellRoot {
         function clear(): void {
             Notifs.clear();
         }
+
+        function open(): void {
+            Notifs.openNewest();
+        }
     }
 
     IpcHandler {

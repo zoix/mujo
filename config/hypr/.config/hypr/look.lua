@@ -39,5 +39,9 @@ hl.config({
         -- If the lock screen's process dies, a restarted one may take over
         -- the lock instead of leaving the session stuck.
         allow_session_lock_restore = true,
+        -- An app that asks to be brought forward is: this is what makes a
+        -- click on a notification take you to the window that sent it,
+        -- even on another workspace.
+        focus_on_activate = true,
     },
 })

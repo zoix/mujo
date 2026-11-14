@@ -13,6 +13,7 @@ has `--dry-run`.
 | `karma theme` | Build, check, accent, reduce-motion | nothing |
 | `karma wall` | Set or cycle the wallpaper | nothing |
 | `karma dnd` | Do not disturb for notifications | nothing |
+| `karma notify` | `open`: go to the app of the newest notification; `clear`: dismiss all | the interface |
 | `karma power` | lock, suspend, logout, reboot, shutdown | `systemctl`; lock needs the UI |
 | `karma shot` | Region, window or screen screenshot | Wayland (`grim`, `slurp`, `wl-copy`) |
 | `karma clip` | Clipboard history picker; `clip list`, `clip clear` | `cliphist`; picking needs Wayland |
@@ -330,7 +331,7 @@ best effort and never fatal. `qs -c karma ipc show` lists the targets:
 | --- | --- | --- |
 | `osd` | `volume PERCENT MUTED`, `microphone PERCENT MUTED`, `brightness PERCENT` | `karma audio`, `karma display` |
 | `wallpaper` | `set PATH` | `karma wall` |
-| `notify` | `reload` (re-read `config.json`), `clear` (dismiss all cards) | `karma dnd` |
+| `notify` | `reload` (re-read `config.json`), `clear` (dismiss all cards), `open` (go to the newest one's app) | `karma dnd`, `karma notify` |
 | `theme` | `reload` (re-read the colours; the UI is not restarted) | `karma theme` |
 | `lock` | `lock` | `karma power lock` |
 | `launcher` | `apps`, `actions`, `wallpapers`, `clipboard`, `keys`, `wifi` (each toggles that mode), `close` | `--window` on `launch`, `menu`, `wall pick` |

@@ -37,7 +37,7 @@ Column {
             }
             onHoveredChanged: {
                 if (!hovered)
-                    Ui.leaveIcon();
+                    Ui.leaveIcon("tray");
             }
 
             IconImage {

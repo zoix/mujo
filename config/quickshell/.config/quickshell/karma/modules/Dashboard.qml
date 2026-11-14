@@ -16,6 +16,21 @@ Item {
 
     property bool active: false
     readonly property string page: Ui.dashboardPage
+    // 0 to 1 while a newly chosen page comes in.
+    property real reveal: 1
+
+    onPageChanged: pageIn.restart()
+
+    NumberAnimation {
+        id: pageIn
+        target: root
+        property: "reveal"
+        from: 0
+        to: 1
+        duration: Tokens.durationNormal
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: Tokens.easeEnter
+    }
 
     readonly property MprisPlayer player: Mpris.players.values.find(p => p.isPlaying) ?? Mpris.players.values[0] ?? null
     readonly property int cardHeight: Tokens.ring + Tokens.ring + Tokens.spaceXl + Tokens.spaceXl
@@ -48,6 +63,7 @@ Item {
     Overview {
         id: overview
         visible: root.page === "workspaces"
+        opacity: root.reveal
         active: root.active && visible
         x: Tokens.spaceMd
         y: tabs.y + tabs.height + Tokens.spaceSm
@@ -72,6 +88,7 @@ Item {
         id: row
 
         visible: root.page === "today"
+        opacity: root.reveal
         x: Tokens.spaceMd
         y: tabs.y + tabs.height + Tokens.spaceSm
         spacing: Tokens.spaceSm

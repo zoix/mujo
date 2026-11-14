@@ -17,7 +17,7 @@ Rectangle {
         if (button.hovered)
             Ui.hoverIcon(kind, root.screen.name, button.mapToItem(null, 0, button.height / 2).y);
         else
-            Ui.leaveIcon();
+            Ui.leaveIcon(kind);
     }
 
     implicitWidth: icons.implicitWidth + Tokens.spaceXs + Tokens.spaceXs
