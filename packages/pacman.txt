@@ -28,6 +28,10 @@ bluetui                     # Bluetooth TUI
 wiremix                     # audio mixer TUI
 lazygit                     # git TUI
 fastfetch                   # system info
+neovim                      # editor, configured in config/nvim
+ripgrep                     # text search in neovim's picker
+fd                          # file search in neovim's picker
+tree-sitter-cli             # compiles neovim's syntax parsers
 eza                         # ls replacement (the ls/ll/la aliases use it)
 
 # karma's own dependencies

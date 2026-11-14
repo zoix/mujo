@@ -85,3 +85,4 @@ bin/karma theme build && bin/karma theme check
 - [Keybindings](docs/keybinds.md)
 - [Design tokens and templates](docs/tokens.md)
 - [CLI reference](docs/cli.md)
+- [Neovim](docs/neovim.md)
