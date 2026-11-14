@@ -67,7 +67,27 @@ Each run that replaces something creates
 | `stow-<name>.tar` | The whole stow directory, taken before karma unfolds or unstows any of its packages |
 | `manifest.json` | Every action: backed-up paths, unfolded and unstowed packages (with their links), `/etc` files and whether they existed, the old login screen, the old locale, removed packages |
 
-`karma uninstall` (phase 4) reads the manifest to put everything back.
+## Uninstalling
+
+```sh
+karma uninstall --dry-run   # the plan; changes nothing
+karma uninstall --yes       # asks for sudo for the /etc part
+```
+
+`karma uninstall` reads every manifest, newest first, and reverses it: the
+links from `config/` are removed, files are restored from `home/` and `etc/`,
+dotfile packages that were unstowed are stowed again, directories that were
+unfolded become the single link they were, and the previous login screen and
+locale come back. What karma itself generated or wrote (theme files,
+`host.lua`, `local.zsh`, `~/.config/karma`) is moved to
+`~/.local/state/karma/uninstalled/<time>/`, not deleted.
+
+It does not remove packages, does not reinstall packages you let the
+installer remove (it lists them), and leaves the login shell, the checkout,
+the backups and the journal alone. A backup directory without a manifest
+comes from an install that was interrupted; its files stay there and are
+reported, not restored. `--skip-system` leaves `/etc` and services untouched.
+Run `install.sh` again to bring karma back.
 
 ## Coming from an existing Hyprland setup
 

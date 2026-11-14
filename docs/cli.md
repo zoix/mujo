@@ -1,8 +1,7 @@
 # CLI reference
 
 Every command has `--help` and `--json`; every command that changes something
-has `--dry-run`. `karma doctor`, `karma update` and `karma uninstall` arrive in
-phase 4.
+has `--dry-run`.
 
 | Command | Does | Needs |
 | --- | --- | --- |
@@ -21,6 +20,9 @@ phase 4.
 | `karma menu` | System menu over every command | `fzf` |
 | `karma keys` | Keybinding cheat sheet; `keys tui` | Hyprland |
 | `karma log` / `undo` | Action journal | nothing |
+| `karma doctor` | Check packages, links, theme, services, session | nothing |
+| `karma update` | Update karma (git) and the system (pacman), with a summary | `git`; `pacman` and `sudo` |
+| `karma uninstall` | Remove karma's links and restore the backups | `sudo` for the `/etc` part |
 
 A command whose "Needs" are missing exits with code 3 and says what is missing.
 
@@ -231,6 +233,49 @@ a setting's result is shown as a notification. The UI's launcher uses it.
 
 `list` (default): `{binds: [{keys, description, mods, key, locked, repeat, mouse}]}`.
 `tui`: search with fzf.
+
+## karma doctor
+
+Read-only. `data`:
+
+```json
+{"ok": false, "failed": 1, "warnings": 1,
+ "checks": [{"group": "links", "status": "fail",
+             "message": "3 of 43 config file(s) are not linked: ...",
+             "fix": "~/karma/install.sh --skip-system"}]}
+```
+
+`group` is `packages`, `links`, `theme`, `settings`, `services` or `session`;
+`status` is `ok`, `warn`, `fail` or `skip` (session checks outside the
+graphical session). Exit code 1 if any check failed; warnings do not fail.
+
+## karma update
+
+`update [--karma-only | --system-only]`. Pulls the checkout
+(`git pull --ff-only`; skipped without an upstream branch), relinks the config
+and rebuilds the theme if commits arrived, then runs `sudo pacman -Syu`. In a
+terminal pacman asks before installing; `--yes` passes `--noconfirm` and is
+required without a terminal (exit 2 otherwise). `--dry-run` lists pending
+packages and unmerged commits without contacting a server. `data`:
+
+```json
+{"journal_id": "...", "karma": {"state": "updated", "commits": 3},
+ "system": {"packages": ["linux", "jq"]}, "reboot_recommended": true}
+```
+
+`karma.state` is `updated`, `current`, `no-upstream`, `failed`, `skipped`, or
+`pending` (dry run). In `--json` mode pacman's own output goes to stderr.
+Journaled as not reversible.
+
+## karma uninstall
+
+`uninstall [--skip-system]`, needs `--yes`; `--dry-run` prints the plan.
+Removes the links from `config/`, moves what karma generated or wrote to
+`~/.local/state/karma/uninstalled/<time>/`, restores the backups (files,
+restowed and refolded dotfile packages) and, with sudo, the `/etc` files, the
+previous login screen and locale. Packages are not removed. `data`:
+`{journal_id, moved_to, steps: [...], notes: [...]}`; `notes` lists what could
+not be restored. See [install.md](install.md).
 
 ## UI notifications
 

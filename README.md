@@ -4,14 +4,14 @@ A terminal-first desktop for Arch Linux: Hyprland (Lua config), a Quickshell
 interface and a `karma` CLI that owns every change to the system, with
 dry runs, a journal and undo. Catppuccin Mocha (dark) or Latte (light), chosen from the wallpaper; one accent.
 
-**Status: phase 3 (the interface).** `install.sh` sets up Hyprland with the
-karma look, kitty, a themed zsh, greetd with tuigreet and the console
+**Status: phase 4 (complete).** `install.sh` sets up Hyprland with the karma
+look, kitty and Ghostty, a themed zsh, greetd with tuigreet and the console
 palette. The `karma` CLI controls audio, Wi-Fi, Bluetooth, brightness, night
-light, wallpaper, power, screenshots and the clipboard, with fzf TUIs for the
-launcher, the system menu, Wi-Fi and the keybindings. The Quickshell interface
-draws the frame, the bar, notifications, the volume and brightness display,
-the wallpaper and the lock screen. Phase 4 adds `karma doctor`, `update` and
-`uninstall`.
+light, wallpaper, theme, power, screenshots and the clipboard, and every
+change can be previewed, is journaled and can be undone. The Quickshell
+interface draws a frame around the screen with a bar on the left; the
+launcher, the power menu, notifications and the volume display grow out of
+that frame. Light or dark and the accent colour follow the wallpaper.
 
 ## Install
 
@@ -27,21 +27,39 @@ Details, flags and what happens to an existing `hyprland.conf`:
 
 ## Use
 
+| Keys | Opens |
+| --- | --- |
+| `SUPER + Space` | Launcher; type `>` for every karma command |
+| `SUPER + Shift + W` | Wallpaper strip; moving along it applies the image |
+| `SUPER + Shift + Escape` | Power menu |
+| `SUPER + Escape` | Lock |
+| `SUPER + /` | All keybindings |
+
+Everything is also a command, and works over SSH or on a TTY except what
+needs the screen:
+
 ```sh
 karma status                  # audio, network, display, theme, battery
 karma audio volume +5         # every change is journaled...
 karma undo                    # ...and can be put back
 karma log                     # what changed
 karma net tui                 # pick a Wi-Fi network
-karma theme accent blue       # rebuild every app's colours
-karma display night on        # night light
+karma theme mode light        # or dark, or auto (follow the wallpaper)
+karma theme accent blue       # or auto
 karma power reboot --dry-run  # see what an action would do
+karma doctor                  # is everything in place?
+karma update                  # karma and the system
 ```
 
-`SUPER + Space` opens the launcher, `SUPER + X` the system menu.
-Everything works over SSH or on a TTY except what needs the screen.
+Put your wallpapers in `~/Pictures/Wallpapers`. All keys:
+[docs/keybinds.md](docs/keybinds.md). All commands: [docs/cli.md](docs/cli.md).
 
-Keys: [docs/keybinds.md](docs/keybinds.md).
+## Remove
+
+```sh
+karma uninstall --dry-run     # shows the plan
+karma uninstall --yes         # restores what install.sh backed up
+```
 
 ## Develop
 

@@ -61,9 +61,10 @@ split: **the core decides, Quickshell presents.**
 | `lib/tui.sh` | Floating terminal window (`--window`), terminal check, fzf wrapper |
 | `lib/status.sh`, `audio.sh`, `net.sh`, `bt.sh`, `display.sh`, `wall.sh`, `power.sh`, `shot.sh`, `clip.sh`, `launch.sh`, `menu.sh`, `keys.sh` | One command each (see [cli.md](cli.md)). The TUIs live in the module of their command, not in a separate `tui/` directory, because each is a few lines of fzf over that module's own data |
 | `lib/theme.sh` | `karma theme`: plan, build, check, settings, restore, lint |
+| `lib/doctor.sh`, `update.sh`, `uninstall.sh` | Health check, updates, and reversing the installer from its manifests |
 | `lib/theme.jq` | Token resolver and template renderer (jq module) |
 | `design/` | `tokens.json`, `consumers.json`, `templates/`, `check-allow.txt` |
-| `config/` | Hand-written configs, one GNU Stow package per directory: `hypr`, `quickshell`, `kitty`, `zsh`, `bin` |
+| `config/` | Hand-written configs, one GNU Stow package per directory: `hypr`, `quickshell`, `kitty`, `ghostty`, `zsh`, `bin` |
 | `system/` | Files for `/etc` that are not generated (the console palette unit); installed only by `install.sh` |
 | `packages/` | `pacman.txt` (installed), `aur.txt` (empty), `replaced.txt` (offered for removal) |
 | `tests/` | bats tests, `lint.sh`, and `stubs/`: test doubles for wpctl, nmcli, brightnessctl and friends |
@@ -90,7 +91,7 @@ Each command module calls `karma_register NAME SUMMARY` and defines
 | `modules/Launcher.qml` | Bottom panel: apps, karma commands (`>`), wallpaper strip. Lists come from `karma ... list --json` |
 | `modules/Session.qml` | Right panel: the power menu |
 | `modules/Bar.qml`, `Workspaces.qml`, `Tray.qml`, `Status.qml`, `Clock.qml` | The bar's parts. Workspaces are listed per monitor |
-| `modules/Osd.qml`, `Notifications.qml` | Volume/brightness panel on the right edge; notification panel in the top-right corner |
+| `modules/Osd.qml`, `Notifications.qml` | Volume/brightness panel on the left edge, beside the status icons it reports on; notification panel in the top-right corner |
 | `modules/Wallpaper.qml` | Background layer, one per screen |
 | `modules/Lock.qml`, `pam/password.conf` | Wayland session lock on every screen, checked by PAM (`pam_unix`) |
 | `components/` | `Anim` and `Fade` (the motion tokens), `Glyph`, `BarButton` |

@@ -22,6 +22,7 @@ ui_reload() {
       fi
       ;;
     kitty) pkill -USR1 -x kitty >/dev/null 2>&1 || true ;;
+    ghostty) pkill -USR2 -x ghostty >/dev/null 2>&1 || true ;;
     gtk) ;;  # handled by theme.sh, which knows the resolved tokens
     "") ;;
     *) warn "unknown reload hook '$1'" ;;

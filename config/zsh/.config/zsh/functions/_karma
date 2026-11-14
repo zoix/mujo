@@ -64,6 +64,9 @@ _karma() {
     'launch:application launcher'
     'menu:system menu'
     'keys:keybinding cheat sheet'
+    'doctor:check dependencies, services, links and tokens'
+    'update:update karma and the system'
+    'uninstall:remove karma and restore the backups'
     'log:list recent actions'
     'undo:revert an action'
     'version:print the version'
@@ -149,6 +152,8 @@ _karma() {
             esac
           fi
           ;;
+        update) _values 'option' --karma-only --system-only ;;
+        uninstall) _values 'option' --skip-system ;;
         dnd) (( CURRENT == 2 )) && _values 'state' on off toggle ;;
         power) (( CURRENT == 2 )) && _values 'action' list lock suspend logout reboot shutdown ;;
         shot) _values 'mode or option' region window screen --no-save --no-copy --dir ;;

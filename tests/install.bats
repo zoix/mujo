@@ -91,6 +91,34 @@ snapshot() {
   [ -L "$HOME/.config/hypr/hyprland.conf" ]
 }
 
+@test "uninstall puts the home directory back as it was" {
+  old_dotfiles
+  home_state() {
+    (cd "$HOME" && find . \( -path ./.local/state -o -path ./.cache \) -prune -o -printf '%p %y %l\n' | sort)
+  }
+  before=$(home_state)
+  install
+  [ -L "$HOME/.config/hypr/hyprland.lua" ]
+
+  run "$KARMA_REPO/bin/karma" uninstall --skip-system
+  [ "$status" -eq 2 ]
+  run "$KARMA_REPO/bin/karma" uninstall --skip-system --dry-run
+  [ "$status" -eq 0 ]
+  [ -L "$HOME/.config/hypr/hyprland.lua" ]
+
+  run "$KARMA_REPO/bin/karma" uninstall --skip-system --yes
+  [ "$status" -eq 0 ]
+  [ ! -e "$HOME/.config/hypr/hyprland.lua" ]
+  [ -L "$HOME/.local/bin" ]
+  [ "$before" = "$(home_state)" ]
+  # what karma wrote was moved, not deleted
+  [ -f "$(ls -d "$HOME"/.local/state/karma/uninstalled/*)/.config/hypr/host.lua" ]
+
+  # and installing again works
+  install
+  [ -L "$HOME/.config/hypr/hyprland.lua" ]
+}
+
 @test "a second run changes nothing" {
   old_dotfiles
   install

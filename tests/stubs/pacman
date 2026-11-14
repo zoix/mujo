@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Test double for pacman. Installed packages live in $STUB_STATE/packages
+# ("name version" per line). -Qu lists two pending upgrades; -Syu applies them.
+f=${STUB_STATE:?}/packages
+[[ -f $f ]] || printf '%s\n' "bash 5.3-1" "linux 7.3.4-1" "jq 1.8-1" >"$f"
+case $1 in
+  -Qu) printf '%s\n' "linux 7.3.4-1 -> 7.3.5-1" "jq 1.8-1 -> 1.8.2-1" ;;
+  -Q)
+    if [[ -n ${2:-} ]]; then exit 0; fi
+    cat "$f"
+    ;;
+  -Syu) printf '%s\n' "bash 5.3-1" "linux 7.3.5-1" "jq 1.8.2-1" >"$f"; echo ":: stub upgraded 2 packages" ;;
+  *) exit 1 ;;
+esac

@@ -467,6 +467,39 @@ journal_count() {
   [ "$status" -eq 1 ]
 }
 
+# ---- doctor and update --------------------------------------------------------
+
+@test "doctor reports what is missing and exits 1" {
+  export HOME=$BATS_TEST_TMPDIR/home
+  mkdir -p "$HOME"
+  run karma doctor --json
+  [ "$status" -eq 1 ]
+  [ "$(data .ok)" = false ]
+  [ "$(data '.checks[] | select(.group == "links") | .status')" = fail ]
+  [ "$(data '.checks[] | select(.group == "packages") | .status')" = ok ]
+  [ "$(data '.checks[] | select(.group == "session") | .status')" = skip ]
+  [[ $(data '.checks[] | select(.group == "theme") | .fix') == *"theme build"* ]]
+}
+
+@test "update --dry-run lists pending packages and changes nothing" {
+  run karma update --dry-run --json
+  [ "$status" -eq 0 ]
+  [ "$(data '.system.packages | length')" = 2 ]
+  [ "$(journal_count)" -eq 0 ]
+  grep -q "linux 7.3.4-1" "$STUB_STATE/packages"
+}
+
+@test "update upgrades the system, reports it and recommends a reboot for a new kernel" {
+  run karma update --system-only </dev/null
+  [ "$status" -eq 2 ]
+  # pacman's own output goes to stderr in --json mode; stdout is the JSON alone
+  output=$(karma update --yes --json 2>/dev/null </dev/null)
+  [ "$(data '.system.packages | join(" ")')" = "jq linux" ]
+  [ "$(data .reboot_recommended)" = true ]
+  run karma log --json
+  [ "$(data '.entries[0].reversible')" = false ]
+}
+
 # ---- menu and status ---------------------------------------------------------
 
 @test "every menu entry points at a real command" {

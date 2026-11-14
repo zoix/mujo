@@ -1,0 +1,21 @@
+# Ghostty, set up to match kitty in the karma desktop.
+# Colours, font and padding come from karma-theme, which `karma theme build`
+# generates from design/tokens.json. Do not put colours here.
+config-file = karma-theme
+
+# The compositor draws the border; no title bar.
+window-decoration = none
+window-theme = ghostty
+confirm-close-surface = false
+resize-overlay = never
+
+cursor-style = bar
+cursor-style-blink = false
+shell-integration-features = no-cursor
+
+copy-on-select = clipboard
+scrollback-limit = 10000000
+auto-update = off
+
+# Your own settings: create ~/.config/ghostty/local (optional, never overwritten).
+config-file = ?local
