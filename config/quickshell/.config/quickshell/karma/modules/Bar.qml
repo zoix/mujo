@@ -62,6 +62,7 @@ Item {
 
         Tray {
             Layout.alignment: Qt.AlignHCenter
+            screen: root.screen
         }
 
         Status {

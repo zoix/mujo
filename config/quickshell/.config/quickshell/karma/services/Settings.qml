@@ -10,6 +10,13 @@ Singleton {
 
     property string wallpaper: ""
     property bool dnd: false
+    property string modePref: "auto"
+    property string palette: "catppuccin"
+    property string accentPref: "auto"
+    property string motion: "normal"
+    property bool reduceMotion: false
+    property bool nightOn: false
+    property bool awake: false
 
     function reload(): void {
         file.reload();
@@ -20,6 +27,13 @@ Singleton {
             const config = JSON.parse(text);
             root.wallpaper = typeof config.wallpaper === "string" ? config.wallpaper : "";
             root.dnd = config.dnd === true;
+            root.modePref = config.mode_pref ?? "auto";
+            root.palette = config.palette ?? "catppuccin";
+            root.accentPref = config.accent_pref ?? "auto";
+            root.motion = config.motion ?? "normal";
+            root.reduceMotion = config.reduce_motion === true;
+            root.nightOn = config.night_on === true;
+            root.awake = config.awake === true;
         } catch (error) {
             console.warn("karma: cannot read config.json:", error);
         }

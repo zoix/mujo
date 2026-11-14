@@ -74,7 +74,13 @@ Singleton {
     property int osdValue: 0
     property bool osdMuted: false
 
-    readonly property bool modal: launcher || session
+    // The quick-settings panel on the right edge.
+    property bool sidebar: false
+
+    // The menu of a tray icon, shown in the pop-out beside the bar.
+    property var trayMenu: null
+
+    readonly property bool modal: launcher || session || sidebar
 
     function focusedScreen(): string {
         return Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : (Quickshell.screens.length > 0 ? Quickshell.screens[0].name : "");
@@ -88,6 +94,7 @@ Singleton {
         }
         root.screen = root.focusedScreen();
         root.session = false;
+        root.sidebar = false;
         root.launcherMode = mode;
         root.launcher = true;
     }
@@ -98,16 +105,36 @@ Singleton {
         root.dashboard = !root.dashboard;
     }
 
+    function toggleSidebar(): void {
+        if (!root.sidebar)
+            root.screen = root.focusedScreen();
+        root.launcher = false;
+        root.session = false;
+        root.sidebar = !root.sidebar;
+    }
+
+    function showTrayMenu(menu: var, screen: string, y: real): void {
+        root.trayMenu = menu;
+        root.popoutScreen = screen;
+        root.popoutY = y;
+        root.popoutWanted = "tray";
+        popoutOpen.stop();
+        popoutClose.stop();
+        root.popout = "tray";
+    }
+
     function toggleSession(): void {
         if (!root.session)
             root.screen = root.focusedScreen();
         root.launcher = false;
+        root.sidebar = false;
         root.session = !root.session;
     }
 
     function closeAll(): void {
         root.launcher = false;
         root.session = false;
+        root.sidebar = false;
     }
 
     function showOsd(kind: string, value: int, muted: bool): void {

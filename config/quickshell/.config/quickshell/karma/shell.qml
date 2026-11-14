@@ -86,6 +86,14 @@ ShellRoot {
     }
 
     IpcHandler {
+        target: "sidebar"
+
+        function toggle(): void {
+            Ui.toggleSidebar();
+        }
+    }
+
+    IpcHandler {
         target: "dashboard"
 
         function toggle(): void {

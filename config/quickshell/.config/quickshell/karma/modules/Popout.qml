@@ -1,5 +1,7 @@
-// What a pop-out next to a bar icon shows: the details behind the icon.
-// Reading only, except the volume slider, which runs `karma audio volume`.
+// What a pop-out next to a bar icon shows: the details behind the icon, or
+// the menu of a tray icon. Reading only, except the volume slider and the
+// power profile, which run the karma CLI, and tray menu entries, which
+// belong to the app that owns the icon.
 import QtQuick
 import Quickshell
 import Quickshell.Bluetooth
@@ -23,6 +25,17 @@ Item {
     }
 
     readonly property string title: kind === "net" ? "Network" : kind === "bt" ? "Bluetooth" : kind === "audio" ? "Sound" : kind === "battery" ? "Battery" : ""
+
+    // Tray menus: the menu on show, and the menus above it when inside a submenu.
+    property var menuStack: []
+    readonly property var menuHandle: menuStack.length > 0 ? menuStack[menuStack.length - 1] : Ui.trayMenu
+
+    onKindChanged: menuStack = []
+
+    QsMenuOpener {
+        id: opener
+        menu: root.kind === "tray" ? root.menuHandle : null
+    }
 
     readonly property var lines: {
         if (kind === "net") {
@@ -80,6 +93,104 @@ Item {
                 font.family: Tokens.fontFamily
                 font.pixelSize: index === 0 ? Tokens.fontMd : Tokens.fontSm
                 font.weight: index === 0 ? Tokens.weightEmphasis : Tokens.weightRegular
+            }
+        }
+
+        // Power profile, in the battery pop-out.
+        Row {
+            visible: root.kind === "battery"
+            spacing: Tokens.spaceXs
+
+            Repeater {
+                model: [
+                    {
+                        name: "power-saver",
+                        label: "Saver",
+                        value: PowerProfile.PowerSaver
+                    },
+                    {
+                        name: "balanced",
+                        label: "Balanced",
+                        value: PowerProfile.Balanced
+                    },
+                    {
+                        name: "performance",
+                        label: "Fast",
+                        value: PowerProfile.Performance
+                    }
+                ]
+
+                delegate: Chip {
+                    required property var modelData
+                    visible: modelData.name !== "performance" || PowerProfiles.hasPerformanceProfile
+                    label: modelData.label
+                    chosen: PowerProfiles.profile === modelData.value
+                    onClicked: Karma.run(["power", "profile", modelData.name])
+                }
+            }
+        }
+
+        // A tray icon's menu.
+        Chip {
+            visible: root.kind === "tray" && root.menuStack.length > 0
+            label: "Back"
+            onClicked: root.menuStack = root.menuStack.slice(0, -1)
+        }
+
+        Repeater {
+            model: root.kind === "tray" ? opener.children : []
+
+            delegate: Item {
+                id: entry
+
+                required property QsMenuEntry modelData
+
+                width: body.width
+                height: modelData.isSeparator ? Tokens.spaceSm : Tokens.spaceXxl
+
+                Rectangle {
+                    visible: entry.modelData.isSeparator
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width
+                    height: Tokens.borderThin
+                    color: Tokens.borderSubtle
+                }
+
+                Rectangle {
+                    visible: !entry.modelData.isSeparator
+                    anchors.fill: parent
+                    radius: Tokens.radiusSm
+                    color: entryArea.containsMouse && entry.modelData.enabled ? Tokens.bgControl : "transparent"
+
+                    Text {
+                        anchors.left: parent.left
+                        anchors.leftMargin: Tokens.spaceSm
+                        anchors.right: parent.right
+                        anchors.rightMargin: Tokens.spaceSm
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: (entry.modelData.checkState === Qt.Checked ? "\u2713 " : "") + entry.modelData.text + (entry.modelData.hasChildren ? "  \u203a" : "")
+                        color: entry.modelData.enabled ? Tokens.textPrimary : Tokens.textMuted
+                        elide: Text.ElideRight
+                        font.family: Tokens.fontFamily
+                        font.pixelSize: Tokens.fontSm
+                    }
+
+                    MouseArea {
+                        id: entryArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        enabled: entry.modelData.enabled
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (entry.modelData.hasChildren) {
+                                root.menuStack = root.menuStack.concat([entry.modelData]);
+                            } else {
+                                entry.modelData.triggered();
+                                Ui.popout = "";
+                            }
+                        }
+                    }
+                }
             }
         }
 

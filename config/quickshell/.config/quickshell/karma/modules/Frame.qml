@@ -130,6 +130,15 @@ Scope {
             }
         }
 
+        Drawer {
+            edge: "right"
+            open: root.here && Ui.sidebar
+
+            Sidebar {
+                active: root.here && Ui.sidebar
+            }
+        }
+
         // The dashboard opens when the pointer touches the middle of the top
         // edge, and stays while the pointer is on it. A key can pin it open.
         Item {
