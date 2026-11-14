@@ -39,6 +39,9 @@ Subcommands:
                          auto follows the wallpaper: light for a bright image
   motion [normal|gentle] Show the setting, or set it and rebuild (journaled).
                          gentle is slower, and fades instead of sliding
+  glass [on|off]         Show the setting, or set it and rebuild (journaled).
+                         on makes the frame and its panels see-through, with
+                         the desktop blurred behind them
   reduce-motion [on|off] Show the setting, or set it and rebuild (journaled).
                          on switches every animation off
   list                   List consumers, their targets and whether they are current
@@ -66,6 +69,7 @@ cmd_theme() {
     palette) theme_cmd_palette "$@" ;;
     sync) theme_cmd_sync "$@" ;;
     motion) theme_cmd_motion "$@" ;;
+    glass) theme_cmd_glass "$@" ;;
     reduce-motion) theme_cmd_reduce_motion "$@" ;;
     list) theme_cmd_list "$@" ;;
     show) theme_cmd_show "$@" ;;
@@ -608,6 +612,27 @@ theme_cmd_mode() {
   undo=$(json_array theme mode "$pref")
   (( OPT_DRY_RUN )) || config_set mode_pref "\"$want\""
   theme_set mode "\"$new\"" "\"$cur\"" "$summary" "$undo"
+}
+
+theme_cmd_glass() {
+  (( $# <= 1 )) || usage_error "too many arguments"
+  local cur new word
+  cur=$(theme_settings | jq -r .glass)
+  if (( $# == 0 )); then
+    say "Glass: $([[ $cur == true ]] && echo on || echo off)"
+    jq -n --argjson g "$cur" '{glass: $g}' | emit
+    return 0
+  fi
+  new=$(on_off "$1" "$cur") || usage_error "expected on, off or toggle, got '$1'"
+  (( OPT_DRY_RUN )) || karma_lock
+  if [[ $new == "$cur" ]]; then
+    say "Glass is already $1; nothing to do."
+    jq -n --argjson g "$cur" '{journal_id: null, settings: {glass: $g}, files: []}' | emit
+    return 0
+  fi
+  word=$([[ $cur == true ]] && echo on || echo off)
+  theme_set glass "$new" "$cur" "theme glass: $word -> $([[ $new == true ]] && echo on || echo off)" \
+    "$(json_array theme glass "$word")"
 }
 
 theme_cmd_motion() {

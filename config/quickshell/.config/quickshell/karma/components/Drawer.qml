@@ -66,7 +66,7 @@ Item {
 
             ShapePath {
                 strokeColor: "transparent"
-                fillColor: Tokens.bgFrame
+                fillColor: Tokens.panel
                 startX: shape.inset - shape.f
                 startY: shape.h
 
@@ -121,6 +121,8 @@ Item {
     // overlaps both sides in the same colour.
     Rectangle {
         readonly property real t: Tokens.borderFocus
+        // (Not with see-through panels: two layers of the same colour would show.)
+        visible: Tokens.panelOpacity >= 1
         color: Tokens.bgFrame
         x: root.vertical ? (root.edge === "right" ? root.width - t : -t) : 0
         y: root.vertical ? 0 : (root.edge === "bottom" ? root.height - t : -t)

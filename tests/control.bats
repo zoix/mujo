@@ -206,6 +206,17 @@ journal_count() {
   [ "$status" -eq 2 ]
 }
 
+@test "theme glass makes the panels see-through and tells Hyprland to blur" {
+  karma theme build
+  tokens=$(conf)/quickshell/karma/theme/tokens.json
+  [ "$(jq .panelOpacity "$tokens")" = 1 ]
+  karma theme glass on
+  [ "$(jq '.panelOpacity < 1' "$tokens")" = true ]
+  grep -q 'glass = true' "$(conf)/hypr/karma_tokens.lua"
+  karma undo
+  [ "$(jq .panelOpacity "$tokens")" = 1 ]
+}
+
 @test "the console palette for /etc is the same in light and dark mode" {
   karma theme build
   before=$(sha256sum <"$(state)/theme/system/vtrgb/palette.vtrgb")

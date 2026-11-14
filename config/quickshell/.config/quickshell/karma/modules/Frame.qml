@@ -85,7 +85,7 @@ Scope {
 
             ShapePath {
                 strokeColor: "transparent"
-                fillColor: Tokens.bgFrame
+                fillColor: Tokens.panel
                 fillRule: ShapePath.OddEvenFill
 
                 PathRectangle {

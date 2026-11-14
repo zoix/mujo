@@ -351,6 +351,24 @@ Item {
                 }
             }
 
+            Heading {
+                text: "Panels"
+            }
+            Row {
+                spacing: Tokens.spaceSm
+
+                Chip {
+                    label: "Solid"
+                    chosen: !Settings.glass
+                    onClicked: root.run(["theme", "glass", "off"])
+                }
+                Chip {
+                    label: "See-through"
+                    chosen: Settings.glass
+                    onClicked: root.run(["theme", "glass", "on"])
+                }
+            }
+
             Chip {
                 label: "Choose a wallpaper"
                 onClicked: Ui.toggleLauncher("wallpapers")

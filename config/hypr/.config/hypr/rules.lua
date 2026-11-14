@@ -23,3 +23,17 @@ hl.window_rule({
     size   = { "monitor_w * 0.8", "monitor_h * 0.8" },
     center = true,
 })
+
+-- With "glass" on, the desktop behind the frame and its panels is blurred.
+-- The rest of that layer is fully transparent and stays untouched.
+do
+    local cfg = (os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")) .. "/hypr/"
+    local t = require(cfg .. "karma_tokens")
+    hl.layer_rule({
+        name         = "karma-glass",
+        match        = { namespace = "karma-frame" },
+        blur         = true,
+        ignore_alpha = 0.3,
+        enabled      = t.glass,
+    })
+end

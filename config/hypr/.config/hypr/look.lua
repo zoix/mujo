@@ -1,6 +1,8 @@
 -- Gaps, borders, rounding and colours. Every value comes from
 -- karma_tokens.lua, which `karma theme build` generates from design/tokens.json.
--- Depth comes from background steps only: no shadows, no blur.
+-- Depth comes from background steps only: no shadows, and no blur unless
+-- "glass" is on (`karma theme glass on`), which blurs what lies behind the
+-- frame and its panels. Windows are never see-through.
 
 -- Absolute path: this file is a link into the checkout (see hyprland.lua).
 local cfg = (os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")) .. "/hypr/"
@@ -24,7 +26,7 @@ hl.config({
         active_opacity   = 1.0,
         inactive_opacity = 1.0,
         shadow = { enabled = false },
-        blur   = { enabled = false },
+        blur   = { enabled = t.glass, size = 8, passes = 3 },
     },
     dwindle = {
         preserve_split = true,

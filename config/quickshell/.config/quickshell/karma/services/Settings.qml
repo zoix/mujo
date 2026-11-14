@@ -18,6 +18,7 @@ Singleton {
     property bool nightOn: false
     property bool awake: false
     property bool desktopClock: true
+    property bool glass: false
 
     function reload(): void {
         file.reload();
@@ -36,6 +37,7 @@ Singleton {
             root.nightOn = config.night_on === true;
             root.awake = config.awake === true;
             root.desktopClock = config.desktop_clock !== false;
+            root.glass = config.glass === true;
         } catch (error) {
             console.warn("karma: cannot read config.json:", error);
         }

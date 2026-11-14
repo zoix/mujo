@@ -49,6 +49,7 @@ Display: night light on or off${t}run${t}display night toggle
 Theme: accent colour${t}accent${t}theme accent
 Theme: colours from the wallpaper${t}run${t}theme palette wallpaper
 Theme: Catppuccin colours${t}run${t}theme palette catppuccin
+Theme: see-through panels on or off${t}run${t}theme glass toggle
 Theme: gentle motion (slower, fades)${t}run${t}theme motion gentle
 Theme: normal motion${t}run${t}theme motion normal
 Theme: reduce motion on${t}run${t}theme reduce-motion on

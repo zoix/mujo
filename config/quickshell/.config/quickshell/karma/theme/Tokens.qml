@@ -91,6 +91,9 @@ Singleton {
     readonly property int thumbWidth: t.thumbWidth
     readonly property int thumbHeight: t.thumbHeight
     readonly property int card: t.card
+    // The frame and its panels: the frame colour, see-through with "glass" on.
+    readonly property real panelOpacity: t.panelOpacity
+    readonly property color panel: Qt.alpha(bgFrame, panelOpacity)
     readonly property int ring: t.ring
 
     // How long transient UI stays on screen, in ms (not affected by reduce_motion)

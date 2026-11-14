@@ -10,10 +10,11 @@ def _path($ref): $ref | split(".") | map(if test("^[0-9]+$") then tonumber else 
 # with the wallpaper palette and a known hue; otherwise the default accent is used.
 def settings($tok; $cfg; $over):
   ($tok.defaults
-   + ($cfg | {accent, reduce_motion, mode, motion, palette, hue} | with_entries(select(.value != null)))
+   + ($cfg | {accent, reduce_motion, mode, motion, palette, hue, glass} | with_entries(select(.value != null)))
    + $over)
   | if .accent == "wallpaper" and (.palette != "wallpaper" or .hue == null) then .accent = $tok.defaults.accent else . end
   | if (.accent | type) != "string" then error("accent must be a string")
+    elif (.glass | type) != "boolean" then error("glass must be true or false")
     elif (.palette != "catppuccin" and .palette != "wallpaper") then error("palette must be catppuccin or wallpaper")
     elif (.hue != null and ((.hue | type) != "number" or .hue < 0 or .hue >= 360)) then error("hue must be a number from 0 to 359")
     elif (.reduce_motion | type) != "boolean" then error("reduce_motion must be true or false")
@@ -79,6 +80,8 @@ def _resolve_tree($s):
     then error("references still unresolved after 8 passes (cycle?): \($left | join(", "))") else . end
   # Gentle motion: everything takes nearly twice as long, and the configs
   # that read .motion.gentle fade instead of sliding.
+  # Glass: the frame and its panels let the (blurred) desktop show through.
+  | .layout.panel_opacity = (if $s.glass then 0.72 else 1 end)
   | .motion.gentle = ($s.motion == "gentle")
   | if .motion.gentle then .motion.duration |= map_values(. * 1.8 | round) else . end
   | if $s.reduce_motion then .motion.duration |= map_values(0) else . end

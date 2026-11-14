@@ -47,7 +47,7 @@ Item {
 
         ShapePath {
             strokeColor: "transparent"
-            fillColor: Tokens.bgFrame
+            fillColor: Tokens.panel
             startX: shape.inset - shape.f
             startY: 0
 

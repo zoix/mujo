@@ -6,13 +6,17 @@
 // the marker and locks again straight away; Hyprland lets it take over the
 // lock that was left behind.
 import QtQuick
+import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Services.Pam
+import Quickshell.Services.Mpris
+import Quickshell.Services.Pipewire
 import qs.theme
 import qs.components
+import qs.services
 
 Scope {
     id: root
@@ -92,6 +96,50 @@ Scope {
                 precision: SystemClock.Minutes
             }
 
+            readonly property MprisPlayer player: Mpris.players.values.find(p => p.isPlaying) ?? Mpris.players.values[0] ?? null
+
+            // The wallpaper, blurred and dimmed, behind everything.
+            Image {
+                id: backdrop
+                anchors.fill: parent
+                visible: false
+                source: Settings.wallpaper === "" ? "" : "file://" + Settings.wallpaper
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                sourceSize.width: surface.width / 4
+            }
+
+            MultiEffect {
+                anchors.fill: parent
+                visible: Settings.wallpaper !== ""
+                source: backdrop
+                blurEnabled: true
+                blur: 1
+                blurMax: 48
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: Tokens.bgFrame
+                opacity: Settings.wallpaper === "" ? 0 : 0.55
+            }
+
+            // A slow constellation around the clock; it glows with the music.
+            PwNodePeakMonitor {
+                id: level
+                node: Pipewire.defaultAudioSink
+                enabled: surface.player !== null && surface.player.isPlaying && !Tokens.reduceMotion
+            }
+
+            Constellation {
+                anchors.fill: parent
+                energy: level.enabled ? Math.min(1, level.peak * 1.5) : 0
+
+                Behavior on energy {
+                    Anim {}
+                }
+            }
+
             ColumnLayout {
                 anchors.centerIn: parent
                 spacing: Tokens.spaceLg
@@ -149,6 +197,67 @@ Scope {
                         }
                         onTextEdited: root.failed = false
                         Component.onCompleted: input.forceActiveFocus()
+                    }
+                }
+
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    visible: Notifs.history.length > 0
+                    text: Notifs.history.length === 1 ? "1 notification" : Notifs.history.length + " notifications"
+                    color: Tokens.textMuted
+                    font.family: Tokens.fontFamily
+                    font.pixelSize: Tokens.fontSm
+                }
+
+                // What is playing, with previous, play or pause, next.
+                Row {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.topMargin: Tokens.spaceLg
+                    visible: surface.player !== null
+                    spacing: Tokens.spaceSm
+
+                    BarButton {
+                        anchors.verticalCenter: parent.verticalCenter
+                        onClicked: surface.player.previous()
+
+                        Glyph {
+                            anchors.centerIn: parent
+                            text: "\uf048"
+                            font.pixelSize: Tokens.fontMd
+                        }
+                    }
+
+                    BarButton {
+                        anchors.verticalCenter: parent.verticalCenter
+                        onClicked: surface.player.togglePlaying()
+
+                        Glyph {
+                            anchors.centerIn: parent
+                            text: surface.player && surface.player.isPlaying ? "\uf04c" : "\uf04b"
+                            font.pixelSize: Tokens.fontMd
+                            color: Tokens.accent
+                        }
+                    }
+
+                    BarButton {
+                        anchors.verticalCenter: parent.verticalCenter
+                        onClicked: surface.player.next()
+
+                        Glyph {
+                            anchors.centerIn: parent
+                            text: "\uf051"
+                            font.pixelSize: Tokens.fontMd
+                        }
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: Math.min(implicitWidth, Tokens.notificationWidth)
+                        text: surface.player ? (surface.player.trackTitle || surface.player.identity) + (surface.player.trackArtist ? "  " + surface.player.trackArtist : "") : ""
+                        color: Tokens.textMuted
+                        elide: Text.ElideRight
+                        font.family: Tokens.fontFamily
+                        font.pixelSize: Tokens.fontSm
                     }
                 }
 
