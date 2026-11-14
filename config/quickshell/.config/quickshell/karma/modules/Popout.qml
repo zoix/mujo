@@ -1,0 +1,140 @@
+// What a pop-out next to a bar icon shows: the details behind the icon.
+// Reading only, except the volume slider, which runs `karma audio volume`.
+import QtQuick
+import Quickshell
+import Quickshell.Bluetooth
+import Quickshell.Services.UPower
+import qs.theme
+import qs.components
+import qs.services
+
+Item {
+    id: root
+
+    readonly property string kind: Ui.popout
+    readonly property var connected: Bluetooth.devices.values.filter(d => d.connected)
+
+    implicitWidth: Tokens.card + Tokens.spaceMd + Tokens.spaceMd
+    implicitHeight: body.implicitHeight + Tokens.spaceMd + Tokens.spaceMd
+
+    function duration(seconds: real): string {
+        const minutes = Math.round(seconds / 60);
+        return minutes >= 60 ? Math.floor(minutes / 60) + " h " + (minutes % 60) + " min" : minutes + " min";
+    }
+
+    readonly property string title: kind === "net" ? "Network" : kind === "bt" ? "Bluetooth" : kind === "audio" ? "Sound" : kind === "battery" ? "Battery" : ""
+
+    readonly property var lines: {
+        if (kind === "net") {
+            if (Net.ssid !== "")
+                return [Net.ssid, "Signal " + Net.signal + "%", "Click: choose a network"];
+            if (Net.wired)
+                return ["Wired connection", "Click: choose a network"];
+            return [Net.wifiEnabled ? "Not connected" : "Wi-Fi is off", "Click: choose a network", "Right click: Wi-Fi on or off"];
+        }
+        if (kind === "bt") {
+            const adapter = Bluetooth.defaultAdapter;
+            if (!adapter || !adapter.enabled)
+                return ["Off", "Right click: switch on"];
+            const names = root.connected.map(d => d.name);
+            return (names.length > 0 ? names : ["No device connected"]).concat(["Click: devices"]);
+        }
+        if (kind === "audio")
+            return [Audio.sink ? (Audio.sink.description || Audio.sink.name) : "No output", Audio.muted ? "Muted" : Audio.volume + "%"];
+        if (kind === "battery") {
+            const device = Battery.device;
+            if (!Battery.present)
+                return ["No battery"];
+            const left = Battery.charging ? device.timeToFull : device.timeToEmpty;
+            return [Battery.percent + "%, " + (Battery.charging ? "charging" : "on battery"), left > 0 ? root.duration(left) + (Battery.charging ? " until full" : " left") : (Battery.charging ? "Plugged in" : "")].filter(line => line !== "");
+        }
+        return [];
+    }
+
+    Column {
+        id: body
+
+        x: Tokens.spaceMd
+        y: Tokens.spaceMd
+        width: Tokens.card
+        spacing: Tokens.spaceXs
+
+        Text {
+            text: root.title
+            color: Tokens.accent
+            font.family: Tokens.fontFamily
+            font.pixelSize: Tokens.fontXs
+        }
+
+        Repeater {
+            model: root.lines
+
+            delegate: Text {
+                required property string modelData
+                required property int index
+
+                width: body.width
+                text: modelData
+                color: index === 0 ? Tokens.textPrimary : Tokens.textMuted
+                elide: Text.ElideRight
+                font.family: Tokens.fontFamily
+                font.pixelSize: index === 0 ? Tokens.fontMd : Tokens.fontSm
+                font.weight: index === 0 ? Tokens.weightEmphasis : Tokens.weightRegular
+            }
+        }
+
+        // Volume slider: click or drag.
+        Item {
+            visible: root.kind === "audio"
+            width: body.width
+            height: Tokens.spaceXl
+
+            Rectangle {
+                id: track
+                anchors.verticalCenter: parent.verticalCenter
+                width: parent.width
+                height: Tokens.spaceSm
+                radius: Tokens.radiusFull
+                color: Tokens.bgControl
+
+                Rectangle {
+                    width: parent.width * Audio.volume / 100
+                    height: parent.height
+                    radius: Tokens.radiusFull
+                    color: Audio.muted ? Tokens.textMuted : Tokens.accent
+
+                    Behavior on width {
+                        Anim {
+                            duration: Tokens.durationFast
+                        }
+                    }
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+
+                // One karma run per rest of the pointer, not one per pixel.
+                property int wanted: -1
+
+                function ask(x: real): void {
+                    wanted = Math.max(0, Math.min(100, Math.round(x * 100 / width)));
+                    send.restart();
+                }
+
+                onPressed: event => ask(event.x)
+                onPositionChanged: event => {
+                    if (pressed)
+                        ask(event.x);
+                }
+
+                Timer {
+                    id: send
+                    interval: Tokens.durationFast
+                    onTriggered: Karma.run(["audio", "volume", String(parent.wanted)])
+                }
+            }
+        }
+    }
+}

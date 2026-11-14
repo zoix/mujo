@@ -20,6 +20,7 @@ has `--dry-run`.
 | `karma menu` | System menu over every command | `fzf` |
 | `karma keys` | Keybinding cheat sheet; `keys tui` | Hyprland |
 | `karma log` / `undo` | Action journal | nothing |
+| `karma sys` | Processor, memory, temperature, disk, uptime | nothing |
 | `karma doctor` | Check packages, links, theme, services, session | nothing |
 | `karma update` | Update karma (git) and the system (pacman), with a summary | `git`; `pacman` and `sudo` |
 | `karma uninstall` | Remove karma's links and restore the backups | `sudo` for the `/etc` part |
@@ -92,7 +93,8 @@ Without a value the same subcommand only reports the current state.
 open in a floating kitty window with the class `karma-tui-<command>`; running
 the same command again closes that window, so one key toggles it. Four of
 them have a panel in the Quickshell UI, which `--window` uses instead while
-the UI runs: `launch`, `menu`, `wall pick` and `power` (the power menu). Each has a
+the UI runs: `launch`, `menu`, `wall pick`, `power` (the power menu) and
+`sys` (the dashboard). Each has a
 non-interactive sibling for scripts: `launch list`, `menu list`, `clip list`,
 `net scan`, `keys`, `bt`.
 
@@ -234,6 +236,21 @@ a setting's result is shown as a notification. The UI's launcher uses it.
 `list` (default): `{binds: [{keys, description, mods, key, locked, repeat, mouse}]}`.
 `tui`: search with fzf.
 
+## karma sys
+
+Read-only. `data`:
+
+```json
+{"cpu": {"total": 16560151, "idle": 16287148, "cores": 24},
+ "memory": {"total_kb": 131156640, "available_kb": 127231148, "percent": 3},
+ "temperature_c": 53, "disk": {"total_kb": 975694848, "used_kb": 15857984, "percent": 2},
+ "uptime_s": 6896}
+```
+
+`cpu.total` and `cpu.idle` are counters since boot; the load between two
+readings is `1 - Δidle / Δtotal`. The human output takes two readings itself.
+`temperature_c` is `null` without a sensor. `sys --window` opens the dashboard.
+
 ## karma doctor
 
 Read-only. `data`:
@@ -291,6 +308,7 @@ best effort and never fatal. `qs -c karma ipc show` lists the targets:
 | `lock` | `lock` | `karma power lock` |
 | `launcher` | `apps`, `actions`, `wallpapers` (each toggles that mode), `close` | `--window` on `launch`, `menu`, `wall pick` |
 | `session` | `toggle` (the power menu) | `karma power --window` |
+| `dashboard` | `toggle` (pin the dashboard open or release it) | `karma sys --window` |
 | `bar` | `toggle` (hide or show the frame and bar) | by hand |
 
 ## karma theme
@@ -301,7 +319,8 @@ best effort and never fatal. `qs -c karma ipc show` lists the targets:
 | `check [ID...]` | no | Exit 1 on drift or hardcoded values |
 | `accent [NAME\|auto]` | yes | Without NAME: show. With NAME: set in config.json, rebuild, journal. `auto` (the default) picks the accent closest to the wallpaper's main colour |
 | `mode [dark\|light\|auto]` | yes | Dark (Catppuccin Mocha) or light (Latte) palette for every app. `auto` (the default) follows the wallpaper: light when the image is bright. Without a word: `{mode, preference, available}` |
-| `reduce-motion [on\|off]` | yes | Same pattern for `reduce_motion` |
+| `motion [normal\|gentle]` | yes | `gentle` makes every animation about twice as slow and has Hyprland fade instead of slide. Without a word: `{motion, reduce_motion, available}` |
+| `reduce-motion [on\|off]` | yes | `on` switches every animation off |
 | `list` | no | Consumers, paths and status |
 | `show [PATH]` | no | Resolved tokens, or one subtree (`color.bg`, `term.ansi.5`) |
 | `render FILE` | no | Render a template to stdout, no header |

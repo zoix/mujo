@@ -61,6 +61,7 @@ split: **the core decides, Quickshell presents.**
 | `lib/tui.sh` | Floating terminal window (`--window`), terminal check, fzf wrapper |
 | `lib/status.sh`, `audio.sh`, `net.sh`, `bt.sh`, `display.sh`, `wall.sh`, `power.sh`, `shot.sh`, `clip.sh`, `launch.sh`, `menu.sh`, `keys.sh` | One command each (see [cli.md](cli.md)). The TUIs live in the module of their command, not in a separate `tui/` directory, because each is a few lines of fzf over that module's own data |
 | `lib/theme.sh` | `karma theme`: plan, build, check, settings, restore, lint |
+| `lib/sys.sh` | `karma sys`: the figures the dashboard shows |
 | `lib/doctor.sh`, `update.sh`, `uninstall.sh` | Health check, updates, and reversing the installer from its manifests |
 | `lib/theme.jq` | Token resolver and template renderer (jq module) |
 | `design/` | `tokens.json`, `consumers.json`, `templates/`, `check-allow.txt` |
@@ -90,6 +91,8 @@ Each command module calls `karma_register NAME SUMMARY` and defines
 | `components/Drawer.qml` | A panel that grows out of a frame edge in the frame's colour, with curved joins |
 | `modules/Launcher.qml` | Bottom panel: apps, karma commands (`>`), wallpaper strip. Lists come from `karma ... list --json` |
 | `modules/Session.qml` | Right panel: the power menu |
+| `modules/Dashboard.qml`, `services/Sys.qml`, `components/Ring.qml` | Top panel: date and calendar, gauges fed by `karma sys --json`, media controls |
+| `modules/Popout.qml` | Details beside a status icon while the pointer rests on it; the volume slider runs `karma audio volume` |
 | `modules/Bar.qml`, `Workspaces.qml`, `Tray.qml`, `Status.qml`, `Clock.qml` | The bar's parts. Workspaces are listed per monitor |
 | `modules/Osd.qml`, `Notifications.qml` | Volume/brightness panel on the left edge, beside the status icons it reports on; notification panel in the top-right corner |
 | `modules/Wallpaper.qml` | Background layer, one per screen |

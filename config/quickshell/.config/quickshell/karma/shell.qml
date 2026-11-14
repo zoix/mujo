@@ -74,6 +74,14 @@ ShellRoot {
     }
 
     IpcHandler {
+        target: "dashboard"
+
+        function toggle(): void {
+            Ui.toggleDashboard();
+        }
+    }
+
+    IpcHandler {
         target: "session"
 
         function toggle(): void {

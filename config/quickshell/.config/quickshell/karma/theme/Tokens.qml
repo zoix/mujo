@@ -89,6 +89,8 @@ Singleton {
     readonly property int button: t.button
     readonly property int thumbWidth: t.thumbWidth
     readonly property int thumbHeight: t.thumbHeight
+    readonly property int card: t.card
+    readonly property int ring: t.ring
 
     // How long transient UI stays on screen, in ms (not affected by reduce_motion)
     readonly property int notificationTimeout: t.notificationTimeout

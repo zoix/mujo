@@ -66,10 +66,15 @@ Item {
 
         Status {
             Layout.alignment: Qt.AlignHCenter
+            screen: root.screen
         }
 
         Clock {
             Layout.alignment: Qt.AlignHCenter
+
+            TapHandler {
+                onTapped: Ui.toggleDashboard()
+            }
         }
 
         BarButton {

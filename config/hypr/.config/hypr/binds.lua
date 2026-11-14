@@ -23,6 +23,7 @@ bind(mod .. " + X", hl.dsp.exec_cmd(karma .. "menu --window"), "Open the system 
 bind(mod .. " + V", hl.dsp.exec_cmd(karma .. "clip --window"), "Open the clipboard history")
 bind(mod .. " + W", hl.dsp.exec_cmd(karma .. "net tui --window"), "Open the Wi-Fi picker")
 bind(mod .. " + SHIFT + W", hl.dsp.exec_cmd(karma .. "wall pick --window"), "Choose a wallpaper")
+bind(mod .. " + D", hl.dsp.exec_cmd(karma .. "sys --window"), "Open the dashboard")
 bind(mod .. " + slash", hl.dsp.exec_cmd(karma .. "keys tui --window"), "Show the keybindings")
 
 -- Windows

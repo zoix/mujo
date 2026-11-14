@@ -20,6 +20,7 @@ return {
     font_family  = {{ font.family | q }},
 
     reduce_motion = {{ settings.reduce_motion }},
+    gentle = {{ motion.gentle }},
     curves = {
         standard = { type = "bezier", points = {{ motion.ease.standard | lua_points }} },
         enter    = { type = "bezier", points = {{ motion.ease.enter | lua_points }} },

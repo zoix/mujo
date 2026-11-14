@@ -29,7 +29,7 @@ journal_count() {
 }
 
 @test "every command has help" {
-  for c in status audio net bt display wall dnd power shot clip launch menu keys; do
+  for c in status audio net bt display wall dnd power shot clip launch menu keys sys doctor update uninstall; do
     run karma help "$c"
     [ "$status" -eq 0 ]
     [[ $output == "Usage: karma $c"* ]]
@@ -190,6 +190,19 @@ journal_count() {
   [ "$(data .mode)" = dark ]
   [ "$(data .preference)" = auto ]
   run karma theme mode sepia
+  [ "$status" -eq 2 ]
+}
+
+@test "theme motion gentle slows every duration and tells Hyprland to fade" {
+  karma theme build
+  normal=$(jq .durationNormal "$(conf)/quickshell/karma/theme/tokens.json")
+  karma theme motion gentle
+  gentle=$(jq .durationNormal "$(conf)/quickshell/karma/theme/tokens.json")
+  [ "$gentle" -gt "$normal" ]
+  grep -q 'gentle = true' "$(conf)/hypr/karma_tokens.lua"
+  karma undo
+  [ "$(jq .durationNormal "$(conf)/quickshell/karma/theme/tokens.json")" = "$normal" ]
+  run karma theme motion fast
   [ "$status" -eq 2 ]
 }
 
@@ -465,6 +478,16 @@ journal_count() {
   [ "$status" -eq 3 ]
   run karma launch run missing
   [ "$status" -eq 1 ]
+}
+
+@test "sys reports counters and percentages" {
+  run karma sys --json
+  [ "$status" -eq 0 ]
+  [ "$(data '.cpu.total > .cpu.idle')" = true ]
+  [ "$(data '.memory.percent >= 0 and .memory.percent <= 100')" = true ]
+  [ "$(data '.uptime_s > 0')" = true ]
+  run karma sys --window
+  [ "$status" -eq 3 ]
 }
 
 # ---- doctor and update --------------------------------------------------------

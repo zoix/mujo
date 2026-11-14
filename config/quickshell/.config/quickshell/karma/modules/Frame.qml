@@ -1,7 +1,7 @@
 // The frame around one screen, the bar on its left edge, and the panels
-// that grow out of the frame: launcher (bottom), power menu (right), volume
-// and brightness display (left, beside the bar's status icons),
-// notifications (top-right corner).
+// that grow out of the frame: launcher (bottom), dashboard (top), power menu
+// (right), volume and brightness display and icon pop-outs (left, beside
+// the bar's status icons), notifications (top-right corner).
 //
 // One full-screen window on the top layer draws all of it. Only the bar and
 // open panels take input; the rest of the window lets clicks through to the
@@ -49,6 +49,15 @@ Scope {
 
             Region {
                 item: notifications
+            }
+            Region {
+                item: topEdge
+            }
+            Region {
+                item: dashboard
+            }
+            Region {
+                item: popout
             }
         }
 
@@ -118,6 +127,64 @@ Scope {
 
             Session {
                 active: root.here && Ui.session
+            }
+        }
+
+        // The dashboard opens when the pointer touches the middle of the top
+        // edge, and stays while the pointer is on it. A key can pin it open.
+        Item {
+            id: topEdge
+            x: dashboard.x
+            width: dashboard.along
+            height: Tokens.frame
+
+            HoverHandler {
+                id: edgeHover
+            }
+        }
+
+        Timer {
+            id: dashboardLinger
+            interval: 400
+            running: !edgeHover.hovered && !dashboardHover.hovered
+            onTriggered: overlay.dashboardHovered = false
+        }
+
+        property bool dashboardHovered: false
+
+        Connections {
+            target: edgeHover
+            function onHoveredChanged(): void {
+                if (edgeHover.hovered)
+                    overlay.dashboardHovered = true;
+            }
+        }
+
+        Drawer {
+            id: dashboard
+            edge: "top"
+            open: overlay.dashboardHovered || root.here && Ui.dashboard
+
+            Dashboard {
+                active: dashboard.open
+            }
+
+            HoverHandler {
+                id: dashboardHover
+            }
+        }
+
+        // Details beside a bar icon while the pointer rests on it.
+        Drawer {
+            id: popout
+            edge: "left"
+            centre: Ui.popoutY
+            open: Ui.popout !== "" && Ui.popoutScreen === root.screen.name && !Ui.osd
+
+            Popout {}
+
+            HoverHandler {
+                onHoveredChanged: Ui.holdPopout(hovered)
             }
         }
 

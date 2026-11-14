@@ -17,6 +17,55 @@ Singleton {
     property string launcherMode: "apps"   // apps | actions | wallpapers
     property bool session: false
 
+    // The dashboard: pinned open by a key, or open while the pointer is on it.
+    property bool dashboard: false
+
+    // The pop-out beside a bar icon: which one ("" = none), on which screen
+    // and at what height. It opens a moment after the pointer rests on an
+    // icon and closes a moment after it has left both icon and pop-out.
+    property string popout: ""
+    property string popoutScreen: ""
+    property real popoutY: 0
+    property string popoutWanted: ""
+    property bool popoutHeld: false
+
+    function hoverIcon(kind: string, screen: string, y: real): void {
+        root.popoutWanted = kind;
+        root.popoutScreen = screen;
+        root.popoutY = y;
+        popoutClose.stop();
+        if (root.popout !== "")
+            root.popout = kind;
+        else
+            popoutOpen.restart();
+    }
+
+    function leaveIcon(): void {
+        popoutOpen.stop();
+        if (!root.popoutHeld)
+            popoutClose.restart();
+    }
+
+    function holdPopout(held: bool): void {
+        root.popoutHeld = held;
+        if (held)
+            popoutClose.stop();
+        else
+            popoutClose.restart();
+    }
+
+    Timer {
+        id: popoutOpen
+        interval: 350
+        onTriggered: root.popout = root.popoutWanted
+    }
+
+    Timer {
+        id: popoutClose
+        interval: 300
+        onTriggered: root.popout = ""
+    }
+
     // A wallpaper being tried in the picker, shown before karma has applied it.
     property string wallPreview: ""
 
@@ -43,6 +92,12 @@ Singleton {
         root.launcher = true;
     }
 
+    function toggleDashboard(): void {
+        if (!root.dashboard)
+            root.screen = root.focusedScreen();
+        root.dashboard = !root.dashboard;
+    }
+
     function toggleSession(): void {
         if (!root.session)
             root.screen = root.focusedScreen();
@@ -62,6 +117,7 @@ Singleton {
         root.osdValue = Math.max(0, Math.min(100, value));
         root.osdMuted = muted;
         root.osd = true;
+        root.popout = "";
         osdTimer.restart();
     }
 

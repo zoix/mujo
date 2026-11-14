@@ -33,7 +33,10 @@ Subcommands:
                          auto picks the accent closest to the wallpaper's colour
   mode [dark|light|auto] Show the mode, or set it and rebuild (journaled).
                          auto follows the wallpaper: light for a bright image
-  reduce-motion [on|off] Show the setting, or set it and rebuild (journaled)
+  motion [normal|gentle] Show the setting, or set it and rebuild (journaled).
+                         gentle is slower, and fades instead of sliding
+  reduce-motion [on|off] Show the setting, or set it and rebuild (journaled).
+                         on switches every animation off
   list                   List consumers, their targets and whether they are current
   show [PATH]            Print the resolved tokens (optionally one subtree, e.g. color.bg)
   render FILE            Render a template file to stdout (for template authors)
@@ -57,6 +60,7 @@ cmd_theme() {
     accent) theme_cmd_accent "$@" ;;
     mode) theme_cmd_mode "$@" ;;
     sync) theme_cmd_sync "$@" ;;
+    motion) theme_cmd_motion "$@" ;;
     reduce-motion) theme_cmd_reduce_motion "$@" ;;
     list) theme_cmd_list "$@" ;;
     show) theme_cmd_show "$@" ;;
@@ -304,7 +308,7 @@ theme_run_reloads() {
 }
 
 theme_settings_label() {
-  jq -r '"accent \(.accent), mode \(.mode), reduce_motion \(if .reduce_motion then "on" else "off" end)"' <<<"$1"
+  jq -r '"accent \(.accent), mode \(.mode), motion \(.motion), reduce_motion \(if .reduce_motion then "on" else "off" end)"' <<<"$1"
 }
 
 # Tell running GTK and libadwaita apps (through GSettings) which scheme the
@@ -535,6 +539,29 @@ theme_cmd_mode() {
   undo=$(json_array theme mode "$pref")
   (( OPT_DRY_RUN )) || config_set mode_pref "\"$want\""
   theme_set mode "\"$new\"" "\"$cur\"" "$summary" "$undo"
+}
+
+theme_cmd_motion() {
+  (( $# <= 1 )) || usage_error "too many arguments"
+  local cur off
+  cur=$(theme_settings | jq -r .motion)
+  off=$(theme_settings | jq -r .reduce_motion)
+  if (( $# == 0 )); then
+    say "Motion: $cur$([[ $off == true ]] && echo " (but reduce-motion is on, so animations are off)" || true)"
+    say "Available: normal gentle"
+    jq -n --arg m "$cur" --argjson r "$off" '{motion: $m, reduce_motion: $r, available: ["normal", "gentle"]}' | emit
+    return 0
+  fi
+  local new=$1
+  [[ $new == normal || $new == gentle ]] || usage_error "expected normal or gentle, got '$new'"
+  (( OPT_DRY_RUN )) || karma_lock
+  if [[ $new == "$cur" ]]; then
+    say "Motion is already $new; nothing to do."
+    jq -n --arg m "$cur" '{journal_id: null, settings: {motion: $m}, files: []}' | emit
+    return 0
+  fi
+  [[ $off == true ]] && warn "reduce-motion is on, so nothing will move until '$KARMA_NAME theme reduce-motion off'"
+  theme_set motion "\"$new\"" "\"$cur\"" "theme motion: $cur -> $new" "$(json_array theme motion "$cur")"
 }
 
 theme_cmd_reduce_motion() {

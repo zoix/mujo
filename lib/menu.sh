@@ -47,6 +47,8 @@ Display: brightness up${t}run${t}display brightness +10
 Display: brightness down${t}run${t}display brightness -10
 Display: night light on or off${t}run${t}display night toggle
 Theme: accent colour${t}accent${t}theme accent
+Theme: gentle motion (slower, fades)${t}run${t}theme motion gentle
+Theme: normal motion${t}run${t}theme motion normal
 Theme: reduce motion on${t}run${t}theme reduce-motion on
 Theme: reduce motion off${t}run${t}theme reduce-motion off
 Notifications: do not disturb on or off${t}run${t}dnd toggle
@@ -64,6 +66,7 @@ System monitor${t}app${t}btop
 Status: everything at a glance${t}run${t}status
 Journal: recent actions${t}run${t}log
 Journal: undo the last action${t}run${t}undo
+System: dashboard${t}tui${t}sys
 System: health check (doctor)${t}show${t}doctor
 System: update karma and packages${t}show${t}update
 System: show what uninstall would do${t}show${t}uninstall --dry-run

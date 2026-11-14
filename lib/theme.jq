@@ -8,11 +8,12 @@ def _path($ref): $ref | split(".") | map(if test("^[0-9]+$") then tonumber else 
 # Effective settings: tokens.json defaults, then config.json, then a one-off override.
 def settings($tok; $cfg; $over):
   ($tok.defaults
-   + ($cfg | {accent, reduce_motion, mode} | with_entries(select(.value != null)))
+   + ($cfg | {accent, reduce_motion, mode, motion} | with_entries(select(.value != null)))
    + $over)
   | if (.accent | type) != "string" then error("accent must be a string")
     elif (.reduce_motion | type) != "boolean" then error("reduce_motion must be true or false")
     elif (.mode != "dark" and .mode != "light") then error("mode must be dark or light")
+    elif (.motion != "normal" and .motion != "gentle") then error("motion must be normal or gentle")
     else . end;
 
 def _resolve_once($root; $accent):
@@ -35,6 +36,10 @@ def _resolve_tree($s):
   | ([paths(strings | test(_refpat))] | map(map(tostring) | join("."))) as $left
   | if ($left | length) > 0
     then error("references still unresolved after 8 passes (cycle?): \($left | join(", "))") else . end
+  # Gentle motion: everything takes nearly twice as long, and the configs
+  # that read .motion.gentle fade instead of sliding.
+  | .motion.gentle = ($s.motion == "gentle")
+  | if .motion.gentle then .motion.duration |= map_values(. * 1.8 | round) else . end
   | if $s.reduce_motion then .motion.duration |= map_values(0) else . end
   | del(.defaults)
   | .settings = $s;

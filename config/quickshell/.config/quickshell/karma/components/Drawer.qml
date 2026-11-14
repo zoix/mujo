@@ -6,6 +6,7 @@
 //   open:  grows to the content's size when true, back to nothing when false
 //   shift: offset along the edge from the centre (0 = centred)
 //   atEnd: on a left or right edge, sit near the bottom instead of the middle
+//   centre: on a left or right edge, the height to centre on (-1 = not set)
 import QtQuick
 import QtQuick.Shapes
 import qs.theme
@@ -17,6 +18,7 @@ Item {
     property bool open: false
     property real shift: 0
     property bool atEnd: false
+    property real centre: -1
     default property alias content: holder.data
 
     readonly property bool vertical: edge === "left" || edge === "right"
@@ -31,7 +33,7 @@ Item {
     width: vertical ? depth : along
     height: vertical ? along : depth
     x: edge === "left" ? Tokens.bar : edge === "right" ? parent.width - Tokens.frame - width : (parent.width - Tokens.bar - Tokens.frame - width) / 2 + Tokens.bar + shift
-    y: edge === "top" ? Tokens.frame : edge === "bottom" ? parent.height - Tokens.frame - height : atEnd ? parent.height - Tokens.frame - height - Tokens.button : (parent.height - height) / 2 + shift
+    y: edge === "top" ? Tokens.frame : edge === "bottom" ? parent.height - Tokens.frame - height : centre >= 0 ? Math.max(Tokens.frame, Math.min(parent.height - Tokens.frame - height, centre - height / 2)) : atEnd ? parent.height - Tokens.frame - height - Tokens.button : (parent.height - height) / 2 + shift
 
     Behavior on progress {
         NumberAnimation {

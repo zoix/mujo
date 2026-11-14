@@ -13,6 +13,7 @@ screen. `SUPER` is the Windows key.
 | `SUPER + Space` | Launcher (`karma launch`); type `>` for commands |
 | `SUPER + X` | System menu (`karma menu`) |
 | `SUPER + V` | Clipboard history (`karma clip`) |
+| `SUPER + D` | Dashboard: calendar, system gauges, media (`karma sys`); also opens when the pointer touches the middle of the top edge |
 | `SUPER + W` | Wi-Fi picker (`karma net tui`) |
 | `SUPER + Shift + W` | Wallpaper picker (`karma wall pick`) |
 | `SUPER + /` | Keybindings (`karma keys tui`) |

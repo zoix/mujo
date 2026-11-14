@@ -10,6 +10,16 @@ import qs.services
 Rectangle {
     id: root
 
+    required property ShellScreen screen
+
+    // Tell the interface which icon the pointer rests on, and where.
+    function hover(button: Item, kind: string): void {
+        if (button.hovered)
+            Ui.hoverIcon(kind, root.screen.name, button.mapToItem(null, 0, button.height / 2).y);
+        else
+            Ui.leaveIcon();
+    }
+
     implicitWidth: icons.implicitWidth + Tokens.spaceXs + Tokens.spaceXs
     implicitHeight: icons.implicitHeight + Tokens.spaceXs + Tokens.spaceXs
     radius: Tokens.radiusFull
@@ -23,7 +33,9 @@ Rectangle {
         spacing: 0
 
         BarButton {
+            id: netButton
             anchors.horizontalCenter: parent.horizontalCenter
+            onHoveredChanged: root.hover(netButton, "net")
             onClicked: Karma.open(["net", "tui"])
             onRightClicked: Karma.run(["net", "wifi", "toggle"])
 
@@ -36,8 +48,10 @@ Rectangle {
         }
 
         BarButton {
+            id: btButton
             anchors.horizontalCenter: parent.horizontalCenter
             visible: Bluetooth.defaultAdapter !== null
+            onHoveredChanged: root.hover(btButton, "bt")
             onClicked: Karma.open(["bt", "tui"])
             onRightClicked: Karma.run(["bt", "power", "toggle"])
 
@@ -49,7 +63,9 @@ Rectangle {
         }
 
         BarButton {
+            id: audioButton
             anchors.horizontalCenter: parent.horizontalCenter
+            onHoveredChanged: root.hover(audioButton, "audio")
             onClicked: Karma.open(["audio", "tui"])
             onRightClicked: Karma.run(["audio", "mute", "toggle"])
             onScrolled: up => Karma.run(["audio", "volume", up ? "+5" : "-5"])
@@ -74,9 +90,11 @@ Rectangle {
         }
 
         BarButton {
+            id: batteryButton
             anchors.horizontalCenter: parent.horizontalCenter
             visible: Battery.present
             implicitHeight: battery.implicitHeight + Tokens.spaceSm
+            onHoveredChanged: root.hover(batteryButton, "battery")
             onClicked: Ui.toggleLauncher("actions")
 
             Column {

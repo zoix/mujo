@@ -10,8 +10,8 @@ tui_window() {
   shift
   class=$KARMA_NAME-tui-$name
   require_wayland
-  # The launcher, the system menu, the wallpaper picker and the power menu
-  # have a panel in the Quickshell UI. Use it when the UI is running;
+  # The launcher, the system menu, the wallpaper picker, the power menu and
+  # the dashboard have a panel in the Quickshell UI. Use it when the UI is running;
   # otherwise fall back to the terminal version below.
   local panel=""
   case "$name $*" in
@@ -19,6 +19,7 @@ tui_window() {
     "menu "|"menu pick") panel="launcher actions" ;;
     "wall pick") panel="launcher wallpapers" ;;
     "power "|"power list") panel="session toggle" ;;
+    "sys ") panel="dashboard toggle" ;;
   esac
   if [[ -n $panel ]] && command -v qs >/dev/null 2>&1; then
     # shellcheck disable=SC2086  # target and function are two words
@@ -27,6 +28,7 @@ tui_window() {
     fi
   fi
   [[ $name == power ]] && die "$EXIT_ENV" "the power menu is part of the Quickshell UI, which is not running"
+  [[ $name == sys ]] && die "$EXIT_ENV" "the dashboard is part of the Quickshell UI, which is not running"
   need kitty setsid
   if pkill -f -- "^kitty --class $class " 2>/dev/null; then
     exit "$EXIT_OK"
