@@ -113,14 +113,11 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: Tokens.button
                     height: Tokens.button
-                    radius: entry.selected ? Tokens.radiusLg : Tokens.radiusFull
+                    radius: Tokens.radiusFull
                     color: entry.armed ? Tokens.stateError : entry.selected ? Tokens.accent : Tokens.bgBase
 
                     Behavior on color {
                         Fade {}
-                    }
-                    Behavior on radius {
-                        Anim {}
                     }
 
                     Glyph {
