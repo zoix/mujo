@@ -11,6 +11,10 @@ hl.config({
         sensitivity  = 0,
         touchpad = {
             natural_scroll = false,
+            -- The touchpad keeps working while keys are pressed. With the
+            -- default (true) it ignores the finger for a moment after every
+            -- keystroke, which feels like a pointer that sticks.
+            disable_while_typing = false,
         },
     },
 })
