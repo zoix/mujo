@@ -203,25 +203,6 @@ wallpaper, and the mode follows it back.
 `dnd [on|off|toggle]` mutates `dnd` in `config.json`; without a word it
 returns `{dnd}`. While it is on the UI shows only critical notifications.
 
-## karma quote
-
-`quote` (or `quote show`) returns the quote of the hour as
-`{text, author, source, index, total}`. Which one it is follows from the
-hour, so every call within an hour gives the same answer. `quote next`
-moves on by one (a counter in `~/.local/state/karma/quote-offset`; not
-journaled) and has the interface show it. `quote list` returns `{quotes}`.
-`quote hourly [on|off|toggle]` mutates `quote_hourly` in `config.json`
-(absent means on): whether the interface shows the quote for a few seconds
-on the top edge when the hour changes. It never does while do-not-disturb
-is on or the dashboard is open. The quote is also on the lock screen and
-on the dashboard's Today page.
-
-The list is `data/quotes.txt` in the repo: one quote per line, as text,
-author and source separated by tabs; `#` starts a comment. A non-empty
-`~/.config/karma/quotes.txt` replaces it. The wording follows old
-public-domain translations and was typed from memory: check a line against
-its source before quoting it elsewhere.
-
 ## karma power
 
 `power profile [NAME]` shows or sets the power profile (`power-saver`,
@@ -361,7 +342,6 @@ best effort and never fatal. `qs -c karma ipc show` lists the targets:
 | `dashboard` | `toggle`, `workspaces` (the page of workspace miniatures) | `karma sys --window`, `karma sys workspaces --window` |
 | `sidebar` | `toggle` (quick settings) | `karma status --window` |
 | `picker` | `open`, `close` (the screenshot area picker) | `karma shot region` |
-| `quote` | `visit` (read the quote again and show it on the top edge), `hide` | `karma quote next` |
 | `bar` | `toggle` (hide or show the frame and bar) | by hand |
 
 ## karma theme

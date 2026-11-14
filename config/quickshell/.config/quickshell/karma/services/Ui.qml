@@ -193,22 +193,6 @@ Singleton {
         osdTimer.restart();
     }
 
-    // The quote of the hour, visiting on the top edge.
-    property bool quote: false
-
-    function showQuote(): void {
-        if (root.dashboard)
-            return;
-        root.quote = true;
-        quoteTimer.restart();
-    }
-
-    Timer {
-        id: quoteTimer
-        interval: Tokens.quoteTimeout
-        onTriggered: root.quote = false
-    }
-
     Timer {
         id: osdTimer
         interval: Tokens.osdTimeout

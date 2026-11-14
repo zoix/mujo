@@ -103,7 +103,6 @@ Singleton {
     // How long transient UI stays on screen, in ms (not affected by reduce_motion)
     readonly property int notificationTimeout: t.notificationTimeout
     readonly property int osdTimeout: t.osdTimeout
-    readonly property int quoteTimeout: t.quoteTimeout
 
     // Motion (durations are 0 when reduce_motion is on)
     readonly property bool reduceMotion: t.reduceMotion

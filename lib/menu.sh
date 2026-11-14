@@ -70,8 +70,6 @@ System monitor${t}app${t}btop
 Status: everything at a glance${t}run${t}status
 Journal: recent actions${t}run${t}log
 Journal: undo the last action${t}run${t}undo
-Quote: another one now${t}run${t}quote next
-Quote: hourly visit on or off${t}run${t}quote hourly toggle
 Packages: search and install${t}tui${t}pkg install
 Packages: remove${t}tui${t}pkg remove
 System: quick settings${t}tui${t}status

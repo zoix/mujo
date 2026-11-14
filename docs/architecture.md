@@ -42,7 +42,7 @@ split: **the core decides, Quickshell presents.**
    2 usage error, 3 unsupported environment.
 6. **Push, don't poll.** After a change, karma notifies the UI with
    `qs -c karma ipc call <target> <function>`, best effort and never fatal.
-   Quickshell's IPC targets (`osd`, `notify`, `theme`, `quote`, `bar`) hold no logic.
+   Quickshell's IPC targets (`osd`, `notify`, `theme`, `bar`) hold no logic.
 7. **Tokens before widgets.** `design/tokens.json` is the only place a colour,
    size, font or duration is written. `karma theme build` renders it into every
    consumer; `karma theme check` fails on drift or hardcoded values
@@ -98,7 +98,6 @@ Each command module calls `karma_register NAME SUMMARY` and defines
 | `modules/Picker.qml` | The screenshot area picker: a frozen, dimmed screen to click or drag on |
 | `components/Constellation.qml` | The lock screen's slow ring of points and pulses |
 | `modules/Bar.qml`, `Workspaces.qml`, `Tray.qml`, `Status.qml`, `Clock.qml` | The bar's parts. Workspaces are listed per monitor |
-| `services/Quotes.qml`, `modules/Quote.qml` | The quote of the hour from `karma quote`, and its short visit on the top edge when the hour changes |
 | `modules/Osd.qml`, `Notifications.qml` | Volume/brightness panel on the right edge, shown when the keys are pressed; notification panel in the top-right corner |
 | `modules/Wallpaper.qml` | Background layer, one per screen |
 | `modules/Lock.qml`, `pam/password.conf`, `pam/fingerprint.conf` | Wayland session lock on every screen. The password is checked by PAM (`pam_unix`) on Enter; if a finger is enrolled with fprintd, the reader is checked alongside (`pam_fprintd`) the whole time. A marker file in the runtime directory exists while locked |

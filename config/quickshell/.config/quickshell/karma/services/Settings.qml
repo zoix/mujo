@@ -19,7 +19,6 @@ Singleton {
     property bool awake: false
     property bool desktopClock: false
     property bool glass: false
-    property bool quoteHourly: true
 
     function reload(): void {
         file.reload();
@@ -39,7 +38,6 @@ Singleton {
             root.awake = config.awake === true;
             root.desktopClock = config.desktop_clock === true;
             root.glass = config.glass === true;
-            root.quoteHourly = config.quote_hourly !== false;
         } catch (error) {
             console.warn("karma: cannot read config.json:", error);
         }
