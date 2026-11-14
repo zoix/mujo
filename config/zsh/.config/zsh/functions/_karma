@@ -19,19 +19,50 @@ _karma_journal_ids() {
   _describe -t entries 'journal entry' ids
 }
 
+_karma_devices() {
+  local -a ids
+  ids=(${(f)"$(karma audio $1 --json 2>/dev/null | jq -r '.data.devices[] | "\(.name | gsub(":"; "\\:")):\(.description)"' 2>/dev/null)"})
+  _describe -t devices 'device' ids
+}
+
+_karma_networks() {
+  local -a names
+  names=(${(f)"$(karma net scan --no-rescan --json 2>/dev/null | jq -r "$1" 2>/dev/null)"})
+  compadd -a names
+}
+
+_karma_apps() {
+  local -a ids
+  ids=(${(f)"$(karma launch list --json 2>/dev/null | jq -r '.data.apps[] | "\(.id):\(.name)"' 2>/dev/null)"})
+  _describe -t apps 'application' ids
+}
+
 _karma() {
   local -a globals
   globals=(
     '--json[print one JSON object]'
     '--dry-run[show what would change and change nothing]'
     '(--yes -y)'{--yes,-y}'[confirm actions that cannot be undone]'
+    '--window[open in a floating terminal]'
     '(--help -h)'{--help,-h}'[show help]'
   )
 
   local curcontext=$curcontext state
   local -a commands
   commands=(
+    'status:one snapshot of audio, network, display, theme, battery'
+    'audio:volume, mute, output and input device'
+    'net:Wi-Fi status, scan, connect, forget'
+    'bt:Bluetooth status and power'
+    'display:brightness and night light'
     'theme:design tokens: build, check, accent, reduce-motion'
+    'wall:set or cycle the wallpaper'
+    'power:lock, suspend, logout, reboot, shutdown'
+    'shot:region, window or screen screenshot'
+    'clip:clipboard history picker'
+    'launch:application launcher'
+    'menu:system menu'
+    'keys:keybinding cheat sheet'
     'log:list recent actions'
     'undo:revert an action'
     'version:print the version'
@@ -67,6 +98,66 @@ _karma() {
             esac
           fi
           ;;
+        audio)
+          if (( CURRENT == 2 )); then
+            _values 'audio subcommand' status volume mute output input
+          else
+            case $words[2] in
+              mute) _values 'state' on off toggle --input ;;
+              volume) _values 'option' --input ;;
+              output) _karma_devices output ;;
+              input) _karma_devices input ;;
+            esac
+          fi
+          ;;
+        net)
+          if (( CURRENT == 2 )); then
+            _values 'net subcommand' status scan connect disconnect forget wifi tui
+          else
+            case $words[2] in
+              connect) _karma_networks '.data.networks[].ssid' ;;
+              forget) _karma_networks '.data.networks[] | select(.saved) | .ssid' ;;
+              wifi) _values 'state' on off toggle ;;
+              scan) _values 'option' --no-rescan ;;
+            esac
+          fi
+          ;;
+        bt)
+          if (( CURRENT == 2 )); then
+            _values 'bt subcommand' status power tui
+          elif [[ $words[2] == power ]]; then
+            _values 'state' on off toggle
+          fi
+          ;;
+        display)
+          if (( CURRENT == 2 )); then
+            _values 'display subcommand' status brightness night
+          elif [[ $words[2] == night ]]; then
+            _values 'state' on off toggle --temp
+          fi
+          ;;
+        wall)
+          if (( CURRENT == 2 )); then
+            _values 'wall subcommand' status set next prev clear dir
+          else
+            case $words[2] in
+              set) _files -g '*.(png|jpg|jpeg|webp)(-.)' ;;
+              dir) _files -/ ;;
+            esac
+          fi
+          ;;
+        power) (( CURRENT == 2 )) && _values 'action' list lock suspend logout reboot shutdown ;;
+        shot) _values 'mode or option' region window screen --no-save --no-copy --dir ;;
+        clip) (( CURRENT == 2 )) && _values 'clip subcommand' pick list clear ;;
+        launch)
+          if (( CURRENT == 2 )); then
+            _values 'launch subcommand' pick list run
+          elif [[ $words[2] == run ]]; then
+            _karma_apps
+          fi
+          ;;
+        menu) (( CURRENT == 2 )) && _values 'menu subcommand' pick list ;;
+        keys) (( CURRENT == 2 )) && _values 'keys subcommand' list tui ;;
         undo) _karma_journal_ids ;;
         log) _arguments '--limit[number of entries]:count' ;;
         help) _describe -t commands 'karma command' commands ;;

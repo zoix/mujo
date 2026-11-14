@@ -9,6 +9,8 @@ hl.window_rule({
     name   = "karma-tui",
     match  = { class = "^karma-tui-.*$" },
     float  = true,
+    -- kitty asks to be maximized if its last window was; a menu never should be.
+    suppress_event = "maximize fullscreen",
     size   = { "monitor_w * 0.5", "monitor_h * 0.6" },
     center = true,
 })

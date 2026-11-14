@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Test double for brightnessctl: percent lives in $STUB_STATE/backlight.
+f=${STUB_STATE:?}/backlight
+[[ -f $f ]] || echo 50 >"$f"
+args=()
+while (( $# )); do
+  case $1 in
+    -m|-q) shift ;;
+    -c|-d) shift 2 ;;
+    *) args+=("$1"); shift ;;
+  esac
+done
+if [[ ${args[0]:-} == set ]]; then
+  echo "${args[1]%\%}" >"$f"
+else
+  p=$(<"$f")
+  echo "fake_bl,backlight,$(( p * 10 )),$p%,1000"
+fi

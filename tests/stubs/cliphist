@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Test double for cliphist: history in $STUB_STATE/clip (id<TAB>text per line).
+f=${STUB_STATE:?}/clip
+[[ -f $f ]] || printf '2\tsecond entry\n1\tfirst entry\n' >"$f"
+case $1 in
+  list) cat "$f" ;;
+  wipe) : >"$f" ;;
+  *) exit 1 ;;
+esac

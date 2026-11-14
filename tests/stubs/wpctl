@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Test double for wpctl: state lives in $STUB_STATE/audio-{sink,source}.
+d=${STUB_STATE:?}
+file() { case $1 in @DEFAULT_AUDIO_SOURCE@) echo "$d/audio-source" ;; *) echo "$d/audio-sink" ;; esac; }
+init() { [[ -f $1 ]] || echo "0.40 0" >"$1"; }
+case $1 in
+  status) echo "PipeWire 'pipewire-0'" ;;
+  get-volume)
+    f=$(file "$2"); init "$f"; read -r v m <"$f"
+    echo "Volume: $v$([[ $m == 1 ]] && echo " [MUTED]")"
+    ;;
+  set-volume)
+    [[ $2 == -l ]] && shift 2
+    f=$(file "$2"); init "$f"; read -r _ m <"$f"
+    printf '%s %s\n' "$(awk -v p="${3%\%}" 'BEGIN { printf "%.2f", p / 100 }')" "$m" >"$f"
+    ;;
+  set-mute)
+    f=$(file "$2"); init "$f"; read -r v m <"$f"
+    [[ $3 == toggle ]] && set -- "$1" "$2" $(( 1 - m ))
+    echo "$v $3" >"$f"
+    ;;
+  inspect)
+    case $2 in
+      @DEFAULT_AUDIO_SOURCE@) echo "id 55, type PipeWire:Interface:Node" ;;
+      *) echo "id $(cat "$d/audio-default" 2>/dev/null || echo 54), type PipeWire:Interface:Node" ;;
+    esac
+    ;;
+  set-default) echo "$2" >"$d/audio-default" ;;
+  *) exit 1 ;;
+esac

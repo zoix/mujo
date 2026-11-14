@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Test double for bluetoothctl: power state in $STUB_STATE/bt.
+f=${STUB_STATE:?}/bt
+[[ -f $f ]] || echo yes >"$f"
+[[ $1 == --timeout ]] && shift 2
+case "$*" in
+  show) printf 'Controller AA:BB:CC:DD:EE:FF (public)\n\tName: box\n\tAlias: box\n\tPowered: %s\n' "$(<"$f")" ;;
+  "devices Paired") printf 'Device 11:22:33:44:55:66 Head Phones\nDevice 77:88:99:AA:BB:CC Mouse\n' ;;
+  "devices Connected") printf 'Device 77:88:99:AA:BB:CC Mouse\n' ;;
+  "power on") echo yes >"$f" ;;
+  "power off") echo no >"$f" ;;
+  *) exit 1 ;;
+esac

@@ -11,7 +11,7 @@ skipped=()
 
 step() { printf '\n== %s\n' "$*"; }
 
-shell_files=(install.sh bin/karma lib/*.sh tests/*.sh)
+shell_files=(install.sh bin/karma lib/*.sh tests/*.sh tests/stubs/*)
 
 step "bash syntax"
 for f in "${shell_files[@]}"; do bash -n "$f" || fail=1; done

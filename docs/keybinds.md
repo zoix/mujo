@@ -1,8 +1,8 @@
 # Keybindings
 
 Defined in `config/hypr/.config/hypr/binds.lua`; every bind has a description
-that `karma keys` (phase 2) reads from `hyprctl binds -j`. `SUPER` is the
-Windows key.
+that `karma keys` reads from `hyprctl binds -j`. `SUPER + /` shows this list on
+screen. `SUPER` is the Windows key.
 
 ## Apps
 
@@ -10,7 +10,13 @@ Windows key.
 | --- | --- |
 | `SUPER + Return` | Terminal (kitty) |
 | `SUPER + E` | File manager (yazi in kitty) |
-| `SUPER + Space` | Launcher (Vicinae while it is installed; `karma launch` in phase 2) |
+| `SUPER + Space` | Launcher (`karma launch`) |
+| `SUPER + X` | System menu (`karma menu`) |
+| `SUPER + V` | Clipboard history (`karma clip`) |
+| `SUPER + W` | Wi-Fi picker (`karma net tui`) |
+| `SUPER + /` | Keybindings (`karma keys tui`) |
+
+These open in a floating terminal; the same key closes it again.
 
 ## Windows
 
@@ -40,8 +46,10 @@ Windows key.
 
 | Keys | Action |
 | --- | --- |
-| `Print` | Screenshot a region to the clipboard |
-| `Shift + Print` | Screenshot the focused monitor to the clipboard |
+| `Print` | Screenshot a region (saved and copied) |
+| `Shift + Print` | Screenshot the focused monitor |
+| `SUPER + Print` | Screenshot the focused window |
 | `SUPER + Shift + Escape` | Log out |
-| Volume, mute, mic mute, brightness, media keys | As labelled; they also work on the lock screen |
+| Volume, mute, mic mute, brightness | Through `karma audio` and `karma display`: journaled, undoable; they also work on the lock screen |
+| Media keys | Next, previous, play/pause (playerctl) |
 | Lid closed / opened | Laptop panel off / on (from `host.lua`) |

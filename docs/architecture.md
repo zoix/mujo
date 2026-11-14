@@ -54,17 +54,19 @@ split: **the core decides, Quickshell presents.**
 | --- | --- |
 | `install.sh` | Installer: questions, plan, backups, stow, packages, `/etc`, services ([install.md](install.md)) |
 | `bin/karma` | Entry point: opens fd 3, sources `lib/`, dispatches |
-| `lib/core.sh` | Name, paths, global flags, output contract, errors, locking |
+| `lib/core.sh` | Name, paths, global flags, output contract, errors, locking, the shared plan/apply/record steps (`change_begin`, `change_end`) |
 | `lib/config.sh` | `~/.config/karma/config.json` read and write |
 | `lib/journal.sh` | Journal format, `karma log`, `karma undo` |
 | `lib/ui.sh` | Best-effort reload hooks and Quickshell IPC |
+| `lib/tui.sh` | Floating terminal window (`--window`), terminal check, fzf wrapper |
+| `lib/status.sh`, `audio.sh`, `net.sh`, `bt.sh`, `display.sh`, `wall.sh`, `power.sh`, `shot.sh`, `clip.sh`, `launch.sh`, `menu.sh`, `keys.sh` | One command each (see [cli.md](cli.md)). The TUIs live in the module of their command, not in a separate `tui/` directory, because each is a few lines of fzf over that module's own data |
 | `lib/theme.sh` | `karma theme`: plan, build, check, settings, restore, lint |
 | `lib/theme.jq` | Token resolver and template renderer (jq module) |
 | `design/` | `tokens.json`, `consumers.json`, `templates/`, `check-allow.txt` |
 | `config/` | Hand-written configs, one GNU Stow package per directory: `hypr`, `kitty`, `zsh`, `bin` |
 | `system/` | Files for `/etc` that are not generated (the console palette unit); installed only by `install.sh` |
 | `packages/` | `pacman.txt` (installed), `aur.txt` (empty), `replaced.txt` (offered for removal) |
-| `tests/` | bats tests and `lint.sh` |
+| `tests/` | bats tests, `lint.sh`, and `stubs/`: test doubles for wpctl, nmcli, brightnessctl and friends |
 
 Each command module calls `karma_register NAME SUMMARY` and defines
 `cmd_NAME` and `help_NAME`. Global flags (`--json`, `--dry-run`, `--yes`,

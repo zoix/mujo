@@ -266,12 +266,12 @@ print_port_table() {
       *monitor*=*|*switch:*|*moveworkspacetomonitor*) where="host.lua" ;;
       *kb_layout*|*kb_variant*|*kb_options*|*sensitivity*) where="host.lua (keyboard question)" ;;
       *waybar*|*hyprpaper*|*nm-applet*|*swaync*) where="replaced by the karma UI (phase 3)" ;;
-      *'vicinae server'*) where="autostart.lua (only while Vicinae is installed; phase 2 replaces it)" ;;
-      *vicinae*|*'$menu'*) where="binds.lua: SUPER+SPACE (Vicinae until karma launch, phase 2)" ;;
+      *'vicinae server'*) where="dropped: karma launch replaced the Vicinae server (Vicinae itself stays installed)" ;;
+      *vicinae*|*'$menu'*) where="binds.lua: SUPER+SPACE opens karma launch" ;;
       *browser*) where="not bound; the browser question can install one" ;;
       *fileManager*) where="binds.lua: SUPER+E opens yazi in kitty" ;;
       *TERMINAL*|*terminal*) where="binds.lua / autostart.lua: kitty" ;;
-      *hyprshot*) where="binds.lua: grim + slurp (karma shot in phase 2)" ;;
+      *hyprshot*) where="binds.lua: karma shot" ;;
       *bind*|*'$mainMod'*) where="binds.lua" ;;
       *bezier*|*animation*) where="animations.lua (from tokens)" ;;
       *pseudotile*) where="dropped: no longer a Hyprland option" ;;
@@ -398,7 +398,7 @@ questions() {
       confirm DO_REMOVE "Remove them (pacman -Rns)?" n
     fi
     if pacman -Q vicinae-bin >/dev/null 2>&1 || pacman -Q vicinae >/dev/null 2>&1; then
-      info "Vicinae stays bound to SUPER+SPACE until karma's launcher arrives (phase 2)."
+      info "SUPER+SPACE opens karma's launcher; Vicinae is no longer bound to a key."
       confirm DO_VICINAE "Remove Vicinae now?" n
     fi
   fi

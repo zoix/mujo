@@ -4,10 +4,12 @@ A terminal-first desktop for Arch Linux: Hyprland (Lua config), a Quickshell
 interface and a `karma` CLI that owns every change to the system, with
 dry runs, a journal and undo. Catppuccin Mocha, one accent.
 
-**Status: phase 1 (installer and base session).** `install.sh` sets up
-Hyprland with the karma look, kitty, a themed zsh, greetd with tuigreet and
-the console palette. The control-plane commands arrive in phase 2 and the
-Quickshell bar in phase 3.
+**Status: phase 2 (the control plane).** `install.sh` sets up Hyprland with
+the karma look, kitty, a themed zsh, greetd with tuigreet and the console
+palette. The `karma` CLI controls audio, Wi-Fi, Bluetooth, brightness, night
+light, wallpaper, power, screenshots and the clipboard, and has fzf TUIs for
+the launcher, the system menu, Wi-Fi and the keybindings. The Quickshell bar
+arrives in phase 3.
 
 ## Install
 
@@ -24,12 +26,18 @@ Details, flags and what happens to an existing `hyprland.conf`:
 ## Use
 
 ```sh
-karma theme accent            # show the accent and the 13 others
-karma theme accent blue       # rebuild every app's colours; journaled
+karma status                  # audio, network, display, theme, battery
+karma audio volume +5         # every change is journaled...
+karma undo                    # ...and can be put back
 karma log                     # what changed
-karma undo                    # put it back
-karma theme reduce-motion on  # no animations anywhere
+karma net tui                 # pick a Wi-Fi network
+karma theme accent blue       # rebuild every app's colours
+karma display night on        # night light
+karma power reboot --dry-run  # see what an action would do
 ```
+
+`SUPER + Space` opens the launcher, `SUPER + X` the system menu.
+Everything works over SSH or on a TTY except what needs the screen.
 
 Keys: [docs/keybinds.md](docs/keybinds.md).
 

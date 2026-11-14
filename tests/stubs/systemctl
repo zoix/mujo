@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Test double for systemctl: records what was asked instead of doing it.
+echo "$*" >>"${STUB_STATE:?}/systemctl.log"

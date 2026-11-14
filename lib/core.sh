@@ -31,6 +31,7 @@ OPT_JSON=0
 OPT_DRY_RUN=0
 OPT_YES=0
 OPT_HELP=0
+OPT_WINDOW=0
 KARMA_ARGS=()   # arguments left after the global flags are removed
 KARMA_ARGV=()   # the same, kept intact for the journal
 KARMA_CMD=""    # command being run, e.g. "theme accent"
@@ -45,6 +46,11 @@ karma_register() {
   KARMA_CMD_SUMMARY[$1]=$2
 }
 
+# karma_set_cmd "NAME SUB": the command name used in JSON output and errors.
+karma_set_cmd() {
+  KARMA_CMD=$1
+}
+
 # Remove global flags from anywhere in the argument list. `--` stops flag parsing.
 karma_parse_globals() {
   KARMA_ARGS=()
@@ -57,6 +63,7 @@ karma_parse_globals() {
       --dry-run) OPT_DRY_RUN=1 ;;
       --yes|-y) OPT_YES=1 ;;
       --help|-h) OPT_HELP=1 ;;
+      --window) OPT_WINDOW=1 ;;
       --) passthrough=1 ;;
       *) KARMA_ARGS+=("$a") ;;
     esac
@@ -140,6 +147,13 @@ require_wayland() {
     || die "$EXIT_ENV" "'$KARMA_NAME $KARMA_CMD' needs a Wayland session (WAYLAND_DISPLAY is not set)"
 }
 
+# Commands that talk to the compositor call this first.
+require_hyprland() {
+  [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]] \
+    || die "$EXIT_ENV" "'$KARMA_NAME $KARMA_CMD' needs a running Hyprland session"
+  need hyprctl
+}
+
 # atomic_write DEST: write stdin to DEST via a temporary file and rename.
 atomic_write() {
   local dest=$1 dir tmp
@@ -158,9 +172,84 @@ karma_lock() {
   flock -w 10 9 || die "$EXIT_FAIL" "another $KARMA_NAME action is still running"
 }
 
+# ---- mutating commands: plan, apply, record --------------------------------
+#
+# Every simple state change uses the same three steps:
+#   change_begin SUMMARY BEFORE PLANNED   || return 0   # no-op or dry run: reported, stop
+#   <apply the change>
+#   change_end SUMMARY BEFORE AFTER UNDO                # journal, report
+# BEFORE, PLANNED and AFTER are JSON objects describing the state; UNDO is a
+# JSON argv array for `karma undo`, or null if the change cannot be reverted.
+# `data` in --json mode is always {journal_id, changed, before, after}.
+
+change_begin() {
+  local summary=$1 before=$2 planned=$3
+  if [[ $(jq -cS . <<<"$before") == "$(jq -cS . <<<"$planned")" ]]; then
+    say "Nothing to do: already in that state."
+    jq -n --argjson b "$before" '{journal_id: null, changed: false, before: $b, after: $b}' | emit
+    return 1
+  fi
+  if (( OPT_DRY_RUN )); then
+    say "$summary (dry run, nothing changed)"
+    diff -u --label current --label planned <(jq -S . <<<"$before") <(jq -S . <<<"$planned") \
+      | say_stream || true
+    jq -n --argjson b "$before" --argjson a "$planned" \
+      '{journal_id: null, changed: true, before: $b, after: $a}' | emit
+    return 1
+  fi
+  return 0
+}
+
+change_end() {
+  local summary=$1 before=$2 after=$3 undo=$4 jid
+  jid=$(journal_new_id)
+  journal_record "$jid" "$summary" "$before" "$after" "$undo"
+  say "$summary"
+  if [[ $undo == null ]]; then
+    say "Journal: $jid (cannot be undone)"
+  else
+    say "Journal: $jid (undo: $KARMA_NAME undo $jid)"
+  fi
+  jq -n --arg j "$jid" --argjson b "$before" --argjson a "$after" \
+    '{journal_id: $j, changed: true, before: $b, after: $a}' | emit
+}
+
+# confirm_irreversible WHAT: actions that cannot be undone need --yes
+# (a dry run is always allowed).
+confirm_irreversible() {
+  (( OPT_YES || OPT_DRY_RUN )) && return 0
+  die "$EXIT_USAGE" "$1 cannot be undone; run it again with --yes (or --dry-run to preview)"
+}
+
+# on_off WORD CURRENT: print true/false for on|off|toggle; fail on anything else.
+on_off() {
+  case $1 in
+    on|true) echo true ;;
+    off|false) echo false ;;
+    toggle) [[ $2 == true ]] && echo false || echo true ;;
+    *) return 1 ;;
+  esac
+}
+
+# step_value SPEC CURRENT MIN MAX: resolve "40", "40%", "+5" or "-5" to a
+# clamped integer. Prints nothing and fails if SPEC is malformed.
+step_value() {
+  local spec=${1%\%} cur=$2 min=$3 max=$4 v
+  [[ $spec =~ ^[+-]?[0-9]{1,4}$ ]] || return 1
+  case $spec in
+    +*) v=$(( cur + 10#${spec#+} )) ;;
+    -*) v=$(( cur - 10#${spec#-} )) ;;
+    *) v=$(( 10#$spec )) ;;
+  esac
+  (( v < min )) && v=$min
+  (( v > max )) && v=$max
+  echo "$v"
+}
+
 # json_array ARGS...: print the arguments as a JSON array of strings.
+# The "--" keeps jq from reading an argument such as --temp as its own option.
 json_array() {
-  jq -cn '$ARGS.positional' --args "$@"
+  jq -cn '$ARGS.positional' --args -- "$@"
 }
 
 karma_help() {
@@ -183,6 +272,7 @@ Global flags (accepted anywhere on the line):
   --json      Print one JSON object (see docs/cli.md)
   --dry-run   Show what would change and change nothing
   --yes, -y   Confirm actions that cannot be undone
+  --window    Open the command in a floating terminal (toggles; needs Wayland)
   --help, -h  Show help
 
 Exit codes: 0 ok, 1 failure, 2 usage error, 3 unsupported environment.
@@ -225,6 +315,9 @@ karma_main() {
   if (( OPT_HELP )); then
     "help_${cmd//-/_}" "$@" >&3
     exit "$EXIT_OK"
+  fi
+  if (( OPT_WINDOW )); then
+    tui_window "$cmd" "$@"
   fi
   "cmd_${cmd//-/_}" "$@"
 }

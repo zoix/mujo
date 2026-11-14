@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Test double for nmcli: radio state in $STUB_STATE/wifi, current SSID in
+# $STUB_STATE/ssid, saved networks in $STUB_STATE/saved (one per line).
+d=${STUB_STATE:?}
+[[ -f $d/wifi ]] || echo enabled >"$d/wifi"
+[[ -f $d/ssid ]] || echo HomeNet >"$d/ssid"
+[[ -f $d/saved ]] || printf 'HomeNet\nCafe\n' >"$d/saved"
+all="$*"
+ssid=$(<"$d/ssid")
+case $all in
+  *"RUNNING general"*) echo running ;;
+  *"CONNECTIVITY general"*) echo full ;;
+  *"WIFI radio"*) cat "$d/wifi" ;;
+  *"radio wifi on"*) echo enabled >"$d/wifi" ;;
+  *"radio wifi off"*) echo disabled >"$d/wifi" ;;
+  *"DEVICE,TYPE,STATE,CONNECTION device"*)
+    if [[ -n $ssid ]]; then echo "wlan0:wifi:connected:$ssid"; else echo "wlan0:wifi:disconnected:"; fi
+    echo "lo:loopback:connected (externally):lo"
+    ;;
+  *"DEVICE,TYPE device"*) printf 'wlan0:wifi\nlo:loopback\n' ;;
+  *"ACTIVE,SIGNAL,SECURITY,SSID device wifi list"*)
+    for n in "HomeNet:80:WPA2" "HomeNet:40:WPA2" "Cafe:60:WPA2" "Open:Net:30:"; do
+      name=${n%:*:*}; rest=${n#"$name":}
+      echo "$([[ $name == "$ssid" && $rest == 80* ]] && echo yes || echo no):${rest%%:*}:${rest#*:}:$name"
+    done
+    ;;
+  *"ACTIVE,SSID device wifi list"*) [[ -n $ssid ]] && echo "yes:$ssid"; echo "no:Cafe" ;;
+  *"ACTIVE,SIGNAL device wifi list"*) [[ -n $ssid ]] && echo "yes:80"; echo "no:60" ;;
+  *"IP4.ADDRESS device show"*) echo "IP4.ADDRESS[1]:192.0.2.9/24" ;;
+  *"TYPE,NAME connection show"*) sed 's/^/802-11-wireless:/' "$d/saved"; echo "loopback:lo" ;;
+  *"connection up id "*) echo "${all##*connection up id }" >"$d/ssid" ;;
+  *"device wifi connect "*)
+    name=${all##*device wifi connect }; name=${name%% password *}
+    [[ $name == Locked && $all != *"password hunter2"* ]] && { echo "Error: secrets were required"; exit 4; }
+    echo "$name" >"$d/ssid"; echo "$name" >>"$d/saved"
+    ;;
+  *"device disconnect"*) : >"$d/ssid" ;;
+  *"connection delete id "*) name=${all##*connection delete id }; grep -vFx -- "$name" "$d/saved" >"$d/saved.new"; mv "$d/saved.new" "$d/saved" ;;
+  *) echo "nmcli stub: unhandled: $all" >&2; exit 2 ;;
+esac

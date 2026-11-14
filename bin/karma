@@ -19,8 +19,34 @@ source "$KARMA_ROOT/lib/core.sh"
 source "$KARMA_ROOT/lib/config.sh"
 # shellcheck source=../lib/ui.sh
 source "$KARMA_ROOT/lib/ui.sh"
+# shellcheck source=../lib/tui.sh
+source "$KARMA_ROOT/lib/tui.sh"
+# shellcheck source=../lib/status.sh
+source "$KARMA_ROOT/lib/status.sh"
+# shellcheck source=../lib/audio.sh
+source "$KARMA_ROOT/lib/audio.sh"
+# shellcheck source=../lib/net.sh
+source "$KARMA_ROOT/lib/net.sh"
+# shellcheck source=../lib/bt.sh
+source "$KARMA_ROOT/lib/bt.sh"
+# shellcheck source=../lib/display.sh
+source "$KARMA_ROOT/lib/display.sh"
 # shellcheck source=../lib/theme.sh
 source "$KARMA_ROOT/lib/theme.sh"
+# shellcheck source=../lib/wall.sh
+source "$KARMA_ROOT/lib/wall.sh"
+# shellcheck source=../lib/power.sh
+source "$KARMA_ROOT/lib/power.sh"
+# shellcheck source=../lib/shot.sh
+source "$KARMA_ROOT/lib/shot.sh"
+# shellcheck source=../lib/clip.sh
+source "$KARMA_ROOT/lib/clip.sh"
+# shellcheck source=../lib/launch.sh
+source "$KARMA_ROOT/lib/launch.sh"
+# shellcheck source=../lib/menu.sh
+source "$KARMA_ROOT/lib/menu.sh"
+# shellcheck source=../lib/keys.sh
+source "$KARMA_ROOT/lib/keys.sh"
 # shellcheck source=../lib/journal.sh
 source "$KARMA_ROOT/lib/journal.sh"
 

@@ -1,13 +1,13 @@
--- Keybindings. Every bind carries a description so that `karma keys`
--- (phase 2) can list them from `hyprctl binds -j`.
+-- Keybindings. Every bind carries a description so that `karma keys` can
+-- list them from `hyprctl binds -j`.
 --
--- Phase 1 note: volume, brightness and screenshots call their tools
--- directly. Phase 2 moves them behind `karma audio`, `karma display` and
--- `karma shot`, so they are journaled and show the OSD. The launcher bind
--- uses Vicinae if it is still installed until `karma launch` exists.
+-- Anything that changes the system goes through the karma CLI, so it is
+-- journaled, can be undone and shows the OSD. The binds call karma by its
+-- full path: Hyprland's own PATH does not include ~/.local/bin.
 
 local mod      = "SUPER"
 local terminal = "kitty"
+local karma    = "$HOME/.local/bin/karma "
 
 local function bind(keys, dispatcher, description, opts)
     local o = opts or {}
@@ -18,7 +18,11 @@ end
 -- Apps
 bind(mod .. " + Return", hl.dsp.exec_cmd(terminal), "Open a terminal")
 bind(mod .. " + E", hl.dsp.exec_cmd(terminal .. " --class karma-files -e yazi"), "Open the file manager (yazi)")
-bind(mod .. " + space", hl.dsp.exec_cmd("command -v vicinae >/dev/null 2>&1 && vicinae toggle"), "Open the launcher")
+bind(mod .. " + space", hl.dsp.exec_cmd(karma .. "launch --window"), "Open the launcher")
+bind(mod .. " + X", hl.dsp.exec_cmd(karma .. "menu --window"), "Open the system menu")
+bind(mod .. " + V", hl.dsp.exec_cmd(karma .. "clip --window"), "Open the clipboard history")
+bind(mod .. " + W", hl.dsp.exec_cmd(karma .. "net tui --window"), "Open the Wi-Fi picker")
+bind(mod .. " + slash", hl.dsp.exec_cmd(karma .. "keys tui --window"), "Show the keybindings")
 
 -- Windows
 bind(mod .. " + Q", hl.dsp.window.close(), "Close the window")
@@ -48,23 +52,23 @@ bind(mod .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }), "Previous worksp
 bind(mod .. " + S", hl.dsp.workspace.toggle_special("scratch"), "Show or hide the scratchpad")
 bind(mod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:scratch" }), "Move the window to the scratchpad")
 
--- Screenshots (to the clipboard)
-bind("Print", hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy --type image/png'), "Screenshot a region")
-bind("SHIFT + Print", hl.dsp.exec_cmd('grim -o "$(hyprctl activeworkspace -j | jq -r .monitor)" - | wl-copy --type image/png'), "Screenshot this monitor")
+-- Screenshots (saved to ~/Pictures/Screenshots and copied to the clipboard)
+bind("Print", hl.dsp.exec_cmd(karma .. "shot region"), "Screenshot a region")
+bind("SHIFT + Print", hl.dsp.exec_cmd(karma .. "shot screen"), "Screenshot this monitor")
+bind(mod .. " + Print", hl.dsp.exec_cmd(karma .. "shot window"), "Screenshot the focused window")
 
 -- Session
-bind(mod .. " + SHIFT + Escape",
-    hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"),
-    "Log out")
+bind(mod .. " + SHIFT + Escape", hl.dsp.exec_cmd(karma .. "power logout --yes"), "Log out")
 
 -- Hardware keys: work on the lock screen too, and repeat while held.
 local held = { locked = true, repeating = true }
-bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), "Volume up", held)
-bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), "Volume down", held)
-bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), "Mute", { locked = true })
-bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), "Mute the microphone", { locked = true })
-bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl set 5%+"), "Brightness up", { locked = true, repeating = true })
-bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl set 5%-"), "Brightness down", { locked = true, repeating = true })
+bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd(karma .. "audio volume +5"), "Volume up", held)
+bind("XF86AudioLowerVolume", hl.dsp.exec_cmd(karma .. "audio volume -5"), "Volume down", held)
+bind("XF86AudioMute", hl.dsp.exec_cmd(karma .. "audio mute toggle"), "Mute", { locked = true })
+bind("XF86AudioMicMute", hl.dsp.exec_cmd(karma .. "audio mute toggle --input"), "Mute the microphone", { locked = true })
+bind("XF86MonBrightnessUp", hl.dsp.exec_cmd(karma .. "display brightness +5"), "Brightness up", { locked = true, repeating = true })
+bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(karma .. "display brightness -5"), "Brightness down", { locked = true, repeating = true })
+-- Media transport is not a system setting, so playerctl is called directly.
 bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), "Next track", { locked = true })
 bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), "Previous track", { locked = true })
 bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), "Play or pause", { locked = true })

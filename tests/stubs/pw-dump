@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+cat <<'JSON'
+[
+ {"id": 54, "type": "PipeWire:Interface:Node", "info": {"props": {"media.class": "Audio/Sink", "node.name": "alsa_output.speaker", "node.description": "Speaker"}}},
+ {"id": 60, "type": "PipeWire:Interface:Node", "info": {"props": {"media.class": "Audio/Sink", "node.name": "alsa_output.hdmi", "node.description": "HDMI"}}},
+ {"id": 55, "type": "PipeWire:Interface:Node", "info": {"props": {"media.class": "Audio/Source", "node.name": "alsa_input.mic", "node.description": "Microphone"}}},
+ {"id": 33, "type": "PipeWire:Interface:Client", "info": {"props": {}}}
+]
+JSON
