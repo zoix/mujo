@@ -1,4 +1,4 @@
-// Content of the volume and brightness panel beside the bar: the level
+// Content of the volume and brightness panel on the right edge: the level
 // as a number, a vertical bar and an icon. karma triggers it over IPC.
 import QtQuick
 import qs.theme

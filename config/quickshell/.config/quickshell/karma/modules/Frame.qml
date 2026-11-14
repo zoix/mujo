@@ -1,7 +1,7 @@
 // The frame around one screen, the bar on its left edge, and the panels
-// that grow out of the frame: launcher (bottom), dashboard (top), power menu
-// (right), volume and brightness display and icon pop-outs (left, beside
-// the bar's status icons), notifications (top-right corner).
+// that grow out of the frame: launcher (bottom), dashboard (top), power
+// menu, quick settings and the volume and brightness display (right), icon
+// pop-outs (left, beside the bar), notifications (top-right corner).
 //
 // One full-screen window on the top layer draws all of it. Only the bar and
 // open panels take input; the rest of the window lets clicks through to the
@@ -202,11 +202,10 @@ Scope {
             }
         }
 
-        // Next to the volume and brightness icons it reports on.
+        // Volume and brightness, shown when their keys are pressed.
         Drawer {
-            edge: "left"
-            atEnd: true
-            open: root.here && Ui.osd
+            edge: "right"
+            open: root.here && Ui.osd && !Ui.session && !Ui.sidebar
 
             Osd {}
         }

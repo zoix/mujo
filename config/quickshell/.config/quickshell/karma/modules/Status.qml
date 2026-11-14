@@ -1,4 +1,6 @@
-// Status icons: network, Bluetooth, audio, do-not-disturb, battery.
+// Status icons: network, Bluetooth, do-not-disturb, battery. (Volume has
+// no icon: the keys show the level on the right edge, and quick settings
+// has the slider.)
 // Each opens the terminal UI that controls it, through karma.
 import QtQuick
 import Quickshell
@@ -59,21 +61,6 @@ Rectangle {
                 anchors.centerIn: parent
                 text: ""
                 color: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled ? Tokens.textPrimary : Tokens.borderSubtle
-            }
-        }
-
-        BarButton {
-            id: audioButton
-            anchors.horizontalCenter: parent.horizontalCenter
-            onHoveredChanged: root.hover(audioButton, "audio")
-            onClicked: Karma.open(["audio", "tui"])
-            onRightClicked: Karma.run(["audio", "mute", "toggle"])
-            onScrolled: up => Karma.run(["audio", "volume", up ? "+5" : "-5"])
-
-            Glyph {
-                anchors.centerIn: parent
-                text: Audio.muted || Audio.volume === 0 ? "" : Audio.volume < 50 ? "" : ""
-                color: Audio.muted ? Tokens.stateError : Tokens.textPrimary
             }
         }
 
