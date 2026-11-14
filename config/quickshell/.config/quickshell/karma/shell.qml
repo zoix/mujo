@@ -97,7 +97,11 @@ ShellRoot {
         target: "dashboard"
 
         function toggle(): void {
-            Ui.toggleDashboard();
+            Ui.toggleDashboard("today");
+        }
+
+        function workspaces(): void {
+            Ui.toggleDashboard("workspaces");
         }
     }
 

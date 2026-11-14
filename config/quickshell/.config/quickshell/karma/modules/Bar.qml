@@ -41,11 +41,24 @@ Item {
             screen: root.screen
         }
 
-        // The focused window's title, written bottom to top.
+        // The focused window's title, written bottom to top. Resting the
+        // pointer on it shows details and actions for that window.
         Item {
+            id: titleArea
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
+
+            HoverHandler {
+                onHoveredChanged: {
+                    if (hovered && root.title !== "") {
+                        Hyprland.refreshToplevels();
+                        Ui.hoverIcon("window", root.screen.name, titleArea.mapToItem(null, 0, titleArea.height / 2).y);
+                    } else {
+                        Ui.leaveIcon();
+                    }
+                }
+            }
 
             Text {
                 anchors.centerIn: parent
@@ -74,7 +87,7 @@ Item {
             Layout.alignment: Qt.AlignHCenter
 
             TapHandler {
-                onTapped: Ui.toggleDashboard()
+                onTapped: Ui.toggleDashboard("today")
             }
         }
 

@@ -3,7 +3,10 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Services.Mpris
+import Quickshell.Services.Pipewire
 import qs.theme
+import qs.components
 import qs.services
 
 PanelWindow {
@@ -68,6 +71,81 @@ PanelWindow {
         onStatusChanged: {
             if (status === Image.Ready)
                 fade.restart();
+        }
+    }
+
+    // A clock in the lower right corner of the desktop, and beside it a few
+    // bars that follow the music while something is playing. They sit on
+    // the wallpaper, so windows cover them.
+    SystemClock {
+        id: clock
+        precision: SystemClock.Minutes
+    }
+
+    readonly property bool playing: Mpris.players.values.some(p => p.isPlaying)
+
+    PwNodePeakMonitor {
+        id: level
+        node: Pipewire.defaultAudioSink
+        enabled: root.playing && Settings.desktopClock && !Tokens.reduceMotion
+    }
+
+    Row {
+        visible: Settings.desktopClock
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.rightMargin: Tokens.frame + Tokens.spaceXxl
+        anchors.bottomMargin: Tokens.frame + Tokens.spaceXl
+        spacing: Tokens.spaceLg
+
+        Row {
+            visible: level.enabled
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: Tokens.spaceMd
+            spacing: Tokens.spaceXs
+
+            Repeater {
+                // Each bar answers the same level a little differently.
+                model: [0.55, 0.85, 1, 0.7, 0.45]
+
+                delegate: Rectangle {
+                    required property real modelData
+                    anchors.bottom: parent.bottom
+                    width: Tokens.spaceXs
+                    height: Tokens.spaceXs + Tokens.fontDisplay * Math.min(1, level.peak * 1.6) * modelData
+                    radius: Tokens.radiusFull
+                    color: Tokens.accent
+
+                    Behavior on height {
+                        Anim {
+                            duration: Tokens.durationNormal
+                        }
+                    }
+                }
+            }
+        }
+
+        Column {
+            Text {
+                anchors.right: parent.right
+                text: Qt.formatDateTime(clock.date, "HH:mm")
+                color: Tokens.textPrimary
+                style: Text.Outline
+                styleColor: Tokens.bgFrame
+                font.family: Tokens.fontFamily
+                font.pixelSize: Tokens.fontDisplay + Tokens.fontDisplay
+                font.weight: Tokens.weightHeavy
+            }
+
+            Text {
+                anchors.right: parent.right
+                text: Qt.formatDateTime(clock.date, "dddd, d MMMM")
+                color: Tokens.textPrimary
+                style: Text.Outline
+                styleColor: Tokens.bgFrame
+                font.family: Tokens.fontFamily
+                font.pixelSize: Tokens.fontLg
+            }
         }
     }
 

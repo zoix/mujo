@@ -4,6 +4,7 @@
 // belong to the app that owns the icon.
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Bluetooth
 import Quickshell.Services.UPower
 import qs.theme
@@ -24,7 +25,9 @@ Item {
         return minutes >= 60 ? Math.floor(minutes / 60) + " h " + (minutes % 60) + " min" : minutes + " min";
     }
 
-    readonly property string title: kind === "net" ? "Network" : kind === "bt" ? "Bluetooth" : kind === "audio" ? "Sound" : kind === "battery" ? "Battery" : ""
+    readonly property string title: kind === "net" ? "Network" : kind === "bt" ? "Bluetooth" : kind === "audio" ? "Sound" : kind === "battery" ? "Battery" : kind === "window" ? "Window" : ""
+
+    readonly property var win: Hyprland.activeToplevel && Hyprland.activeToplevel.lastIpcObject ? Hyprland.activeToplevel.lastIpcObject : null
 
     // Tray menus: the menu on show, and the menus above it when inside a submenu.
     property var menuStack: []
@@ -61,6 +64,11 @@ Item {
             const left = Battery.charging ? device.timeToFull : device.timeToEmpty;
             return [Battery.percent + "%, " + (Battery.charging ? "charging" : "on battery"), left > 0 ? root.duration(left) + (Battery.charging ? " until full" : " left") : (Battery.charging ? "Plugged in" : "")].filter(line => line !== "");
         }
+        if (kind === "window") {
+            if (!root.win)
+                return ["No window is focused"];
+            return [root.win.title || root.win.class, root.win.class, root.win.size[0] + " x " + root.win.size[1] + (root.win.floating ? ", floating" : ", tiled"), "Workspace " + root.win.workspace.name + (root.win.xwayland ? ", XWayland" : "")];
+        }
         return [];
     }
 
@@ -93,6 +101,37 @@ Item {
                 font.family: Tokens.fontFamily
                 font.pixelSize: index === 0 ? Tokens.fontMd : Tokens.fontSm
                 font.weight: index === 0 ? Tokens.weightEmphasis : Tokens.weightRegular
+            }
+        }
+
+        // Actions on the focused window. These are window management, which
+        // goes to Hyprland directly, like the keybindings do.
+        Flow {
+            visible: root.kind === "window" && root.win !== null
+            width: body.width
+            spacing: Tokens.spaceXs
+
+            Chip {
+                label: "Float"
+                onClicked: Hyprland.dispatch('hl.dsp.window.float({ action = "toggle" })')
+            }
+            Chip {
+                label: "Fullscreen"
+                onClicked: {
+                    Hyprland.dispatch('hl.dsp.window.fullscreen({ action = "toggle", mode = "fullscreen" })');
+                    Ui.popout = "";
+                }
+            }
+            Chip {
+                label: "Maximize"
+                onClicked: Hyprland.dispatch('hl.dsp.window.fullscreen({ action = "toggle", mode = "maximized" })')
+            }
+            Chip {
+                label: "Close"
+                onClicked: {
+                    Hyprland.dispatch("hl.dsp.window.close()");
+                    Ui.popout = "";
+                }
             }
         }
 

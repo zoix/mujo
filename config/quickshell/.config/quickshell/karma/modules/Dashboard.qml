@@ -1,6 +1,8 @@
-// The dashboard: a panel that drops from the top edge. Three cards: the
-// date with a calendar, system gauges, and the media player. It shows
-// things; the only actions are the media buttons.
+// The dashboard: a panel that drops from the top edge, with two pages.
+//   Today       the date with a calendar, system gauges, the media player
+//   Workspaces  a miniature of every workspace (modules/Overview.qml)
+// It shows things; the only actions are the media buttons and going to a
+// workspace.
 import QtQuick
 import Quickshell
 import Quickshell.Widgets
@@ -13,12 +15,44 @@ Item {
     id: root
 
     property bool active: false
+    readonly property string page: Ui.dashboardPage
 
     readonly property MprisPlayer player: Mpris.players.values.find(p => p.isPlaying) ?? Mpris.players.values[0] ?? null
     readonly property int cardHeight: Tokens.ring + Tokens.ring + Tokens.spaceXl + Tokens.spaceXl
 
     implicitWidth: row.implicitWidth + Tokens.spaceMd + Tokens.spaceMd
-    implicitHeight: row.implicitHeight + Tokens.spaceMd + Tokens.spaceMd
+    implicitHeight: tabs.height + Tokens.spaceSm + (page === "today" ? row.implicitHeight : overview.implicitHeight) + Tokens.spaceMd + Tokens.spaceMd
+
+    Behavior on implicitHeight {
+        Anim {}
+    }
+
+    Row {
+        id: tabs
+        x: Tokens.spaceMd
+        y: Tokens.spaceMd
+        spacing: Tokens.spaceSm
+
+        Chip {
+            label: "Today"
+            chosen: root.page === "today"
+            onClicked: Ui.dashboardPage = "today"
+        }
+        Chip {
+            label: "Workspaces"
+            chosen: root.page === "workspaces"
+            onClicked: Ui.dashboardPage = "workspaces"
+        }
+    }
+
+    Overview {
+        id: overview
+        visible: root.page === "workspaces"
+        active: root.active && visible
+        x: Tokens.spaceMd
+        y: tabs.y + tabs.height + Tokens.spaceSm
+        width: row.implicitWidth
+    }
 
     onActiveChanged: Sys.watching = active
 
@@ -37,8 +71,9 @@ Item {
     Row {
         id: row
 
+        visible: root.page === "today"
         x: Tokens.spaceMd
-        y: Tokens.spaceMd
+        y: tabs.y + tabs.height + Tokens.spaceSm
         spacing: Tokens.spaceSm
 
         // Date and calendar

@@ -7,9 +7,13 @@ karma_register sys "Processor, memory, temperature, disk, uptime"
 help_sys() {
   cat <<EOF
 Usage: $KARMA_NAME sys [--window]
+       $KARMA_NAME sys workspaces [--window]
 
 Shows processor load, memory, temperature, disk space and uptime. With
 --window inside the desktop it opens the dashboard of the interface.
+
+workspaces lists the Hyprland workspaces and the windows on each; with
+--window it opens the dashboard's page of workspace miniatures.
 
 With --json the processor is reported as raw counters (total and idle time
 since boot), so that a program can take two readings and work out the load
@@ -56,6 +60,19 @@ sys_state() {
 }
 
 cmd_sys() {
+  if [[ ${1:-} == workspaces ]]; then
+    (( $# == 1 )) || usage_error "unexpected argument '$2'"
+    karma_set_cmd "sys workspaces"
+    require_hyprland
+    local spaces
+    spaces=$(hyprctl clients -j 2>/dev/null | jq -c --argjson ws "$(hyprctl workspaces -j 2>/dev/null)" '
+      . as $clients | [$ws[] | select(.id > 0) | . as $w
+        | {id, name, monitor, windows: [$clients[] | select(.workspace.id == $w.id) | {class, title}]}] | sort_by(.id)') \
+      || die "$EXIT_FAIL" "could not read the workspaces from Hyprland"
+    jq -r '.[] | "\(.id)  \(.monitor)  \(if (.windows | length) == 0 then "empty" else ([.windows[].class] | join(", ")) end)"' <<<"$spaces" | say_stream
+    jq -n --argjson s "$spaces" '{workspaces: $s}' | emit
+    return 0
+  fi
   (( $# == 0 )) || usage_error "unexpected argument '$1'"
   local state
   state=$(sys_state)

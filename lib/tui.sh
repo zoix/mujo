@@ -23,6 +23,7 @@ tui_window() {
     "net tui") panel="launcher wifi" ;;
     "power "|"power list") panel="session toggle" ;;
     "sys ") panel="dashboard toggle" ;;
+    "sys workspaces") panel="dashboard workspaces" ;;
     "status ") panel="sidebar toggle" ;;
   esac
   if [[ -n $panel ]] && command -v qs >/dev/null 2>&1; then

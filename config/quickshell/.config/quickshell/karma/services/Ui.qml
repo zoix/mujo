@@ -19,6 +19,7 @@ Singleton {
 
     // The dashboard: pinned open by a key, or open while the pointer is on it.
     property bool dashboard: false
+    property string dashboardPage: "today"   // today | workspaces
 
     // The pop-out beside a bar icon: which one ("" = none), on which screen
     // and at what height. It opens a moment after the pointer rests on an
@@ -99,10 +100,15 @@ Singleton {
         root.launcher = true;
     }
 
-    function toggleDashboard(): void {
-        if (!root.dashboard)
-            root.screen = root.focusedScreen();
-        root.dashboard = !root.dashboard;
+    // Asking for the page that is already open closes the dashboard.
+    function toggleDashboard(page: string): void {
+        if (root.dashboard && root.dashboardPage === page) {
+            root.dashboard = false;
+            return;
+        }
+        root.screen = root.focusedScreen();
+        root.dashboardPage = page;
+        root.dashboard = true;
     }
 
     function toggleSidebar(): void {

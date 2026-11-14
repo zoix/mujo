@@ -56,6 +56,7 @@ Theme: reduce motion off${t}run${t}theme reduce-motion off
 Notifications: do not disturb on or off${t}run${t}dnd toggle
 Wallpaper: choose${t}tui${t}wall pick
 Theme: dark, light or follow the wallpaper${t}mode${t}theme mode
+Wallpaper: desktop clock on or off${t}run${t}wall clock toggle
 Wallpaper: next${t}run${t}wall next
 Wallpaper: previous${t}run${t}wall prev
 Screenshot: region${t}shot${t}shot region

@@ -14,6 +14,7 @@ Usage: $KARMA_NAME wall [status]
        $KARMA_NAME wall next | prev
        $KARMA_NAME wall clear
        $KARMA_NAME wall dir [DIRECTORY]
+       $KARMA_NAME wall clock [on | off | toggle]
 
 status  The current wallpaper and the directory that next/prev cycle through.
 list    The images in the wallpaper directory.
@@ -28,6 +29,8 @@ next    The image after the current one in the wallpaper directory, by name.
 prev    The image before it.
 clear   No wallpaper: the plain background colour.
 dir     Show or set the wallpaper directory (default: ~/Pictures/Wallpapers).
+clock   Show or hide the clock on the desktop (and the bars beside it that
+        follow the music).
 
 Every change is journaled and can be undone. The Quickshell UI draws the
 wallpaper. While '$KARMA_NAME theme mode' is auto (the default), a bright
@@ -313,6 +316,26 @@ cmd_wall() {
       karma_lock
       config_set wallpaper_dir "$(jq -c .directory <<<"$after")"
       change_end "wall dir: $cur -> $new" "$before" "$after" "$(json_array wall dir "$cur")"
+      ;;
+    clock)
+      (( $# <= 1 )) || usage_error "too many arguments"
+      local cur new
+      cur=$(config_read | jq -r '.desktop_clock != false')
+      if (( $# == 0 )); then
+        say "Desktop clock: $([[ $cur == true ]] && echo on || echo off)"
+        jq -n --argjson c "$cur" '{desktop_clock: $c}' | emit
+        return 0
+      fi
+      new=$(on_off "$1" "$cur") || usage_error "expected on, off or toggle, got '$1'"
+      local before after wc wn
+      wc=$([[ $cur == true ]] && echo on || echo off)
+      wn=$([[ $new == true ]] && echo on || echo off)
+      before=$(jq -cn --argjson c "$cur" '{desktop_clock: $c}')
+      after=$(jq -cn --argjson c "$new" '{desktop_clock: $c}')
+      change_begin "wall clock: $wc -> $wn" "$before" "$after" || return 0
+      karma_lock
+      config_set desktop_clock "$new"
+      change_end "wall clock: $wc -> $wn" "$before" "$after" "$(json_array wall clock "$wc")"
       ;;
     *) usage_error "unknown subcommand '$sub'" ;;
   esac
