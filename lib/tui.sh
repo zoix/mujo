@@ -61,8 +61,16 @@ tui_pick() {
 # tui_detach CMD...: start a program that outlives this terminal.
 # It must not inherit karma's output (fd 1-3) or its lock (fd 9): a pipe such
 # as `karma ... --json | jq` would otherwise wait for that program to exit.
+#
+# With systemd, it also gets its own scope. karma is often run by the
+# interface, which is a service; without a scope every app it launched would
+# belong to that service and be killed whenever the service restarts.
 tui_detach() {
-  setsid -f "$@" >/dev/null 2>&1 </dev/null 3>&- 9>&-
+  if command -v systemd-run >/dev/null 2>&1 && [[ -S ${XDG_RUNTIME_DIR:-/nonexistent}/bus ]]; then
+    setsid -f systemd-run --user --scope --quiet --collect -- "$@" >/dev/null 2>&1 </dev/null 3>&- 9>&-
+  else
+    setsid -f "$@" >/dev/null 2>&1 </dev/null 3>&- 9>&-
+  fi
 }
 
 tui_pause() {

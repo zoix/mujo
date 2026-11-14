@@ -12,6 +12,18 @@ hl.config({
     },
 })
 
+-- Zen Browser 1.17 crashes at start on Hyprland 0.57 with "Wayland protocol
+-- error: interface 'wp_image_description_v1' has no event 2": Hyprland
+-- offers a newer colour-management protocol than Zen's bundled libraries
+-- know. Without the colour-management pipeline the protocol is not offered.
+-- Takes effect when Hyprland starts (log out and in). Not from the old
+-- config; added 2026-11. Remove once Zen is updated and starts without it.
+hl.config({
+    render = {
+        cm_enabled = false,
+    },
+})
+
 -- Electron apps (Bitwarden, 1Password, VS Code, Slack, ...) run as native
 -- Wayland clients instead of through XWayland: sharp text at fractional scale
 -- and correct input handling.
