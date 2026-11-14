@@ -37,7 +37,22 @@ Singleton {
     onChargingChanged: {
         if (charging)
             warned = 100;
+        sync();
+    }
+
+    function sync(): void {
         if (present && Settings.powerAuto)
             Karma.run(["power", "sync"]);
+    }
+
+    // The charger may have been plugged or pulled while nobody was looking
+    // (before login, during suspend), so the profile is also checked once
+    // the battery is known and shortly after start.
+    onPresentChanged: sync()
+
+    Timer {
+        interval: 5000
+        running: true
+        onTriggered: root.sync()
     }
 }
