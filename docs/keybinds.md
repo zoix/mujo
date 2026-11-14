@@ -10,7 +10,7 @@ screen. `SUPER` is the Windows key.
 | --- | --- |
 | `SUPER + Return` | Terminal (kitty) |
 | `SUPER + E` | File manager (yazi in kitty) |
-| `SUPER + Space` | Launcher (`karma launch`); type `>` for commands |
+| `SUPER + Space` | Launcher (`karma launch`); Tab or `>` switches to karma's commands, Tab or Backspace back |
 | `SUPER + X` | System menu (`karma menu`) |
 | `SUPER + V` | Clipboard history (`karma clip`) |
 | `SUPER + N` | Go to the app of the newest notification (the same as clicking it) |
@@ -19,7 +19,7 @@ screen. `SUPER` is the Windows key.
 | `SUPER + D` | Dashboard: calendar, system gauges, media (`karma sys`); also opens when the pointer touches the middle of the top edge |
 | `SUPER + W` | Wi-Fi picker (`karma net tui`) |
 | `SUPER + Shift + W` | Wallpaper picker (`karma wall pick`) |
-| `SUPER + /` | Keybindings (`karma keys tui`) |
+| `SUPER + /` | Keybindings (`karma keys tui`); Enter does what the chosen one does |
 
 All of these are panels of the interface (the launcher in different modes).
 Without the interface, each falls back to a floating terminal. The same key closes each again.

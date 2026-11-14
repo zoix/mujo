@@ -3,7 +3,7 @@
 //   apps        applications, most used first (karma launch list)
 //   actions     every karma menu entry; typing ">" in the apps mode gets here
 //   clipboard   the clipboard history (karma clip list); Enter copies an entry
-//   keys        the keybindings (karma keys); for looking things up
+//   keys        the keybindings (karma keys); Enter does what one does
 //   wifi        networks in range (karma net scan); Enter connects, and a
 //               new protected network asks for its password in the field
 //   wallpapers  a strip of thumbnails (karma wall list). Moving along the
@@ -186,7 +186,10 @@ Item {
             Karma.run(["clip", "copy", entry.id]);
             Ui.closeAll();
         } else if (root.mode === "keys") {
+            // Enter does what the binding does (those that can be run).
             Ui.closeAll();
+            if (entry.action)
+                Karma.run(["keys", "run", entry.description]);
         } else if (root.mode === "wifi") {
             if (entry.in_use) {
                 Ui.closeAll();
@@ -612,6 +615,9 @@ Item {
                         root.move(1);
                     } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Left && root.strip || ctrl && event.key === Qt.Key_P || ctrl && event.key === Qt.Key_K) {
                         root.move(-1);
+                    } else if (event.key === Qt.Key_Tab && root.passwordFor === "" && (root.mode === "apps" || root.mode === "actions")) {
+                        // Tab switches between apps and karma commands.
+                        root.setMode(root.mode === "apps" ? "actions" : "apps");
                     } else if (event.key === Qt.Key_Backspace && input.text === "" && root.mode !== "apps") {
                         root.setMode("apps");
                     } else {
@@ -625,7 +631,7 @@ Item {
                 anchors.left: input.left
                 anchors.verticalCenter: parent.verticalCenter
                 visible: input.text === ""
-                text: root.passwordFor !== "" ? "Password for " + root.passwordFor + ", then Enter" : root.mode === "apps" ? "Search apps, or type > for commands" : root.mode === "actions" ? "Search commands" : root.mode === "clipboard" ? "Search the clipboard; Enter copies" : root.mode === "keys" ? "Search keybindings" : root.mode === "wifi" ? "Search networks; Enter connects" : "Left and right to choose; Escape closes"
+                text: root.passwordFor !== "" ? "Password for " + root.passwordFor + ", then Enter" : root.mode === "apps" ? "Search apps; Tab or > for karma commands" : root.mode === "actions" ? "Search commands; Tab for apps" : root.mode === "clipboard" ? "Search the clipboard; Enter copies" : root.mode === "keys" ? "Search keybindings; Enter runs one" : root.mode === "wifi" ? "Search networks; Enter connects" : "Left and right to choose; Escape closes"
                 color: Tokens.textMuted
                 font.family: Tokens.fontFamily
                 font.pixelSize: Tokens.fontMd

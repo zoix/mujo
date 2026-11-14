@@ -248,8 +248,11 @@ a setting's result is shown as a notification. The UI's launcher uses it.
 
 ## karma keys
 
-`list` (default): `{binds: [{keys, description, mods, key, locked, repeat, mouse}]}`.
-`tui`: search with fzf.
+`list` (default): `{binds: [{keys, description, mods, key, locked, repeat, mouse, action}]}`;
+`action` is the Lua expression Hyprland runs for the binding, or `null` for
+ones that only make sense on their key. `tui`: search with fzf, Enter runs
+the chosen one. `run DESCRIPTION`: do what that binding does
+(`{description, action}`; `--dry-run` only shows the expression).
 
 ## karma pkg
 
