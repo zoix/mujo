@@ -60,5 +60,6 @@ libnotify                   # notify-send
 
 # Look
 ttf-jetbrains-mono-nerd     # the only UI and terminal font
+noto-fonts-emoji            # emoji for apps that use them (without it they show as boxes)
 breeze-icons                # application icons in the launcher
 adw-gtk-theme               # adw-gtk3: libadwaita look for GTK 3 apps
