@@ -29,7 +29,7 @@ journal_count() {
 }
 
 @test "every command has help" {
-  for c in status audio net bt display wall dnd power shot clip launch menu keys sys doctor update uninstall; do
+  for c in status audio net bt display wall dnd power shot clip launch menu keys sys pkg doctor update uninstall; do
     run karma help "$c"
     [ "$status" -eq 0 ]
     [[ $output == "Usage: karma $c"* ]]
@@ -530,6 +530,18 @@ journal_count() {
   [ "$status" -eq 3 ]
 }
 
+@test "pkg list names the packages and marks installed ones; the pickers need a terminal" {
+  run karma pkg list --json
+  [ "$status" -eq 0 ]
+  [ "$(data '[.packages[] | select(.installed) | .name] | sort | join(" ")')" = "bash jq linux" ]
+  [ "$(data '.packages[] | select(.name == "firefox") | .installed')" = false ]
+  [ "$(data '.packages[] | select(.source == "aur") | .name')" = some-aur-tool ]
+  run karma pkg install </dev/null
+  [ "$status" -eq 3 ]
+  run karma pkg remove --json
+  [ "$status" -eq 2 ]
+}
+
 # ---- doctor and update --------------------------------------------------------
 
 @test "doctor reports what is missing and exits 1" {
@@ -558,6 +570,8 @@ journal_count() {
   # pacman's own output goes to stderr in --json mode; stdout is the JSON alone
   output=$(karma update --yes --json 2>/dev/null </dev/null)
   [ "$(data '.system.packages | join(" ")')" = "jq linux" ]
+  # AUR packages are updated through the helper
+  grep -q -- "-Sua --noconfirm" "$STUB_STATE/yay.log"
   [ "$(data .reboot_recommended)" = true ]
   run karma log --json
   [ "$(data '.entries[0].reversible')" = false ]

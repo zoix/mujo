@@ -55,6 +55,10 @@ guessing. Every run is appended to `~/.local/state/karma/install.log`.
    `Canada/Mountain` and `America/Edmonton` count as the same.
 9. **Removals** you agreed to (`pacman -Rns`). karma cannot undo these.
 
+Packages on karma's list that were only installed as a dependency of something
+else are marked as explicitly installed, so that removing that something does
+not take them along.
+
 ## Backups
 
 Each run that replaces something creates

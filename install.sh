@@ -790,6 +790,18 @@ system_packages() {
   else
     ok "all ${#want[@]} packages are installed"
   fi
+  # Packages on karma's list that are only installed as a dependency of
+  # something else would be removed together with that something
+  # (`pacman -Rns`). Marking them as explicitly installed prevents that.
+  local -a asdeps=()
+  for p in "${want[@]}"; do
+    pacman -Qqd "$p" >/dev/null 2>&1 && asdeps+=("$p")
+  done
+  if (( ${#asdeps[@]} )); then
+    act "mark as explicitly installed: ${asdeps[*]}" sudo pacman -D --asexplicit "${asdeps[@]}"
+  else
+    ok "karma's packages are all marked as explicitly installed"
+  fi
   if [[ -n $(read_list "$REPO/packages/aur.txt") ]]; then
     fail "packages/aur.txt lists packages, but the AUR bootstrap is not part of this installer yet"
   fi

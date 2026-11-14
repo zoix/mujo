@@ -68,6 +68,8 @@ System monitor${t}app${t}btop
 Status: everything at a glance${t}run${t}status
 Journal: recent actions${t}run${t}log
 Journal: undo the last action${t}run${t}undo
+Packages: search and install${t}tui${t}pkg install
+Packages: remove${t}tui${t}pkg remove
 System: dashboard${t}tui${t}sys
 System: health check (doctor)${t}show${t}doctor
 System: update karma and packages${t}show${t}update

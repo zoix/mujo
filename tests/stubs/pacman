@@ -9,6 +9,9 @@ case $1 in
     if [[ -n ${2:-} ]]; then exit 0; fi
     cat "$f"
     ;;
+  -Slq) printf '%s\n' bash jq linux firefox ;;
+  -Qq|-Qqe) cut -d' ' -f1 "$f" ;;
+  -Qqd) exit 1 ;;
   -Syu) printf '%s\n' "bash 5.3-1" "linux 7.3.5-1" "jq 1.8.2-1" >"$f"; echo ":: stub upgraded 2 packages" ;;
   *) exit 1 ;;
 esac

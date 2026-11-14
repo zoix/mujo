@@ -11,12 +11,14 @@ Usage: $KARMA_NAME update [--karma-only | --system-only] [--yes]
 karma   'git pull --ff-only' in $(tilde "$KARMA_ROOT"), then the new config files
         are linked and the theme is rebuilt. Skipped if the checkout has no
         upstream branch.
-system  'sudo pacman -Syu'. In a terminal pacman asks before it installs;
-        with --yes it does not ask (needed when there is no terminal).
+system  'sudo pacman -Syu', then the AUR packages with yay or paru if one is
+        installed ('yay -Sua'). In a terminal they ask before installing;
+        with --yes they do not ask (needed when there is no terminal).
 
 --dry-run lists what would be updated: pending packages (checkupdates if
 pacman-contrib is installed, otherwise the last synced database) and the
-commits already fetched but not merged. It does not contact any server.
+commits already fetched but not merged. Only the AUR is asked over the
+network; the official repositories are read from the last sync.
 
 An update cannot be undone; it is recorded in the journal. If the kernel
 or Hyprland was upgraded the summary says to reboot or log out.
@@ -72,6 +74,17 @@ cmd_update() {
       else
         say "System: no pending packages in the synced database"
       fi
+      local helper aur_pending
+      if helper=$(pkg_helper); then
+        aur_pending=$("$helper" -Qua 2>/dev/null || true)
+        if [[ -n $aur_pending ]]; then
+          say "AUR: $(grep -c . <<<"$aur_pending") package(s) would be upgraded:"
+          say "  ${aur_pending//$'\n'/$'\n'  }"
+          pending+=${pending:+$'\n'}$aur_pending
+        else
+          say "AUR: nothing to upgrade"
+        fi
+      fi
     fi
     jq -n --arg ks "$karma_state" --argjson c "$commits" --arg p "$pending" \
       '{journal_id: null, karma: {state: $ks, commits: $c},
@@ -123,6 +136,18 @@ cmd_update() {
       sudo pacman "${flags[@]}" >&2 || system_ok=false
     else
       sudo pacman "${flags[@]}" || system_ok=false
+    fi
+    # AUR packages, with the helper if there is one. It asks for sudo itself.
+    local helper
+    if helper=$(pkg_helper); then
+      say "AUR: $helper -Sua"
+      local -a aur_flags=(-Sua)
+      (( OPT_YES )) && aur_flags+=(--noconfirm)
+      if (( OPT_JSON )); then
+        "$helper" "${aur_flags[@]}" >&2 || system_ok=false
+      else
+        "$helper" "${aur_flags[@]}" || system_ok=false
+      fi
     fi
     after=$(pacman -Q 2>/dev/null | sort)
     mapfile -t upgraded < <(comm -13 <(printf '%s\n' "$before") <(printf '%s\n' "$after") | awk '{ print $1 }')

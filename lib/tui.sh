@@ -33,11 +33,12 @@ tui_window() {
   [[ $name == power ]] && die "$EXIT_ENV" "the power menu is part of the Quickshell UI, which is not running"
   [[ $name == sys ]] && die "$EXIT_ENV" "the dashboard is part of the Quickshell UI, which is not running"
   need kitty setsid
-  if pkill -f -- "^kitty --class $class " 2>/dev/null; then
+  # (The window may have been started as "kitty" or as "/usr/bin/kitty".)
+  if pkill -f -- "^(/usr/bin/)?kitty --class $class " 2>/dev/null; then
     exit "$EXIT_OK"
   fi
   tui_detach kitty --class "$class" --title "$KARMA_NAME $name" -o remember_window_size=no \
-    -e "$KARMA_BIN" "$name" "$@"
+    -e env KARMA_WINDOW=1 "$KARMA_BIN" "$name" "$@"
   exit "$EXIT_OK"
 }
 

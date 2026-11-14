@@ -64,6 +64,7 @@ _karma() {
     'launch:application launcher'
     'menu:system menu'
     'keys:keybinding cheat sheet'
+    'pkg:search, install and remove packages'
     'sys:processor, memory, temperature, disk, uptime'
     'doctor:check dependencies, services, links and tokens'
     'update:update karma and the system'
@@ -157,6 +158,7 @@ _karma() {
             esac
           fi
           ;;
+        pkg) (( CURRENT == 2 )) && _values 'pkg subcommand' install remove list ;;
         update) _values 'option' --karma-only --system-only ;;
         uninstall) _values 'option' --skip-system ;;
         dnd) (( CURRENT == 2 )) && _values 'state' on off toggle ;;

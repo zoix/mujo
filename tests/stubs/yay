@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Test double for yay, so that tests never reach the real AUR helper.
+# Records what was asked in $STUB_STATE/yay.log.
+echo "$*" >>"${STUB_STATE:?}/yay.log"
+case $1 in
+  -Slqa) printf '%s\n' some-aur-tool ;;
+  -Qua) : ;;
+  -Sua) echo ":: stub: no AUR updates" ;;
+  -Si) echo "Name : $2" ;;
+  *) exit 1 ;;
+esac

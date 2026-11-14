@@ -20,6 +20,7 @@ has `--dry-run`.
 | `karma menu` | System menu over every command | `fzf` |
 | `karma keys` | Keybinding cheat sheet; `keys tui` | Hyprland |
 | `karma log` / `undo` | Action journal | nothing |
+| `karma pkg` | Search, install and remove packages with fzf | `pacman`, `sudo`; `yay` or `paru` for the AUR |
 | `karma sys` | Processor, memory, temperature, disk, uptime | nothing |
 | `karma doctor` | Check packages, links, theme, services, session | nothing |
 | `karma update` | Update karma (git) and the system (pacman), with a summary | `git`; `pacman` and `sudo` |
@@ -239,6 +240,17 @@ a setting's result is shown as a notification. The UI's launcher uses it.
 `list` (default): `{binds: [{keys, description, mods, key, locked, repeat, mouse}]}`.
 `tui`: search with fzf.
 
+## karma pkg
+
+| Subcommand | Mutates | Notes |
+| --- | --- | --- |
+| `install` (default) | yes | fzf over every package of the official repositories and, with `yay` or `paru`, the AUR. Tab marks several, Enter installs: `sudo pacman -S --needed` for official ones, the helper for AUR ones. A star marks installed packages |
+| `remove` | yes | fzf over the packages you installed explicitly; Enter runs `sudo pacman -Rns`, which lists everything and asks |
+| `list [--aur]` | no | `{packages: [{name, source, installed}]}`; `source` is `repo` or `aur` |
+
+The pickers need a terminal (`--window` opens one) and have no `--json`.
+Installs and removals are journaled as not reversible.
+
 ## karma sys
 
 Read-only. `data`:
@@ -273,10 +285,11 @@ graphical session). Exit code 1 if any check failed; warnings do not fail.
 
 `update [--karma-only | --system-only]`. Pulls the checkout
 (`git pull --ff-only`; skipped without an upstream branch), relinks the config
-and rebuilds the theme if commits arrived, then runs `sudo pacman -Syu`. In a
-terminal pacman asks before installing; `--yes` passes `--noconfirm` and is
+and rebuilds the theme if commits arrived, then runs `sudo pacman -Syu` and,
+if `yay` or `paru` is installed, `yay -Sua` for AUR packages. In a
+terminal they ask before installing; `--yes` passes `--noconfirm` and is
 required without a terminal (exit 2 otherwise). `--dry-run` lists pending
-packages and unmerged commits without contacting a server. `data`:
+packages and unmerged commits; only the AUR is asked over the network. `data`:
 
 ```json
 {"journal_id": "...", "karma": {"state": "updated", "commits": 3},
