@@ -179,6 +179,10 @@ Singleton {
     }
 
     function showOsd(kind: string, value: int, muted: bool): void {
+        // Not while a panel with its own volume or brightness slider is
+        // open: the slider already shows the level.
+        if (root.sidebar || root.popout === "audio")
+            return;
         if (!root.modal)
             root.screen = root.focusedScreen();
         root.osdKind = kind;
