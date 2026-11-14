@@ -68,6 +68,18 @@ ShellRoot {
             Ui.toggleLauncher("wallpapers");
         }
 
+        function clipboard(): void {
+            Ui.toggleLauncher("clipboard");
+        }
+
+        function keys(): void {
+            Ui.toggleLauncher("keys");
+        }
+
+        function wifi(): void {
+            Ui.toggleLauncher("wifi");
+        }
+
         function close(): void {
             Ui.closeAll();
         }

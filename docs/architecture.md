@@ -65,7 +65,7 @@ split: **the core decides, Quickshell presents.**
 | `lib/doctor.sh`, `update.sh`, `uninstall.sh` | Health check, updates, and reversing the installer from its manifests |
 | `lib/theme.jq` | Token resolver and template renderer (jq module) |
 | `design/` | `tokens.json`, `consumers.json`, `templates/`, `check-allow.txt` |
-| `config/` | Hand-written configs, one GNU Stow package per directory: `hypr`, `quickshell`, `kitty`, `ghostty`, `zsh`, `bin` |
+| `config/` | Hand-written configs, one GNU Stow package per directory: `hypr`, `quickshell`, `systemd`, `kitty`, `ghostty`, `zsh`, `bin` |
 | `system/` | Files for `/etc` that are not generated (the console palette unit); installed only by `install.sh` |
 | `packages/` | `pacman.txt` (installed), `aur.txt` (empty), `replaced.txt` (offered for removal) |
 | `tests/` | bats tests, `lint.sh`, and `stubs/`: test doubles for wpctl, nmcli, brightnessctl and friends |
@@ -89,14 +89,14 @@ Each command module calls `karma_register NAME SUMMARY` and defines
 | `services/Notifs.qml` | The notification server |
 | `modules/Frame.qml` | One top-layer window per screen draws the frame, the bar and the panels; only the bar and open panels take input. Four one-pixel windows reserve the space so apps stay inside |
 | `components/Drawer.qml` | A panel that grows out of a frame edge in the frame's colour, with curved joins |
-| `modules/Launcher.qml` | Bottom panel: apps, karma commands (`>`), wallpaper strip. Lists come from `karma ... list --json` |
+| `modules/Launcher.qml` | Bottom panel with one search field and several modes: apps, karma commands (`>`), wallpaper strip, clipboard history, keybindings, Wi-Fi networks (with a password prompt). Every list comes from `karma ... --json` |
 | `modules/Session.qml` | Right panel: the power menu |
 | `modules/Dashboard.qml`, `services/Sys.qml`, `components/Ring.qml` | Top panel: date and calendar, gauges fed by `karma sys --json`, media controls |
 | `modules/Popout.qml` | Details beside a status icon while the pointer rests on it; the volume slider runs `karma audio volume` |
 | `modules/Bar.qml`, `Workspaces.qml`, `Tray.qml`, `Status.qml`, `Clock.qml` | The bar's parts. Workspaces are listed per monitor |
 | `modules/Osd.qml`, `Notifications.qml` | Volume/brightness panel on the left edge, beside the status icons it reports on; notification panel in the top-right corner |
 | `modules/Wallpaper.qml` | Background layer, one per screen |
-| `modules/Lock.qml`, `pam/password.conf` | Wayland session lock on every screen, checked by PAM (`pam_unix`) |
+| `modules/Lock.qml`, `pam/password.conf` | Wayland session lock on every screen, checked by PAM (`pam_unix`). A marker file in the runtime directory exists while locked |
 | `components/` | `Anim` and `Fade` (the motion tokens), `Glyph`, `BarButton` |
 
 Clicks: the logo opens the launcher, a status icon opens its TUI (right click
@@ -107,10 +107,12 @@ hypridle (`~/.config/hypr/hypridle.conf`) runs `karma power lock` after 10
 minutes without input and before sleep, and turns the screens off a minute
 later. It does not suspend the machine.
 
-If the lock screen's process ever dies while locked, log in on another TTY
-(Ctrl+Alt+F3) and run `qs -c karma`, then `karma power lock`: Hyprland lets
-the new process take over the lock (`allow_session_lock_restore`), and the
-password unlocks it.
+The interface runs as the user service `karma-ui.service`
+(`config/systemd`), which Hyprland's autostart starts and systemd restarts if
+it crashes. If that happens while the screen is locked, the new process finds
+the lock marker and locks again at once; Hyprland lets it take over the lock
+that was left behind (`allow_session_lock_restore`), and the password unlocks
+it as usual. Logs: `journalctl --user -u karma-ui`.
 
 ## Runtime paths
 

@@ -18,6 +18,9 @@ tui_window() {
     "launch "|"launch pick") panel="launcher apps" ;;
     "menu "|"menu pick") panel="launcher actions" ;;
     "wall pick") panel="launcher wallpapers" ;;
+    "clip "|"clip pick") panel="launcher clipboard" ;;
+    "keys tui") panel="launcher keys" ;;
+    "net tui") panel="launcher wifi" ;;
     "power "|"power list") panel="session toggle" ;;
     "sys ") panel="dashboard toggle" ;;
   esac

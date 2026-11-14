@@ -36,7 +36,7 @@ Rectangle {
             id: netButton
             anchors.horizontalCenter: parent.horizontalCenter
             onHoveredChanged: root.hover(netButton, "net")
-            onClicked: Karma.open(["net", "tui"])
+            onClicked: Ui.toggleLauncher("wifi")
             onRightClicked: Karma.run(["net", "wifi", "toggle"])
 
             Glyph {

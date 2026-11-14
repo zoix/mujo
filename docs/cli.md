@@ -93,8 +93,9 @@ Without a value the same subcommand only reports the current state.
 open in a floating kitty window with the class `karma-tui-<command>`; running
 the same command again closes that window, so one key toggles it. Four of
 them have a panel in the Quickshell UI, which `--window` uses instead while
-the UI runs: `launch`, `menu`, `wall pick`, `power` (the power menu) and
-`sys` (the dashboard). Each has a
+the UI runs: `launch`, `menu`, `wall pick`, `clip`, `keys tui`, `net tui`,
+`power` (the power menu) and `sys` (the dashboard). `bt tui` and `audio tui`
+are full terminal programs (bluetui, wiremix) and stay in a terminal. Each has a
 non-interactive sibling for scripts: `launch list`, `menu list`, `clip list`,
 `net scan`, `keys`, `bt`.
 
@@ -163,6 +164,7 @@ Status `data`:
  "connections": [{"device": "wlan0", "type": "wifi", "state": "connected", "connection": "Home"}]}
 ```
 
+From the interface the result of `connect` is shown as a notification.
 Passwords are never written to the journal. On a terminal `connect` lets
 nmcli ask for the password; `--password-stdin` reads one line instead.
 
@@ -215,6 +217,7 @@ need `--yes` (exit 2 without it). Entries are journaled as not reversible.
 ## karma clip
 
 `pick` (default, interactive), `list [--limit N]`: `{entries: [{id, preview}]}`,
+`copy ID`: put that entry back on the clipboard (`{id, copied}`; needs Wayland),
 `clear` (needs `--yes`, not reversible).
 
 ## karma launch
@@ -306,7 +309,7 @@ best effort and never fatal. `qs -c karma ipc show` lists the targets:
 | `notify` | `reload` (re-read `config.json`), `clear` (dismiss all cards) | `karma dnd` |
 | `theme` | `reload` (re-read the colours; the UI is not restarted) | `karma theme` |
 | `lock` | `lock` | `karma power lock` |
-| `launcher` | `apps`, `actions`, `wallpapers` (each toggles that mode), `close` | `--window` on `launch`, `menu`, `wall pick` |
+| `launcher` | `apps`, `actions`, `wallpapers`, `clipboard`, `keys`, `wifi` (each toggles that mode), `close` | `--window` on `launch`, `menu`, `wall pick` |
 | `session` | `toggle` (the power menu) | `karma power --window` |
 | `dashboard` | `toggle` (pin the dashboard open or release it) | `karma sys --window` |
 | `bar` | `toggle` (hide or show the frame and bar) | by hand |

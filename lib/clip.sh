@@ -7,11 +7,13 @@ help_clip() {
   cat <<EOF
 Usage: $KARMA_NAME clip [pick] [--window]
        $KARMA_NAME clip list [--limit N]
+       $KARMA_NAME clip copy ID
        $KARMA_NAME clip clear --yes
 
 pick   Choose an entry with fzf and copy it back to the clipboard (the
        default). Ctrl-X deletes the entry under the cursor. Needs Wayland.
 list   The history, newest first (default 50 entries).
+copy   Put the entry with that id (from 'list') back on the clipboard.
 clear  Delete the whole history. Cannot be undone.
 EOF
 }
@@ -24,6 +26,16 @@ cmd_clip() {
   case $sub in
     pick) clip_cmd_pick "$@" ;;
     list) clip_cmd_list "$@" ;;
+    copy)
+      (( $# == 1 )) || usage_error "copy needs exactly one entry id (see '$KARMA_NAME clip list')"
+      [[ $1 =~ ^[0-9]+$ ]] || usage_error "an entry id is a number, got '$1'"
+      require_wayland
+      need wl-copy
+      cliphist decode "$1" | wl-copy >/dev/null 2>&1 3>&- 9>&- \
+        || die "$EXIT_FAIL" "could not copy entry $1"
+      say "Copied entry $1 to the clipboard"
+      jq -n --arg id "$1" '{id: $id, copied: true}' | emit
+      ;;
     clear) clip_cmd_clear "$@" ;;
     *) usage_error "unknown subcommand '$sub'" ;;
   esac

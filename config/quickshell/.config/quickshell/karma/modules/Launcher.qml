@@ -2,6 +2,10 @@
 // one search field:
 //   apps        applications, most used first (karma launch list)
 //   actions     every karma menu entry; typing ">" in the apps mode gets here
+//   clipboard   the clipboard history (karma clip list); Enter copies an entry
+//   keys        the keybindings (karma keys); for looking things up
+//   wifi        networks in range (karma net scan); Enter connects, and a
+//               new protected network asks for its password in the field
 //   wallpapers  a strip of thumbnails (karma wall list). Moving along the
 //               strip shows the image on the desktop at once and applies it
 //               a moment later; there is nothing to confirm
@@ -26,8 +30,13 @@ Item {
     property var actions: []
     property var walls: []
     property string wallCurrent: ""
+    property var clips: []
+    property var binds: []
+    property var nets: []
+    // The network a password is being asked for ("" = not asking).
+    property string passwordFor: ""
     property string query: ""
-    readonly property var source: mode === "apps" ? apps : mode === "actions" ? actions : walls
+    readonly property var source: passwordFor !== "" ? [] : mode === "apps" ? apps : mode === "actions" ? actions : mode === "clipboard" ? clips : mode === "keys" ? binds : mode === "wifi" ? nets : walls
     readonly property var results: root.filter(source, query)
 
     implicitWidth: strip ? Tokens.thumbWidth * 4 : Tokens.launcherWidth
@@ -40,8 +49,40 @@ Item {
         Anim {}
     }
 
+    // The text an entry is searched and listed by.
     function label(entry: var): string {
-        return (root.mode === "actions" ? entry.label : entry.name) ?? "";
+        switch (root.mode) {
+        case "actions":
+            return entry.label ?? "";
+        case "clipboard":
+            return entry.preview ?? "";
+        case "keys":
+            return (entry.description ?? "") + "  " + (entry.keys ?? "");
+        case "wifi":
+            return entry.ssid ?? "";
+        default:
+            return entry.name ?? "";
+        }
+    }
+
+    // The smaller second line of an entry.
+    function detail(entry: var): string {
+        switch (root.mode) {
+        case "apps":
+            return entry.comment ?? "";
+        case "actions":
+            return "karma " + (entry.command ?? "");
+        case "keys":
+            return entry.keys ?? "";
+        case "wifi":
+            return (entry.signal ?? 0) + "%  " + (entry.security ?? "") + (entry.in_use ? "  connected" : entry.saved ? "  saved" : "");
+        default:
+            return "";
+        }
+    }
+
+    function title(entry: var): string {
+        return root.mode === "keys" ? (entry.description ?? "") : root.label(entry);
     }
 
     // 0 = no match. A match at the start of the text or of a word ranks
@@ -73,10 +114,49 @@ Item {
                 })).filter(item => item.rank > 0).sort((a, b) => b.rank - a.rank).map(item => item.entry);
     }
 
+    // Fetch the list for the current mode from karma.
     function reload(): void {
-        appsLoader.running = true;
-        actionsLoader.running = true;
-        wallsLoader.running = true;
+        switch (root.mode) {
+        case "apps":
+            appsLoader.running = true;
+            break;
+        case "actions":
+            actionsLoader.running = true;
+            break;
+        case "clipboard":
+            clipsLoader.running = true;
+            break;
+        case "keys":
+            bindsLoader.running = true;
+            break;
+        case "wifi":
+            // What NetworkManager already knows, at once; a fresh scan follows.
+            netsLoader.command = [Karma.bin, "net", "scan", "--no-rescan", "--json"];
+            netsLoader.running = true;
+            rescan.restart();
+            break;
+        default:
+            wallsLoader.running = true;
+            // Thumbnails and colour analysis for new images, in the background.
+            indexer.running = true;
+        }
+    }
+
+    Timer {
+        id: rescan
+        interval: Tokens.durationSlow
+        onTriggered: {
+            if (root.active && root.mode === "wifi" && !netsLoader.running) {
+                netsLoader.command = [Karma.bin, "net", "scan", "--json"];
+                netsLoader.running = true;
+            }
+        }
+    }
+
+    onModeChanged: {
+        root.passwordFor = "";
+        if (root.active)
+            root.reload();
     }
 
     function parse(text: string): var {
@@ -91,9 +171,35 @@ Item {
     function choose(): void {
         const view = root.strip ? thumbs : list;
         const entry = root.results[view.currentIndex];
+        if (root.passwordFor !== "") {
+            if (input.text === "")
+                return;
+            connector.command = [Karma.bin, "net", "connect", root.passwordFor, "--password-stdin"];
+            connector.secret = input.text;
+            connector.running = true;
+            Ui.closeAll();
+            return;
+        }
         if (!entry)
             return;
-        if (root.mode === "apps") {
+        if (root.mode === "clipboard") {
+            Karma.run(["clip", "copy", entry.id]);
+            Ui.closeAll();
+        } else if (root.mode === "keys") {
+            Ui.closeAll();
+        } else if (root.mode === "wifi") {
+            if (entry.in_use) {
+                Ui.closeAll();
+            } else if (entry.saved || entry.security === "open") {
+                Karma.run(["net", "connect", entry.ssid]);
+                Ui.closeAll();
+            } else {
+                // A new protected network: the field becomes a password field.
+                root.passwordFor = entry.ssid;
+                input.text = "";
+                root.query = "";
+            }
+        } else if (root.mode === "apps") {
             Karma.run(["launch", "run", entry.id]);
             Ui.closeAll();
         } else if (root.mode === "actions") {
@@ -103,6 +209,12 @@ Item {
                 root.setMode("wallpapers");
             } else if (entry.command === "launch") {
                 root.setMode("apps");
+            } else if (entry.command === "clip") {
+                root.setMode("clipboard");
+            } else if (entry.command === "keys tui") {
+                root.setMode("keys");
+            } else if (entry.command === "net tui") {
+                root.setMode("wifi");
             } else {
                 Karma.run(["menu", "run", entry.label]);
                 Ui.closeAll();
@@ -160,10 +272,59 @@ Item {
         }
         input.text = "";
         root.query = "";
+        root.passwordFor = "";
         root.reload();
         input.forceActiveFocus();
-        // Thumbnails and colour analysis for new images, in the background.
-        indexer.running = true;
+    }
+
+    Process {
+        id: clipsLoader
+        command: [Karma.bin, "clip", "list", "--limit", "200", "--json"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const data = root.parse(this.text);
+                if (data)
+                    root.clips = data.entries;
+            }
+        }
+    }
+
+    Process {
+        id: bindsLoader
+        command: [Karma.bin, "keys", "--json"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const data = root.parse(this.text);
+                if (data)
+                    root.binds = data.binds;
+            }
+        }
+    }
+
+    Process {
+        id: netsLoader
+        command: [Karma.bin, "net", "scan", "--no-rescan", "--json"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const data = root.parse(this.text);
+                if (data)
+                    root.nets = data.networks;
+            }
+        }
+    }
+
+    // Connects to a new network. The password goes to karma on its standard
+    // input, never on a command line.
+    Process {
+        id: connector
+        property string secret: ""
+        stdinEnabled: true
+        onStarted: {
+            connector.write(connector.secret + "\n");
+            connector.secret = "";
+            connector.stdinEnabled = false;
+        }
+        onExited: connector.stdinEnabled = true
     }
 
     Process {
@@ -279,7 +440,7 @@ Item {
                 Glyph {
                     visible: entryRow.iconSource === ""
                     anchors.centerIn: appIcon
-                    text: root.mode === "apps" ? "\uf009" : "\uf054"
+                    text: root.mode === "apps" ? "\uf009" : root.mode === "clipboard" ? "\uf0ea" : root.mode === "keys" ? "\uf11c" : root.mode === "wifi" ? "\uf1eb" : "\uf054"
                     font.pixelSize: Tokens.fontMd
                     color: list.currentIndex === entryRow.index ? Tokens.accent : Tokens.textMuted
                 }
@@ -294,7 +455,7 @@ Item {
 
                     Text {
                         width: parent.width
-                        text: root.label(entryRow.modelData)
+                        text: root.title(entryRow.modelData)
                         color: Tokens.textPrimary
                         elide: Text.ElideRight
                         font.family: Tokens.fontFamily
@@ -304,7 +465,7 @@ Item {
                     Text {
                         width: parent.width
                         visible: text !== ""
-                        text: root.mode === "apps" ? (entryRow.modelData.comment ?? "") : "karma " + (entryRow.modelData.command ?? "")
+                        text: root.detail(entryRow.modelData)
                         color: Tokens.textMuted
                         elide: Text.ElideRight
                         font.family: Tokens.fontFamily
@@ -386,10 +547,10 @@ Item {
         }
 
         Text {
-            visible: root.results.length === 0
+            visible: root.results.length === 0 && root.passwordFor === ""
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
-            text: root.strip && root.walls.length === 0 ? "No images in the wallpaper folder (~/Pictures/Wallpapers)" : "Nothing matches"
+            text: root.strip && root.walls.length === 0 ? "No images in the wallpaper folder (~/Pictures/Wallpapers)" : root.mode === "wifi" && root.query === "" ? "Looking for networks..." : root.mode === "clipboard" && root.query === "" ? "The clipboard history is empty" : "Nothing matches"
             color: Tokens.textMuted
             font.family: Tokens.fontFamily
             font.pixelSize: Tokens.fontSm
@@ -407,7 +568,7 @@ Item {
                 anchors.left: parent.left
                 anchors.leftMargin: Tokens.spaceLg
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.mode === "apps" ? "" : root.mode === "actions" ? "" : ""
+                text: root.passwordFor !== "" ? "\uf023" : root.mode === "apps" ? "\uf002" : root.mode === "actions" ? "\uf054" : root.mode === "clipboard" ? "\uf0ea" : root.mode === "keys" ? "\uf11c" : root.mode === "wifi" ? "\uf1eb" : "\uf03e"
                 font.pixelSize: Tokens.fontMd
                 color: Tokens.accent
             }
@@ -424,10 +585,13 @@ Item {
                 color: Tokens.textPrimary
                 selectionColor: Tokens.accent
                 selectedTextColor: Tokens.textOnAccent
+                echoMode: root.passwordFor !== "" ? TextInput.Password : TextInput.Normal
                 font.family: Tokens.fontFamily
                 font.pixelSize: Tokens.fontMd
 
                 onTextEdited: {
+                    if (root.passwordFor !== "")
+                        return;
                     if (root.mode === "apps" && text.startsWith(">")) {
                         Ui.launcherMode = "actions";
                         text = text.slice(1);
@@ -437,7 +601,10 @@ Item {
 
                 Keys.onPressed: event => {
                     const ctrl = event.modifiers & Qt.ControlModifier;
-                    if (event.key === Qt.Key_Escape) {
+                    if (event.key === Qt.Key_Escape && root.passwordFor !== "") {
+                        root.passwordFor = "";
+                        input.text = "";
+                    } else if (event.key === Qt.Key_Escape) {
                         Ui.closeAll();
                     } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                         root.choose();
@@ -458,7 +625,7 @@ Item {
                 anchors.left: input.left
                 anchors.verticalCenter: parent.verticalCenter
                 visible: input.text === ""
-                text: root.mode === "apps" ? "Search apps, or type > for commands" : root.mode === "actions" ? "Search commands" : "Left and right to choose; Escape closes"
+                text: root.passwordFor !== "" ? "Password for " + root.passwordFor + ", then Enter" : root.mode === "apps" ? "Search apps, or type > for commands" : root.mode === "actions" ? "Search commands" : root.mode === "clipboard" ? "Search the clipboard; Enter copies" : root.mode === "keys" ? "Search keybindings" : root.mode === "wifi" ? "Search networks; Enter connects" : "Left and right to choose; Escape closes"
                 color: Tokens.textMuted
                 font.family: Tokens.fontFamily
                 font.pixelSize: Tokens.fontMd

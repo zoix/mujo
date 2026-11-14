@@ -162,7 +162,7 @@ _karma() {
         dnd) (( CURRENT == 2 )) && _values 'state' on off toggle ;;
         power) (( CURRENT == 2 )) && _values 'action' list lock suspend logout reboot shutdown ;;
         shot) _values 'mode or option' region window screen --no-save --no-copy --dir ;;
-        clip) (( CURRENT == 2 )) && _values 'clip subcommand' pick list clear ;;
+        clip) (( CURRENT == 2 )) && _values 'clip subcommand' pick list copy clear ;;
         launch)
           if (( CURRENT == 2 )); then
             _values 'launch subcommand' pick list run

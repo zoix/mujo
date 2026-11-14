@@ -1,8 +1,14 @@
 // The lock screen: a Wayland session lock on every screen, unlocked by the
 // user's password through PAM. `karma power lock` calls lock().
+//
+// While locked, a marker file exists in the runtime directory. If this
+// process dies and is started again (karma-ui.service does that), it finds
+// the marker and locks again straight away; Hyprland lets it take over the
+// lock that was left behind.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Services.Pam
 import qs.theme
@@ -15,9 +21,24 @@ Scope {
     property bool failed: false
     property string password: ""
 
+    readonly property string marker: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/karma-locked"
+
     function lock(): void {
         root.failed = false;
         sessionLock.locked = true;
+        Quickshell.execDetached(["touch", root.marker]);
+    }
+
+    function unlock(): void {
+        sessionLock.locked = false;
+        Quickshell.execDetached(["rm", "-f", root.marker]);
+    }
+
+    // Finding the marker at start-up means the previous process died locked.
+    FileView {
+        path: root.marker
+        printErrors: false
+        onLoaded: root.lock()
     }
 
     function submit(text: string): void {
@@ -47,7 +68,7 @@ Scope {
             root.busy = false;
             root.password = "";
             if (result === PamResult.Success)
-                sessionLock.locked = false;
+                root.unlock();
             else
                 root.failed = true;
         }

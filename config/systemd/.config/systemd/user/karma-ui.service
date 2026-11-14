@@ -1,0 +1,11 @@
+# The karma interface (frame, bar, panels, notifications, lock screen).
+# Hyprland's autostart starts it; systemd brings it back if it crashes.
+# If that happens while the screen is locked, the new process locks again
+# at once (modules/Lock.qml), so the session is never left stuck or open.
+[Unit]
+Description=karma interface (Quickshell)
+
+[Service]
+ExecStart=/usr/bin/qs -c karma
+Restart=on-failure
+RestartSec=1

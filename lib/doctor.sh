@@ -145,7 +145,7 @@ doctor_session() {
   if command -v qs >/dev/null 2>&1 && timeout 2 qs -c "$KARMA_NAME" ipc show >/dev/null 2>&1; then
     doctor_add session ok "the interface (qs -c $KARMA_NAME) is running"
   else
-    doctor_add session fail "the interface is not running" "qs -c $KARMA_NAME -d"
+    doctor_add session fail "the interface is not running" "systemctl --user restart $KARMA_NAME-ui.service"
   fi
   if pgrep -x dunst >/dev/null 2>&1 || pgrep -x mako >/dev/null 2>&1; then
     doctor_add session warn "another notification daemon is running and may take notifications from the interface" \

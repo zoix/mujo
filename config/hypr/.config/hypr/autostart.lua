@@ -7,7 +7,8 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
     -- The karma interface: frame, bar, notifications, OSD, wallpaper, lock
     -- screen. It owns the notification service, so it starts first.
-    hl.exec_cmd("qs -c karma")
+    -- Run as a user service so that it is restarted if it ever crashes.
+    hl.exec_cmd("systemctl --user restart karma-ui.service")
     -- Locks after a while without input, and before sleep (hypridle.conf).
     hl.exec_cmd("hypridle")
     -- Clipboard history for `karma clip`.

@@ -185,7 +185,11 @@ net_cmd_connect() {
   else
     out=$(nmcli -w 30 device wifi connect "$ssid" 2>&1) || rc=$?
   fi
-  (( rc == 0 )) || die "$EXIT_FAIL" "could not connect to '$ssid': $out"
+  if (( rc != 0 )); then
+    ui_notify "Wi-Fi" "Could not connect to $ssid"
+    die "$EXIT_FAIL" "could not connect to '$ssid': $out"
+  fi
+  ui_notify "Wi-Fi" "Connected to $ssid"
 
   if [[ -n $cur ]]; then undo=$(json_array net connect "$cur"); else undo=$(json_array net disconnect); fi
   change_end "net connect: ${cur:-not connected} -> $ssid" "$before" "$after" "$undo"

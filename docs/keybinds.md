@@ -18,8 +18,8 @@ screen. `SUPER` is the Windows key.
 | `SUPER + Shift + W` | Wallpaper picker (`karma wall pick`) |
 | `SUPER + /` | Keybindings (`karma keys tui`) |
 
-The launcher, the menu and the wallpaper picker are panels of the interface;
-the others open in a floating terminal. The same key closes each again.
+All of these are panels of the interface (the launcher in different modes).
+Without the interface, each falls back to a floating terminal. The same key closes each again.
 
 ## Windows
 

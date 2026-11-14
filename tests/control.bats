@@ -477,6 +477,10 @@ journal_count() {
   run karma clip list --json
   [ "$(data '.entries | length')" = 2 ]
   [ "$(data '.entries[0].preview')" = "second entry" ]
+  run karma clip copy 2
+  [ "$status" -eq 3 ]
+  run karma clip copy second
+  [ "$status" -eq 2 ]
   run karma clip clear
   [ "$status" -eq 2 ]
   karma clip clear --yes
