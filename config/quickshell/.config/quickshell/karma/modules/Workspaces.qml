@@ -32,7 +32,7 @@ Rectangle {
     implicitWidth: cell + Tokens.spaceXs + Tokens.spaceXs
     implicitHeight: column.implicitHeight + Tokens.spaceXs + Tokens.spaceXs
     radius: Tokens.radiusFull
-    color: Tokens.bgControl
+    color: Tokens.group
 
     // Window classes arrive a moment after a window opens.
     Connections {

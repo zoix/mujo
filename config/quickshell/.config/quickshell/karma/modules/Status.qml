@@ -25,8 +25,8 @@ Rectangle {
     implicitWidth: icons.implicitWidth + Tokens.spaceXs + Tokens.spaceXs
     implicitHeight: icons.implicitHeight + Tokens.spaceXs + Tokens.spaceXs
     radius: Tokens.radiusFull
-    // One clear step lighter than the bar, so the group reads as a unit.
-    color: Tokens.bgControl
+    // A wash of the accent colour, so the group reads as a unit on the bar.
+    color: Tokens.group
 
     Column {
         id: icons
@@ -36,7 +36,7 @@ Rectangle {
         spacing: 0
 
         BarButton {
-            hoverColor: Tokens.borderSubtle
+            hoverColor: Tokens.groupHover
             id: netButton
             anchors.horizontalCenter: parent.horizontalCenter
             onHoveredChanged: root.hover(netButton, "net")
@@ -52,7 +52,7 @@ Rectangle {
         }
 
         BarButton {
-            hoverColor: Tokens.borderSubtle
+            hoverColor: Tokens.groupHover
             id: btButton
             anchors.horizontalCenter: parent.horizontalCenter
             visible: Bluetooth.defaultAdapter !== null
@@ -68,7 +68,7 @@ Rectangle {
         }
 
         BarButton {
-            hoverColor: Tokens.borderSubtle
+            hoverColor: Tokens.groupHover
             anchors.horizontalCenter: parent.horizontalCenter
             visible: Settings.dnd
             onClicked: Karma.run(["dnd", "off"])
@@ -81,7 +81,7 @@ Rectangle {
         }
 
         BarButton {
-            hoverColor: Tokens.borderSubtle
+            hoverColor: Tokens.groupHover
             id: batteryButton
             anchors.horizontalCenter: parent.horizontalCenter
             visible: Battery.present

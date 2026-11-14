@@ -94,6 +94,9 @@ Singleton {
     // The frame and its panels: the frame colour, see-through with "glass" on.
     readonly property real panelOpacity: t.panelOpacity
     readonly property color panel: Qt.alpha(bgFrame, panelOpacity)
+    // Behind groups of controls on the bar: a light wash of the accent.
+    readonly property color group: Qt.alpha(accent, 0.16)
+    readonly property color groupHover: Qt.alpha(accent, 0.30)
     readonly property int ring: t.ring
 
     // How long transient UI stays on screen, in ms (not affected by reduce_motion)
