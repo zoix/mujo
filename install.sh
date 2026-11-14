@@ -316,7 +316,7 @@ EOF
 # ---------------------------------------------------------------- questions
 
 ANS_LAYOUT='' ANS_VARIANT='' ANS_OPTIONS='' ANS_TZ='' ANS_EDITOR='' ANS_BROWSER=''
-DO_DM=0 DO_LOCALE=0 DO_RETIRE=0 DO_REMOVE=0 DO_VICINAE=0
+DO_DM=0 DO_LOCALE=0 DO_RETIRE=0 DO_REMOVE=0 DO_VICINAE=0 DO_FPRINT=0
 DM_CURRENT=''
 REPLACED_PRESENT=()
 
@@ -396,6 +396,12 @@ questions() {
     if (( ${#REPLACED_PRESENT[@]} )); then
       info "Installed packages that karma replaces: ${REPLACED_PRESENT[*]}"
       confirm DO_REMOVE "Remove them (pacman -Rns)?" n
+    fi
+    # A fingerprint reader that sudo does not use yet. Asked, never assumed:
+    # this changes how sudo checks who you are.
+    if has_fingerprint_reader && ! grep -qs 'pam_fprintd' /etc/pam.d/sudo; then
+      info "This machine has a fingerprint reader."
+      confirm DO_FPRINT "Let sudo accept your fingerprint (the password stays as the fallback)?" n
     fi
     if pacman -Q vicinae-bin >/dev/null 2>&1 || pacman -Q vicinae >/dev/null 2>&1; then
       info "SUPER+SPACE opens karma's launcher; Vicinae is no longer bound to a key."
@@ -911,6 +917,56 @@ do_locale() {
   sudo localectl set-locale LANG=en_US.UTF-8
 }
 
+# True if a USB device calls itself a fingerprint reader.
+has_fingerprint_reader() {
+  grep -qsi 'fingerprint' /sys/bus/usb/devices/*/product
+}
+
+fingerprint_enrolled() {
+  command -v fprintd-list >/dev/null 2>&1 && fprintd-list "$USER" 2>/dev/null | grep -q '^ - #'
+}
+
+# Put pam_fprintd first in sudo's rules. The file is backed up and recorded,
+# so `karma uninstall` puts the old one back.
+do_fprint_pam() {
+  local tmp
+  backup_dir
+  mkdir -p -- "$BACKUP_DIR/etc/pam.d"
+  sudo_or_cat /etc/pam.d/sudo >"$BACKUP_DIR/etc/pam.d/sudo"
+  record "$(jq -cn '{etc: "/etc/pam.d/sudo", kind: "file"}')"
+  tmp=$(mktemp)
+  awk 'NR == 1 { print; print "auth\t\tsufficient\tpam_fprintd.so"; next } { print }' "$BACKUP_DIR/etc/pam.d/sudo" >"$tmp"
+  sudo install -m 0644 -- "$tmp" /etc/pam.d/sudo
+  rm -f -- "$tmp"
+}
+
+system_fingerprint() {
+  has_fingerprint_reader || return 0
+  step "Fingerprint"
+  if grep -qs 'pam_fprintd' /etc/pam.d/sudo; then
+    ok "sudo accepts the fingerprint (password as the fallback)"
+    return 0
+  fi
+  if (( ! DO_FPRINT )); then
+    info "sudo asks for the password only (run install.sh again to change that)"
+    return 0
+  fi
+  pacman -Q fprintd >/dev/null 2>&1 || act "pacman -S --needed fprintd" do_pacman_install fprintd
+  if (( DRY )); then
+    act "enroll a finger if none is enrolled, then add the fingerprint to /etc/pam.d/sudo" true
+    return 0
+  fi
+  if ! fingerprint_enrolled && is_interactive; then
+    info "Touch the reader again and again until it says enroll-completed."
+    fprintd-enroll </dev/tty || true
+  fi
+  if fingerprint_enrolled; then
+    act "add the fingerprint to /etc/pam.d/sudo (the password stays as the fallback)" do_fprint_pam
+  else
+    info "no finger is enrolled, so sudo was left as it is; run 'fprintd-enroll', then install.sh again"
+  fi
+}
+
 system_settings() {
   step "Locale, time zone and login shell"
   local lang
@@ -993,6 +1049,7 @@ main() {
     system_files
     system_services
     system_settings
+    system_fingerprint
     system_removals
   fi
   write_manifest

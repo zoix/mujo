@@ -100,7 +100,7 @@ Each command module calls `karma_register NAME SUMMARY` and defines
 | `modules/Bar.qml`, `Workspaces.qml`, `Tray.qml`, `Status.qml`, `Clock.qml` | The bar's parts. Workspaces are listed per monitor |
 | `modules/Osd.qml`, `Notifications.qml` | Volume/brightness panel on the right edge, shown when the keys are pressed; notification panel in the top-right corner |
 | `modules/Wallpaper.qml` | Background layer, one per screen |
-| `modules/Lock.qml`, `pam/password.conf` | Wayland session lock on every screen, checked by PAM (`pam_unix`). A marker file in the runtime directory exists while locked |
+| `modules/Lock.qml`, `pam/password.conf`, `pam/fingerprint.conf` | Wayland session lock on every screen. The password is checked by PAM (`pam_unix`) on Enter; if a finger is enrolled with fprintd, the reader is checked alongside (`pam_fprintd`) the whole time. A marker file in the runtime directory exists while locked |
 | `components/` | `Anim` and `Fade` (the motion tokens), `Glyph`, `BarButton` |
 
 Clicks: the logo opens the launcher, a status icon opens its TUI (right click

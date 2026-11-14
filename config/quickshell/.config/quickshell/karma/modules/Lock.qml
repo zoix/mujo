@@ -1,5 +1,8 @@
 // The lock screen: a Wayland session lock on every screen, unlocked by the
-// user's password through PAM. `karma power lock` calls lock().
+// user's password through PAM, or by a fingerprint if one is enrolled
+// (fprintd). The two are checked side by side: the reader waits for a
+// finger the whole time, and the password is checked when Enter is pressed.
+// `karma power lock` calls lock().
 //
 // While locked, a marker file exists in the runtime directory. If this
 // process dies and is started again (karma-ui.service does that), it finds
@@ -27,15 +30,65 @@ Scope {
 
     readonly property string marker: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/karma-locked"
 
+    // Whether a finger is enrolled (asked from fprintd each time the screen locks).
+    property bool fingerprint: false
+    property string fingerHint: ""
+
     function lock(): void {
         root.failed = false;
+        root.fingerHint = "";
         sessionLock.locked = true;
         Quickshell.execDetached(["touch", root.marker]);
+        enrolled.running = true;
     }
 
     function unlock(): void {
         sessionLock.locked = false;
         Quickshell.execDetached(["rm", "-f", root.marker]);
+        root.fingerprint = false;
+        if (finger.active)
+            finger.abort();
+    }
+
+    Process {
+        id: enrolled
+        command: ["fprintd-list", Quickshell.env("USER")]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.fingerprint = sessionLock.locked && this.text.includes(" - #");
+                if (root.fingerprint)
+                    finger.start();
+            }
+        }
+    }
+
+    // The fingerprint reader, asked again after every attempt while locked.
+    PamContext {
+        id: finger
+        configDirectory: Quickshell.shellPath("pam")
+        config: "fingerprint.conf"
+
+        onCompleted: result => {
+            if (!sessionLock.locked)
+                return;
+            if (result === PamResult.Success) {
+                root.unlock();
+            } else {
+                root.fingerHint = "Fingerprint not recognised";
+                again.restart();
+            }
+        }
+
+        onError: root.fingerprint = false
+    }
+
+    Timer {
+        id: again
+        interval: 800
+        onTriggered: {
+            if (sessionLock.locked && root.fingerprint && !finger.active)
+                finger.start();
+        }
     }
 
     // Finding the marker at start-up means the previous process died locked.
@@ -263,7 +316,7 @@ Scope {
 
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: root.busy ? "Checking..." : root.failed ? "That password is not right. Try again." : "Type your password and press Enter"
+                    text: root.busy ? "Checking..." : root.failed ? "That password is not right. Try again." : root.fingerprint ? (root.fingerHint !== "" ? root.fingerHint + ". Try again, or type your password" : "Touch the fingerprint reader, or type your password") : "Type your password and press Enter"
                     color: root.failed ? Tokens.stateError : Tokens.textMuted
                     font.family: Tokens.fontFamily
                     font.pixelSize: Tokens.fontSm

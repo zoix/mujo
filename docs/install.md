@@ -55,6 +55,13 @@ guessing. Every run is appended to `~/.local/state/karma/install.log`.
    `Canada/Mountain` and `America/Edmonton` count as the same.
 9. **Removals** you agreed to (`pacman -Rns`). karma cannot undo these.
 
+**Fingerprint.** On a machine with a fingerprint reader the installer asks
+whether `sudo` should accept a fingerprint (default: no). If you agree it
+installs `fprintd`, lets you enroll a finger, and puts `pam_fprintd.so` first
+in `/etc/pam.d/sudo`, with the password as the fallback; the old file is
+backed up and `karma uninstall` restores it. The lock screen uses an enrolled
+finger by itself, without any of this.
+
 Packages on karma's list that were only installed as a dependency of something
 else are marked as explicitly installed, so that removing that something does
 not take them along.
