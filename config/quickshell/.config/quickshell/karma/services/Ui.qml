@@ -75,6 +75,15 @@ Singleton {
     property int osdValue: 0
     property bool osdMuted: false
 
+    // The screenshot area picker (modules/Picker.qml), on the focused screen.
+    property bool picker: false
+
+    function openPicker(): void {
+        root.closeAll();
+        root.screen = root.focusedScreen();
+        root.picker = true;
+    }
+
     // The quick-settings panel on the right edge.
     property bool sidebar: false
 

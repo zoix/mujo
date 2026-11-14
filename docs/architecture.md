@@ -92,7 +92,11 @@ Each command module calls `karma_register NAME SUMMARY` and defines
 | `modules/Launcher.qml` | Bottom panel with one search field and several modes: apps, karma commands (`>`), wallpaper strip, clipboard history, keybindings, Wi-Fi networks (with a password prompt). Every list comes from `karma ... --json` |
 | `modules/Session.qml` | Right panel: the power menu |
 | `modules/Dashboard.qml`, `services/Sys.qml`, `components/Ring.qml` | Top panel: date and calendar, gauges fed by `karma sys --json`, media controls |
-| `modules/Popout.qml` | Details beside a status icon while the pointer rests on it; the volume slider runs `karma audio volume` |
+| `modules/Popout.qml` | Beside the bar: details of a status icon or of the focused window while the pointer rests on it, and the menu of a tray icon |
+| `modules/Sidebar.qml` | Right panel: quick settings in three pages, and the notification history |
+| `modules/Overview.qml` | The dashboard's page of workspace miniatures, with a still picture of each window |
+| `modules/Picker.qml` | The screenshot area picker: a frozen, dimmed screen to click or drag on |
+| `components/Constellation.qml` | The lock screen's slow ring of points and pulses |
 | `modules/Bar.qml`, `Workspaces.qml`, `Tray.qml`, `Status.qml`, `Clock.qml` | The bar's parts. Workspaces are listed per monitor |
 | `modules/Osd.qml`, `Notifications.qml` | Volume/brightness panel on the left edge, beside the status icons it reports on; notification panel in the top-right corner |
 | `modules/Wallpaper.qml` | Background layer, one per screen |

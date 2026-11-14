@@ -480,6 +480,10 @@ journal_count() {
   [ "$status" -eq 3 ]
   run karma menu --window
   [ "$status" -eq 3 ]
+  run karma shot region --geometry "not a rectangle"
+  [ "$status" -eq 2 ]
+  run karma shot region --geometry "10,20 300x200" --dry-run --json
+  [ "$status" -eq 0 ]
   run karma shot window --dry-run --json
   [ "$status" -eq 0 ]
   [ "$(data .mode)" = window ]

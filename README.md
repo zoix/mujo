@@ -31,6 +31,9 @@ Details, flags and what happens to an existing `hyprland.conf`:
 | Keys | Opens |
 | --- | --- |
 | `SUPER + Space` | Launcher; type `>` for every karma command |
+| `SUPER + A` | Quick settings and notification history |
+| `SUPER + Tab` | All workspaces at a glance |
+| `SUPER + D` | Dashboard: calendar, system gauges, media |
 | `SUPER + Shift + W` | Wallpaper strip; moving along it applies the image |
 | `SUPER + Shift + Escape` | Power menu |
 | `SUPER + Escape` | Lock |

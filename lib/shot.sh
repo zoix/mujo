@@ -7,8 +7,12 @@ karma_register shot "Region, window or screen screenshot"
 help_shot() {
   cat <<EOF
 Usage: $KARMA_NAME shot [region | window | screen] [--no-save] [--no-copy] [--dir DIRECTORY]
+       $KARMA_NAME shot region [--geometry "X,Y WxH" | --slurp]
 
-region  Drag to select an area (the default). Escape cancels.
+region  Choose an area (the default). With the interface running, the screen
+        freezes: click a window or drag a rectangle, Escape cancels. Without
+        it, or with --slurp, slurp draws the selection. --geometry takes the
+        area as given and asks nothing.
 window  The focused window.
 screen  The focused monitor.
 
@@ -24,7 +28,7 @@ shot_dir() {
 }
 
 cmd_shot() {
-  local mode="" save=1 copy=1 dir=""
+  local mode="" save=1 copy=1 dir="" given="" use_slurp=0
   while (( $# )); do
     case $1 in
       region|window|screen)
@@ -32,6 +36,12 @@ cmd_shot() {
         mode=$1
         shift
         ;;
+      --geometry)
+        [[ ${2:-} =~ ^-?[0-9]+,-?[0-9]+\ [0-9]+x[0-9]+$ ]] || usage_error "--geometry needs \"X,Y WxH\""
+        given=$2
+        shift 2
+        ;;
+      --slurp) use_slurp=1; shift ;;
       --no-save) save=0; shift ;;
       --no-copy) copy=0; shift ;;
       --dir) [[ -n ${2:-} ]] || usage_error "--dir needs a directory"; dir=$2; shift 2 ;;
@@ -70,8 +80,19 @@ cmd_shot() {
   local geometry=""
   case $mode in
     region)
-      need slurp
-      geometry=$(slurp 2>/dev/null) || die "$EXIT_FAIL" "selection cancelled"
+      if [[ -n $given ]]; then
+        geometry=$given
+      elif (( ! use_slurp )) && command -v qs >/dev/null 2>&1 \
+           && timeout 2 qs -c "$KARMA_NAME" ipc call picker open >/dev/null 2>&1; then
+        # The interface's picker takes over; it runs this command again
+        # with --geometry once an area is chosen.
+        say "Choose the area on screen."
+        jq -n '{mode: "region", path: null, copied: false, geometry: null, picking: true}' | emit
+        return 0
+      else
+        need slurp
+        geometry=$(slurp 2>/dev/null) || die "$EXIT_FAIL" "selection cancelled"
+      fi
       grim_args=(-g "$geometry")
       ;;
     window)

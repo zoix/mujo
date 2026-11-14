@@ -33,6 +33,12 @@ ShellRoot {
         }
     }
 
+    Variants {
+        model: Quickshell.screens
+
+        Picker {}
+    }
+
     Lock {
         id: lock
     }
@@ -82,6 +88,18 @@ ShellRoot {
 
         function close(): void {
             Ui.closeAll();
+        }
+    }
+
+    IpcHandler {
+        target: "picker"
+
+        function open(): void {
+            Ui.openPicker();
+        }
+
+        function close(): void {
+            Ui.picker = false;
         }
     }
 

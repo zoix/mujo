@@ -187,6 +187,7 @@ nmcli ask for the password; `--password-stdin` reads one line instead.
 | `next`, `prev` | yes | Cycle through the directory by name |
 | `clear` | yes | No wallpaper |
 | `dir [DIRECTORY]` | yes | Default `~/Pictures/Wallpapers`. Without an argument: `{directory}` |
+| `clock [on\|off\|toggle]` | yes | The clock on the desktop, with the bars that follow the music |
 
 The choice is stored in `config.json` (`wallpaper`, `wallpaper_dir`) and sent
 to the UI (`wallpaper set PATH`), which draws it on every screen.
@@ -203,6 +204,11 @@ returns `{dnd}`. While it is on the UI shows only critical notifications.
 
 ## karma power
 
+`power profile [NAME]` shows or sets the power profile (`power-saver`,
+`balanced`, `performance`; needs power-profiles-daemon); `power awake
+[on|off|toggle]` keeps the session from locking by itself by stopping the idle
+daemon. Both are journaled and can be undone.
+
 `power` or `power list`: `{actions: [...]}`. `lock`, `suspend`, `logout`,
 `reboot`, `shutdown` return `{journal_id, action, command}`; with `--dry-run`
 nothing runs and `journal_id` is `null`. `logout`, `reboot` and `shutdown`
@@ -211,7 +217,11 @@ need `--yes` (exit 2 without it). Entries are journaled as not reversible.
 
 ## karma shot
 
-`shot [region|window|screen] [--no-save] [--no-copy] [--dir DIR]`.
+`shot [region|window|screen] [--no-save] [--no-copy] [--dir DIR]`, and for
+`region` also `--geometry "X,Y WxH"` (take exactly that area) or `--slurp`.
+With the interface running, `region` opens its area picker and returns at
+once with `picking: true`; the picker then runs the command again with
+`--geometry`.
 `data`: `{mode, path, copied, geometry}`. Saves to `~/Pictures/Screenshots`
 (`screenshot_dir` in `config.json`) and copies to the clipboard. Not journaled.
 
@@ -263,7 +273,8 @@ Read-only. `data`:
 ```
 
 `cpu.total` and `cpu.idle` are counters since boot; the load between two
-readings is `1 - Δidle / Δtotal`. The human output takes two readings itself.
+readings is `1 - Δidle / Δtotal`. `sys workspaces` lists the Hyprland
+workspaces with their windows (`{workspaces: [{id, name, monitor, windows}]}`). The human output takes two readings itself.
 `temperature_c` is `null` without a sensor. `sys --window` opens the dashboard.
 
 ## karma doctor
@@ -324,7 +335,9 @@ best effort and never fatal. `qs -c karma ipc show` lists the targets:
 | `lock` | `lock` | `karma power lock` |
 | `launcher` | `apps`, `actions`, `wallpapers`, `clipboard`, `keys`, `wifi` (each toggles that mode), `close` | `--window` on `launch`, `menu`, `wall pick` |
 | `session` | `toggle` (the power menu) | `karma power --window` |
-| `dashboard` | `toggle` (pin the dashboard open or release it) | `karma sys --window` |
+| `dashboard` | `toggle`, `workspaces` (the page of workspace miniatures) | `karma sys --window`, `karma sys workspaces --window` |
+| `sidebar` | `toggle` (quick settings) | `karma status --window` |
+| `picker` | `open`, `close` (the screenshot area picker) | `karma shot region` |
 | `bar` | `toggle` (hide or show the frame and bar) | by hand |
 
 ## karma theme
@@ -337,6 +350,7 @@ best effort and never fatal. `qs -c karma ipc show` lists the targets:
 | `palette [catppuccin\|wallpaper]` | yes | `wallpaper` tints backgrounds, borders and text with the wallpaper's main colour and makes the accent a colour of that hue (when the accent is `auto`); red, green and the other named colours stay. A wallpaper without a clear colour keeps the Catppuccin colours. Without a word: `{palette, hue, available}` |
 | `mode [dark\|light\|auto]` | yes | Dark (Catppuccin Mocha) or light (Latte) palette for every app. `auto` (the default) follows the wallpaper: light when the image is bright. Without a word: `{mode, preference, available}` |
 | `motion [normal\|gentle]` | yes | `gentle` makes every animation about twice as slow and has Hyprland fade instead of slide. Without a word: `{motion, reduce_motion, available}` |
+| `glass [on\|off]` | yes | `on` makes the frame and its panels see-through, with the desktop blurred behind them |
 | `reduce-motion [on\|off]` | yes | `on` switches every animation off |
 | `list` | no | Consumers, paths and status |
 | `show [PATH]` | no | Resolved tokens, or one subtree (`color.bg`, `term.ansi.5`) |
