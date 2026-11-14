@@ -33,6 +33,7 @@ eza                         # ls replacement (the ls/ll/la aliases use it)
 # karma's own dependencies
 bash                        # karma needs bash 5
 jq                          # JSON for --json, tokens and the journal
+gawk                        # desktop-entry and wallpaper colour parsing
 stow                        # links config/ into $HOME
 git                         # updates (`karma update`)
 kbd                         # setvtrgb for the console palette
@@ -55,4 +56,5 @@ libnotify                   # notify-send
 
 # Look
 ttf-jetbrains-mono-nerd     # the only UI and terminal font
+breeze-icons                # application icons in the launcher
 adw-gtk-theme               # adw-gtk3: libadwaita look for GTK 3 apps
