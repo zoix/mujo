@@ -42,22 +42,14 @@ Item {
         Anim {}
     }
 
-    Row {
+    Tabs {
         id: tabs
         x: Tokens.spaceMd
         y: Tokens.spaceMd
-        spacing: Tokens.spaceSm
-
-        Chip {
-            label: "Today"
-            chosen: root.page === "today"
-            onClicked: Ui.dashboardPage = "today"
-        }
-        Chip {
-            label: "Workspaces"
-            chosen: root.page === "workspaces"
-            onClicked: Ui.dashboardPage = "workspaces"
-        }
+        width: Tokens.card + Tokens.card
+        labels: ["Today", "Workspaces"]
+        index: root.page === "today" ? 0 : 1
+        onChosen: index => Ui.dashboardPage = index === 0 ? "today" : "workspaces"
     }
 
     Overview {

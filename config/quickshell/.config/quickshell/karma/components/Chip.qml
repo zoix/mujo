@@ -1,4 +1,5 @@
-// One choice in a row of choices.
+// One choice in a row of choices inside a page. The chosen one is outlined
+// in the accent colour; the filled accent pill is kept for the page tabs.
 import QtQuick
 import qs.theme
 
@@ -12,7 +13,9 @@ Rectangle {
     implicitWidth: text.implicitWidth + Tokens.spaceLg + Tokens.spaceLg
     implicitHeight: text.implicitHeight + Tokens.spaceSm + Tokens.spaceSm
     radius: Tokens.radiusFull
-    color: root.chosen ? Tokens.accent : area.containsMouse ? Tokens.bgControl : Tokens.bgBase
+    color: root.chosen ? Tokens.group : area.containsMouse ? Tokens.bgControl : Tokens.bgBase
+    border.width: root.chosen ? Tokens.borderThin : 0
+    border.color: Tokens.accent
 
     Behavior on color {
         Fade {}
@@ -22,7 +25,7 @@ Rectangle {
         id: text
         anchors.centerIn: parent
         text: root.label
-        color: root.chosen ? Tokens.textOnAccent : Tokens.textPrimary
+        color: root.chosen ? Tokens.accent : Tokens.textPrimary
         font.family: Tokens.fontFamily
         font.pixelSize: Tokens.fontSm
     }

@@ -65,6 +65,8 @@ Rectangle {
 
         x: Tokens.spaceXs
         y: Tokens.spaceXs
+        // Room between workspaces, so one's icons are not read as the next one's.
+        spacing: Tokens.spaceSm
 
         Repeater {
             id: slots

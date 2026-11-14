@@ -140,11 +140,13 @@ Item {
         }
     }
 
+    // The name of a group of settings.
     component Heading: Text {
         color: Tokens.textMuted
         font.family: Tokens.fontFamily
-        font.pixelSize: Tokens.fontXs
-        topPadding: Tokens.spaceSm
+        font.pixelSize: Tokens.fontSm
+        font.weight: Tokens.weightEmphasis
+        topPadding: Tokens.spaceMd
     }
 
     Column {
@@ -155,24 +157,16 @@ Item {
         width: Tokens.notificationWidth
         spacing: Tokens.spaceSm
 
-        Row {
-            spacing: Tokens.spaceSm
+        Tabs {
+            width: parent.width
+            labels: ["Quick", "Look", "Sound and screen"]
+            index: root.pages.indexOf(root.page)
+            onChosen: index => root.page = root.pages[index]
+        }
 
-            Chip {
-                label: "Quick"
-                chosen: root.page === "quick"
-                onClicked: root.page = "quick"
-            }
-            Chip {
-                label: "Look"
-                chosen: root.page === "look"
-                onClicked: root.page = "look"
-            }
-            Chip {
-                label: "Sound and screen"
-                chosen: root.page === "sound"
-                onClicked: root.page = "sound"
-            }
+        Item {
+            width: parent.width
+            height: Tokens.spaceXs
         }
 
         // ---- Quick
