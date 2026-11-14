@@ -10,11 +10,14 @@ Rectangle {
     signal scrolled(up: bool)
 
     readonly property bool hovered: area.containsMouse
+    // The colour under the pointer; set it one step lighter when the
+    // button sits on a container that already has the default colour.
+    property color hoverColor: Tokens.bgControl
 
     implicitWidth: Tokens.spaceXxl
     implicitHeight: Tokens.spaceXxl
     radius: Tokens.radiusSm
-    color: area.containsMouse ? Tokens.bgControl : "transparent"
+    color: area.containsMouse ? root.hoverColor : "transparent"
 
     Behavior on color {
         Fade {}
