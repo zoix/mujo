@@ -1,0 +1,33 @@
+-- Consumed by the hand-written modules in ~/.config/hypr (look.lua, animations.lua):
+--   local t = require("karma_tokens")
+-- Animation speeds are in deciseconds, the unit hl.animation() expects.
+-- When reduce_motion is true the speeds are 0: callers must set enabled = false.
+
+return {
+    color = {
+        accent          = "{{ color.accent | hypr }}",
+        border_active   = "{{ color.accent | hypr }}",
+        border_inactive = "{{ color.border.subtle | hypr }}",
+        bg_frame        = "{{ color.bg.frame | hypr }}",
+        bg_base         = "{{ color.bg.base | hypr }}",
+        error           = "{{ color.state.error | hypr }}",
+    },
+    border_size  = {{ border.thin }},
+    border_focus = {{ border.focus }},
+    rounding     = {{ radius.md }},
+    gaps_in      = {{ layout.gap_in }},
+    gaps_out     = {{ layout.gap_out }},
+    font_family  = {{ font.family | q }},
+
+    reduce_motion = {{ settings.reduce_motion }},
+    curves = {
+        standard = { type = "bezier", points = {{ motion.ease.standard | lua_points }} },
+        enter    = { type = "bezier", points = {{ motion.ease.enter | lua_points }} },
+        exit     = { type = "bezier", points = {{ motion.ease.exit | lua_points }} },
+    },
+    speed = {
+        fast   = {{ motion.duration.fast | ds }},
+        normal = {{ motion.duration.normal | ds }},
+        slow   = {{ motion.duration.slow | ds }},
+    },
+}

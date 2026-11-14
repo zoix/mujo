@@ -1,0 +1,23 @@
+# shellcheck shell=bash
+# User settings in ~/.config/karma/config.json (a JSON object; missing file = {}).
+
+config_read() {
+  if [[ ! -f $KARMA_CONFIG_FILE ]]; then
+    echo '{}'
+    return
+  fi
+  jq -c 'if type == "object" then . else error("not an object") end' "$KARMA_CONFIG_FILE" 2>/dev/null \
+    || die "$EXIT_FAIL" "$KARMA_CONFIG_FILE is not a valid JSON object"
+}
+
+# config_with KEY JSON-VALUE: print the config with KEY set, without writing it.
+config_with() {
+  config_read | jq --arg k "$1" --argjson v "$2" '.[$k] = $v'
+}
+
+# config_set KEY JSON-VALUE: write KEY to the config file.
+config_set() {
+  local new
+  new=$(config_with "$1" "$2")
+  printf '%s\n' "$new" | atomic_write "$KARMA_CONFIG_FILE"
+}

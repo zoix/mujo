@@ -1,0 +1,3 @@
+# Generated theme files are written to ~/.config and ~/.local/state, never here.
+*.swp
+/.cache/

@@ -1,0 +1,4 @@
+external-sources=true
+source-path=SCRIPTDIR
+# jq programs are single-quoted on purpose: $name in them is a jq variable.
+disable=SC2016

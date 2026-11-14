@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# karma: command-line control plane for the karma desktop. See docs/cli.md.
+set -euo pipefail
+
+if (( BASH_VERSINFO[0] < 5 )); then
+  echo "karma: needs bash 5 or newer" >&2
+  exit 3
+fi
+
+KARMA_BIN=$(readlink -f -- "${BASH_SOURCE[0]}")
+KARMA_ROOT=${KARMA_ROOT:-$(dirname -- "$(dirname -- "$KARMA_BIN")")}
+export KARMA_BIN KARMA_ROOT
+
+exec 3>&1
+
+# shellcheck source=../lib/core.sh
+source "$KARMA_ROOT/lib/core.sh"
+# shellcheck source=../lib/config.sh
+source "$KARMA_ROOT/lib/config.sh"
+# shellcheck source=../lib/ui.sh
+source "$KARMA_ROOT/lib/ui.sh"
+# shellcheck source=../lib/theme.sh
+source "$KARMA_ROOT/lib/theme.sh"
+# shellcheck source=../lib/journal.sh
+source "$KARMA_ROOT/lib/journal.sh"
+
+karma_main "$@"

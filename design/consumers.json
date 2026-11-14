@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "consumers": [
+    {
+      "id": "quickshell",
+      "description": "Quickshell Tokens singleton",
+      "template": "quickshell/Tokens.qml.tmpl",
+      "target": "@config/quickshell/karma/theme/Tokens.qml",
+      "scope": "user",
+      "comment": "//",
+      "reload": "quickshell",
+      "lint": [
+        "config/quickshell"
+      ]
+    },
+    {
+      "id": "hypr",
+      "description": "Hyprland token table (require \"karma_tokens\")",
+      "template": "hypr/karma_tokens.lua.tmpl",
+      "target": "@config/hypr/karma_tokens.lua",
+      "scope": "user",
+      "comment": "--",
+      "reload": "hyprland",
+      "lint": [
+        "config/hypr"
+      ]
+    },
+    {
+      "id": "kitty",
+      "description": "kitty colours, font and padding (include from kitty.conf)",
+      "template": "kitty/karma-theme.conf.tmpl",
+      "target": "@config/kitty/karma-theme.conf",
+      "scope": "user",
+      "comment": "#",
+      "reload": "kitty",
+      "lint": [
+        "config/kitty"
+      ]
+    },
+    {
+      "id": "btop",
+      "description": "btop theme (color_theme = \"karma\")",
+      "template": "btop/karma.theme.tmpl",
+      "target": "@config/btop/themes/karma.theme",
+      "scope": "user",
+      "comment": "#",
+      "lint": [
+        "config/btop"
+      ]
+    },
+    {
+      "id": "yazi",
+      "description": "yazi theme",
+      "template": "yazi/theme.toml.tmpl",
+      "target": "@config/yazi/theme.toml",
+      "scope": "user",
+      "comment": "#",
+      "lint": [
+        "config/yazi"
+      ]
+    },
+    {
+      "id": "fzf",
+      "description": "fzf options file (FZF_DEFAULT_OPTS_FILE)",
+      "template": "fzf/karma.fzfrc.tmpl",
+      "target": "@config/fzf/karma.fzfrc",
+      "scope": "user",
+      "comment": "#",
+      "lint": [
+        "tui"
+      ]
+    },
+    {
+      "id": "zsh",
+      "description": "zsh prompt, autosuggestion and highlighting colours",
+      "template": "zsh/karma-theme.zsh.tmpl",
+      "target": "@config/zsh/karma-theme.zsh",
+      "scope": "user",
+      "comment": "#",
+      "lint": [
+        "config/zsh"
+      ]
+    },
+    {
+      "id": "gtk3",
+      "description": "adw-gtk3 colour override",
+      "template": "gtk/gtk.css.tmpl",
+      "target": "@config/gtk-3.0/gtk.css",
+      "scope": "user",
+      "comment": "/*",
+      "comment_end": " */",
+      "lint": [
+        "config/gtk-3.0"
+      ]
+    },
+    {
+      "id": "gtk3-settings",
+      "description": "GTK 3 settings: theme, dark preference, UI font",
+      "template": "gtk/settings3.ini.tmpl",
+      "target": "@config/gtk-3.0/settings.ini",
+      "scope": "user",
+      "comment": "#",
+      "comment_end": "",
+      "lint": [
+        "config/gtk-3.0"
+      ]
+    },
+    {
+      "id": "gtk4",
+      "description": "libadwaita colour override",
+      "template": "gtk/gtk.css.tmpl",
+      "target": "@config/gtk-4.0/gtk.css",
+      "scope": "user",
+      "comment": "/*",
+      "comment_end": " */",
+      "lint": [
+        "config/gtk-4.0"
+      ]
+    },
+    {
+      "id": "gtk4-settings",
+      "description": "GTK 4 settings: theme, dark preference, UI font",
+      "template": "gtk/settings4.ini.tmpl",
+      "target": "@config/gtk-4.0/settings.ini",
+      "scope": "user",
+      "comment": "#",
+      "comment_end": "",
+      "lint": [
+        "config/gtk-4.0"
+      ]
+    },
+    {
+      "id": "greetd",
+      "description": "greetd config running tuigreet with the console palette",
+      "template": "greetd/config.toml.tmpl",
+      "target": "/etc/greetd/config.toml",
+      "scope": "system",
+      "comment": "#",
+      "lint": [
+        "system/greetd"
+      ]
+    },
+    {
+      "id": "vtrgb",
+      "description": "Linux console palette for setvtrgb",
+      "template": "tty/palette.vtrgb.tmpl",
+      "target": "/etc/karma/palette.vtrgb",
+      "scope": "system",
+      "comment": "",
+      "lint": [
+        "system/vtrgb"
+      ]
+    }
+  ]
+}

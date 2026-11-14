@@ -1,0 +1,57 @@
+# Packages from the official Arch repositories, one per line.
+# Every name was checked with `pacman -Si` (November 2026).
+# install.sh installs the missing ones with `pacman -S --needed`.
+
+# Compositor and session
+hyprland                    # the compositor (Lua config needs 0.55 or newer)
+xdg-desktop-portal-hyprland # screen sharing, file pickers for Hyprland
+xdg-desktop-portal-gtk      # file chooser and settings portal for GTK apps
+hyprpolkitagent             # polkit prompts for GUI apps
+hypridle                    # idle handling; triggers `karma power lock` (phase 3)
+hyprsunset                  # night light for `karma display` (phase 2)
+quickshell                  # the karma UI (qs -c karma), phase 3
+greetd                      # login manager
+greetd-tuigreet             # greetd's terminal greeter
+gnome-keyring               # Secret Service for apps that store credentials
+libsecret                   # client library for the Secret Service
+
+# Terminal, shell and TUIs
+kitty                       # terminal
+zsh                         # login shell
+zsh-autosuggestions         # history-based suggestions
+zsh-syntax-highlighting     # command line highlighting
+zsh-completions             # extra completion definitions
+fzf                         # launcher, menus, shell key bindings
+yazi                        # file manager
+btop                        # system monitor
+bluetui                     # Bluetooth TUI
+wiremix                     # audio mixer TUI
+lazygit                     # git TUI
+fastfetch                   # system info
+eza                         # ls replacement (the ls/ll/la aliases use it)
+
+# karma's own dependencies
+bash                        # karma needs bash 5
+jq                          # JSON for --json, tokens and the journal
+stow                        # links config/ into $HOME
+git                         # updates (`karma update`)
+kbd                         # setvtrgb for the console palette
+
+# Desktop services
+networkmanager              # network (karma net uses nmcli)
+bluez                       # Bluetooth stack
+bluez-utils                 # bluetoothctl for `karma bt`
+pipewire                    # audio
+pipewire-pulse              # PulseAudio clients on PipeWire
+wireplumber                 # PipeWire session manager, provides wpctl
+brightnessctl               # backlight for `karma display`
+playerctl                   # media keys
+wl-clipboard                # wl-copy and wl-paste
+cliphist                    # clipboard history for `karma clip`
+grim                        # screenshots
+slurp                       # region selection for screenshots
+libnotify                   # notify-send
+
+# Look
+ttf-jetbrains-mono-nerd     # the only UI and terminal font
+adw-gtk-theme               # adw-gtk3: libadwaita look for GTK 3 apps
