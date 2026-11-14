@@ -14,3 +14,12 @@ hl.window_rule({
     size   = { "monitor_w * 0.5", "monitor_h * 0.6" },
     center = true,
 })
+
+-- The package picker and command output need more room than a menu: the
+-- description beside the list is wide.
+hl.window_rule({
+    name   = "karma-tui-wide",
+    match  = { class = "^karma-tui-(pkg|show)$" },
+    size   = { "monitor_w * 0.8", "monitor_h * 0.8" },
+    center = true,
+})
