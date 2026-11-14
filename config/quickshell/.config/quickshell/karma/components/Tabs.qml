@@ -50,6 +50,8 @@ Rectangle {
 
                 Text {
                     anchors.centerIn: parent
+                    width: Math.min(implicitWidth, parent.width - Tokens.spaceSm)
+                    elide: Text.ElideRight
                     text: tab.modelData
                     color: root.index === tab.index ? Tokens.textOnAccent : area.containsMouse ? Tokens.textPrimary : Tokens.textMuted
                     font.family: Tokens.fontFamily

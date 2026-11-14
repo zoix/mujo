@@ -34,6 +34,10 @@ Rectangle {
     radius: Tokens.radiusFull
     color: Tokens.group
 
+    // Windows that were open before the interface started have no class
+    // yet; ask Hyprland for the list once.
+    Component.onCompleted: Hyprland.refreshToplevels()
+
     // Window classes arrive a moment after a window opens.
     Connections {
         target: Hyprland

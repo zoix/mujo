@@ -8,7 +8,6 @@
 //   atEnd: on a left or right edge, sit near the bottom instead of the middle
 //   centre: on a left or right edge, the height to centre on (-1 = not set)
 import QtQuick
-import QtQuick.Window
 import QtQuick.Shapes
 import qs.theme
 
@@ -27,8 +26,16 @@ Item {
     readonly property real corner: Tokens.radiusXl
     // 0 = closed, 1 = fully open
     property real progress: open ? 1 : 0
-    readonly property real along: (vertical ? holder.implicitHeight : holder.implicitWidth) + fillet + fillet
-    readonly property real depth: (vertical ? holder.implicitWidth : holder.implicitHeight) * progress
+    // How far the panel reaches out of the edge when open, and how long it
+    // is along the edge. A panel on a side edge is drawn turned by a
+    // quarter; it only lands on whole pixels if length and reach are both
+    // even or both odd, so the length is made one longer when they differ.
+    // (Otherwise the panel sits half a pixel off and a hairline of desktop
+    // shows between it and the frame.)
+    readonly property real reach: Math.round(vertical ? holder.implicitWidth : holder.implicitHeight)
+    readonly property real length: Math.round((vertical ? holder.implicitHeight : holder.implicitWidth) + fillet + fillet)
+    readonly property real along: vertical ? length + Math.abs(length - reach) % 2 : length
+    readonly property real depth: reach * progress
 
     visible: progress > 0
     width: vertical ? depth : along
@@ -117,23 +124,17 @@ Item {
         }
     }
 
-    // A strip over the seam with the frame. On the right edge the turned
-    // shape stops one screen pixel short of the frame, and the desktop shows through that
-    // hairline. The strip fills it in the same colour. With solid panels it
-    // is generous and reaches into the frame; with see-through panels it
-    // covers exactly that one pixel, because anything wider would be seen
-    // as a darker band where two layers overlap.
+    // A strip over the seam with the frame, for solid panels: both shapes
+    // have softened edges, and the strip makes sure nothing shows between
+    // them. See-through panels get none (it would show as a darker band).
     Rectangle {
-        readonly property bool solid: Tokens.panelOpacity >= 1
-        readonly property real pixel: 1 / Screen.devicePixelRatio
-        // (Measured on screen: only the panel on the right edge falls short.)
-        readonly property real inside: solid ? Tokens.borderFocus : root.edge === "right" ? pixel : 0
-        readonly property real outside: solid ? Tokens.borderFocus : 0
-        color: Tokens.panel
-        x: root.vertical ? (root.edge === "right" ? root.width - inside : -outside) : root.fillet
-        y: root.vertical ? root.fillet : (root.edge === "bottom" ? root.height - inside : -outside)
-        width: root.vertical ? inside + outside : root.width - root.fillet - root.fillet
-        height: root.vertical ? root.height - root.fillet - root.fillet : inside + outside
+        readonly property real t: Tokens.borderFocus
+        visible: Tokens.panelOpacity >= 1
+        color: Tokens.bgFrame
+        x: root.vertical ? (root.edge === "right" ? root.width - t : -t) : root.fillet
+        y: root.vertical ? root.fillet : (root.edge === "bottom" ? root.height - t : -t)
+        width: root.vertical ? t + t : root.width - root.fillet - root.fillet
+        height: root.vertical ? root.height - root.fillet - root.fillet : t + t
     }
 
     // The content keeps its full size and is uncovered as the panel grows,

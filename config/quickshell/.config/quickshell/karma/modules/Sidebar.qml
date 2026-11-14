@@ -1,7 +1,7 @@
 // Quick settings: a panel on the right edge with three pages.
 //   Quick   on/off tiles and the notification history
 //   Look    light or dark, palette, accent, motion
-//   Sound   volume, output device, brightness, power profile
+//   System  volume, output device, brightness, power profile
 // Tab or the arrow keys change page.
 // It shows the current state and runs the karma CLI for every change.
 import QtQuick
@@ -159,7 +159,7 @@ Item {
 
         Tabs {
             width: parent.width
-            labels: ["Quick", "Look", "Sound and screen"]
+            labels: ["Quick", "Look", "System"]
             index: root.pages.indexOf(root.page)
             onChosen: index => root.page = root.pages[index]
         }
