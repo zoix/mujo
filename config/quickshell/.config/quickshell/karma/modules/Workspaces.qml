@@ -29,7 +29,7 @@ Rectangle {
         return Quickshell.iconPath(entry && entry.icon ? entry.icon : name.toLowerCase(), true);
     }
 
-    implicitWidth: cell + Tokens.spaceXs + Tokens.spaceXs
+    implicitWidth: cell + Tokens.borderFocus + Tokens.borderFocus
     implicitHeight: column.implicitHeight + Tokens.spaceXs + Tokens.spaceXs
     radius: Tokens.radiusFull
     color: Tokens.group
@@ -49,7 +49,7 @@ Rectangle {
 
     Rectangle {
         visible: root.activeIndex >= 0
-        x: Tokens.spaceXs
+        x: Tokens.borderFocus
         y: Tokens.spaceXs + root.pillY
         width: root.cell
         height: root.pillHeight
@@ -67,7 +67,7 @@ Rectangle {
     Column {
         id: column
 
-        x: Tokens.spaceXs
+        x: Tokens.borderFocus
         y: Tokens.spaceXs
         // Room between workspaces, so one's icons are not read as the next one's.
         spacing: Tokens.spaceSm

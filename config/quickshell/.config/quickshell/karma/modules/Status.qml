@@ -22,7 +22,8 @@ Rectangle {
             Ui.leaveIcon(kind);
     }
 
-    implicitWidth: icons.implicitWidth + Tokens.spaceXs + Tokens.spaceXs
+    // A slim pill: it leaves a clear margin to both sides of the bar.
+    implicitWidth: icons.implicitWidth + Tokens.borderFocus + Tokens.borderFocus
     implicitHeight: icons.implicitHeight + Tokens.spaceXs + Tokens.spaceXs
     radius: Tokens.radiusFull
     // A wash of the accent colour, so the group reads as a unit on the bar.
@@ -31,9 +32,9 @@ Rectangle {
     Column {
         id: icons
 
-        x: Tokens.spaceXs
+        x: Tokens.borderFocus
         y: Tokens.spaceXs
-        spacing: 0
+        spacing: Tokens.borderFocus
 
         BarButton {
             hoverColor: Tokens.groupHover
@@ -45,6 +46,7 @@ Rectangle {
 
             Glyph {
                 anchors.centerIn: parent
+                font.pixelSize: Tokens.fontLg
                 text: Net.wired && Net.ssid === "" ? "" : ""
                 color: Net.ssid !== "" || Net.wired ? Tokens.textPrimary : Tokens.borderSubtle
                 opacity: Net.ssid === "" || Net.signal >= 50 ? 1 : 0.6
@@ -62,6 +64,7 @@ Rectangle {
 
             Glyph {
                 anchors.centerIn: parent
+                font.pixelSize: Tokens.fontLg
                 text: ""
                 color: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled ? Tokens.textPrimary : Tokens.borderSubtle
             }
@@ -75,6 +78,7 @@ Rectangle {
 
             Glyph {
                 anchors.centerIn: parent
+                font.pixelSize: Tokens.fontLg
                 text: ""
                 color: Tokens.stateWarning
             }
@@ -96,6 +100,7 @@ Rectangle {
 
                 Glyph {
                     anchors.horizontalCenter: parent.horizontalCenter
+                    font.pixelSize: Tokens.fontLg
                     text: Battery.charging ? "" : Battery.percent > 80 ? "" : Battery.percent > 55 ? "" : Battery.percent > 30 ? "" : Battery.percent > 10 ? "" : ""
                     color: Battery.charging ? Tokens.stateSuccess : Battery.percent <= 10 ? Tokens.stateError : Battery.percent <= 20 ? Tokens.stateWarning : Tokens.textPrimary
                 }
