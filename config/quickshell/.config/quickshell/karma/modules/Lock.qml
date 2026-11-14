@@ -214,6 +214,29 @@ Scope {
                     font.pixelSize: Tokens.fontLg
                 }
 
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.topMargin: Tokens.spaceSm
+                    Layout.maximumWidth: Tokens.card + Tokens.card
+                    visible: Quotes.text !== ""
+                    text: Quotes.text
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignHCenter
+                    color: Tokens.textPrimary
+                    font.family: Tokens.fontFamily
+                    font.pixelSize: Tokens.fontSm
+                }
+
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.topMargin: -Tokens.spaceSm
+                    visible: Quotes.text !== ""
+                    text: Quotes.credit
+                    color: Tokens.textMuted
+                    font.family: Tokens.fontFamily
+                    font.pixelSize: Tokens.fontXs
+                }
+
                 Rectangle {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.topMargin: Tokens.spaceXl

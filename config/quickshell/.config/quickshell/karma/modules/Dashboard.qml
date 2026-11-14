@@ -36,7 +36,7 @@ Item {
     readonly property int cardHeight: Tokens.ring + Tokens.ring + Tokens.spaceXl + Tokens.spaceXl
 
     implicitWidth: row.implicitWidth + Tokens.spaceMd + Tokens.spaceMd
-    implicitHeight: tabs.height + Tokens.spaceSm + (page === "today" ? row.implicitHeight : overview.implicitHeight) + Tokens.spaceMd + Tokens.spaceMd
+    implicitHeight: tabs.height + Tokens.spaceSm + (page === "today" ? row.implicitHeight + quote.height + Tokens.spaceSm : overview.implicitHeight) + Tokens.spaceMd + Tokens.spaceMd
 
     Behavior on implicitHeight {
         Anim {}
@@ -74,6 +74,38 @@ Item {
         implicitHeight: root.cardHeight
         radius: Tokens.radiusLg
         color: Tokens.bgBase
+    }
+
+    // The quote of the hour, under the cards.
+    Column {
+        id: quote
+
+        visible: root.page === "today"
+        opacity: root.reveal
+        x: Tokens.spaceMd
+        y: row.y + row.implicitHeight + Tokens.spaceSm
+        width: row.implicitWidth
+        topPadding: Tokens.spaceXs
+        spacing: Tokens.spaceXs
+
+        Text {
+            width: parent.width
+            text: Quotes.text
+            wrapMode: Text.WordWrap
+            horizontalAlignment: Text.AlignHCenter
+            color: Tokens.textPrimary
+            font.family: Tokens.fontFamily
+            font.pixelSize: Tokens.fontSm
+        }
+
+        Text {
+            width: parent.width
+            text: Quotes.credit
+            horizontalAlignment: Text.AlignHCenter
+            color: Tokens.textMuted
+            font.family: Tokens.fontFamily
+            font.pixelSize: Tokens.fontXs
+        }
     }
 
     Row {

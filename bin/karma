@@ -49,6 +49,8 @@ source "$KARMA_ROOT/lib/launch.sh"
 source "$KARMA_ROOT/lib/menu.sh"
 # shellcheck source=../lib/keys.sh
 source "$KARMA_ROOT/lib/keys.sh"
+# shellcheck source=../lib/quote.sh
+source "$KARMA_ROOT/lib/quote.sh"
 # shellcheck source=../lib/pkg.sh
 source "$KARMA_ROOT/lib/pkg.sh"
 # shellcheck source=../lib/sys.sh

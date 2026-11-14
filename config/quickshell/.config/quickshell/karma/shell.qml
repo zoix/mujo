@@ -164,6 +164,19 @@ ShellRoot {
     }
 
     IpcHandler {
+        target: "quote"
+
+        // (A function called "show" is not callable: qs lists the target instead.)
+        function visit(): void {
+            Quotes.refresh(true);
+        }
+
+        function hide(): void {
+            Ui.quote = false;
+        }
+    }
+
+    IpcHandler {
         target: "bar"
 
         function toggle(): void {

@@ -1,5 +1,6 @@
 // The frame around one screen, the bar on its left edge, and the panels
 // that grow out of the frame: launcher (bottom), dashboard (top), power
+// and the quote of the hour, power
 // menu, quick settings and the volume and brightness display (right), icon
 // pop-outs (left, beside the bar), notifications (top-right corner).
 //
@@ -186,6 +187,14 @@ Scope {
             HoverHandler {
                 id: dashboardHover
             }
+        }
+
+        // The quote of the hour: a short visit, never over the dashboard.
+        Drawer {
+            edge: "top"
+            open: root.focused && Ui.quote && !dashboard.open
+
+            Quote {}
         }
 
         // Details beside a bar icon while the pointer rests on it.

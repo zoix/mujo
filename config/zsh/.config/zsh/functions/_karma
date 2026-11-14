@@ -58,6 +58,7 @@ _karma() {
     'theme:design tokens: build, check, accent, reduce-motion'
     'wall:set or cycle the wallpaper'
     'dnd:do not disturb for notifications'
+    'quote:the quote of the hour'
     'power:lock, suspend, logout, reboot, shutdown'
     'shot:region, window or screen screenshot'
     'clip:clipboard history picker'
@@ -164,6 +165,13 @@ _karma() {
         update) _values 'option' --karma-only --system-only ;;
         uninstall) _values 'option' --skip-system ;;
         dnd) (( CURRENT == 2 )) && _values 'state' on off toggle ;;
+        quote)
+          if (( CURRENT == 2 )); then
+            _values 'quote subcommand' show next list hourly
+          elif [[ $words[2] == hourly ]]; then
+            _values 'state' on off toggle
+          fi
+          ;;
         power) (( CURRENT == 2 )) && _values 'action' list lock suspend logout reboot shutdown profile awake ;;
         shot) _values 'mode or option' region window screen --no-save --no-copy --dir ;;
         clip) (( CURRENT == 2 )) && _values 'clip subcommand' pick list copy clear ;;

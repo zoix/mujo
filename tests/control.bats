@@ -29,7 +29,7 @@ journal_count() {
 }
 
 @test "every command has help" {
-  for c in status audio net bt display wall dnd notify power shot clip launch menu keys sys pkg doctor update uninstall; do
+  for c in status audio net bt display wall dnd quote notify power shot clip launch menu keys sys pkg doctor update uninstall; do
     run karma help "$c"
     [ "$status" -eq 0 ]
     [[ $output == "Usage: karma $c"* ]]
@@ -349,6 +349,37 @@ journal_count() {
 }
 
 # ---- do not disturb ------------------------------------------------------------
+
+@test "quote: the same one within the hour, next moves on, own list wins" {
+  run karma quote --json
+  [ "$status" -eq 0 ]
+  first=$(data .text)
+  [ -n "$first" ]
+  [ "$(data .total)" -gt 20 ]
+  run karma quote --json
+  [ "$(data .text)" = "$first" ]
+  run karma quote next --json
+  [ "$(data .text)" != "$first" ]
+  mkdir -p "$XDG_CONFIG_HOME/karma"
+  printf '# mine\nOnly this.\tMe\tNotebook\n' >"$XDG_CONFIG_HOME/karma/quotes.txt"
+  run karma quote --json
+  [ "$(data .text)" = "Only this." ]
+  [ "$(data .author)" = Me ]
+  [ "$(data .total)" -eq 1 ]
+}
+
+@test "quote hourly is on by default; off is journaled and undone" {
+  run karma quote hourly --json
+  [ "$(data .hourly)" = true ]
+  karma quote hourly off
+  run karma quote hourly --json
+  [ "$(data .hourly)" = false ]
+  karma undo
+  run karma quote hourly --json
+  [ "$(data .hourly)" = true ]
+  run karma quote hourly sometimes
+  [ "$status" -eq 2 ]
+}
 
 @test "dnd on, off and undo" {
   run karma dnd --json
