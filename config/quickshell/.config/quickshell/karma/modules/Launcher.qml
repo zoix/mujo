@@ -6,6 +6,9 @@
 //   keys        the keybindings (karma keys); Enter does what one does
 //   wifi        networks in range (karma net scan); Enter connects, and a
 //               new protected network asks for its password in the field
+//   calc        a calculator (karma calc); typing "=" in the apps mode gets
+//               here, and Enter copies the result
+//   emoji       emoji by name (karma emoji list); Enter copies one
 //   wallpapers  a strip of thumbnails (karma wall list). Moving along the
 //               strip shows the image on the desktop at once and applies it
 //               a moment later; there is nothing to confirm
@@ -33,11 +36,64 @@ Item {
     property var clips: []
     property var binds: []
     property var nets: []
+    property var emoji: []
+    // The calculator's answer for the text in the field ("" = none yet).
+    property string answer: ""
     // The network a password is being asked for ("" = not asking).
     property string passwordFor: ""
     property string query: ""
-    readonly property var source: passwordFor !== "" ? [] : mode === "apps" ? apps : mode === "actions" ? actions : mode === "clipboard" ? clips : mode === "keys" ? binds : mode === "wifi" ? nets : walls
-    readonly property var results: root.filter(source, query)
+    readonly property var source: passwordFor !== "" ? [] : mode === "apps" ? apps : mode === "actions" ? actions : mode === "clipboard" ? clips : mode === "keys" ? binds : mode === "wifi" ? nets : mode === "emoji" ? emoji : mode === "calc" ? [] : walls
+    readonly property var results: mode === "calc" ? (answer !== "" ? [{
+                name: answer
+            }] : []) : root.filter(source, query)
+
+    // The calculator works the answer out a moment after typing stops.
+    onQueryChanged: {
+        if (root.mode !== "calc")
+            return;
+        if (root.query.trim() === "")
+            root.answer = "";
+        else
+            calcDelay.restart();
+    }
+
+    Timer {
+        id: calcDelay
+        interval: 200
+        onTriggered: {
+            if (root.mode !== "calc" || root.query.trim() === "")
+                return;
+            calculator.running = false;
+            calculator.asked = root.query;
+            calculator.command = [Karma.bin, "calc", root.query, "--json"];
+            calculator.running = true;
+        }
+    }
+
+    Process {
+        id: calculator
+        property string asked: ""
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (calculator.asked !== root.query)
+                    return;
+                const data = root.parse(this.text);
+                root.answer = data && data.result ? data.result : "";
+            }
+        }
+    }
+
+    Process {
+        id: emojiLoader
+        command: [Karma.bin, "emoji", "list", "--json"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const data = root.parse(this.text);
+                if (data)
+                    root.emoji = data.emoji;
+            }
+        }
+    }
 
     implicitWidth: strip ? Tokens.thumbWidth * 4 : Tokens.launcherWidth
     implicitHeight: body.implicitHeight + Tokens.spaceMd + Tokens.spaceMd
@@ -70,6 +126,8 @@ Item {
         switch (root.mode) {
         case "apps":
             return entry.comment ?? "";
+        case "calc":
+            return "Enter copies the result";
         case "actions":
             return "karma " + (entry.command ?? "");
         case "keys":
@@ -82,6 +140,8 @@ Item {
     }
 
     function title(entry: var): string {
+        if (root.mode === "emoji")
+            return (entry.emoji ?? "") + "  " + (entry.name ?? "");
         return root.mode === "keys" ? (entry.description ?? "") : root.label(entry);
     }
 
@@ -128,6 +188,13 @@ Item {
             break;
         case "keys":
             bindsLoader.running = true;
+            break;
+        case "calc":
+            root.answer = "";
+            break;
+        case "emoji":
+            if (root.emoji.length === 0)
+                emojiLoader.running = true;
             break;
         case "wifi":
             // What NetworkManager already knows, at once; a fresh scan follows.
@@ -182,7 +249,13 @@ Item {
         }
         if (!entry)
             return;
-        if (root.mode === "clipboard") {
+        if (root.mode === "calc") {
+            Karma.run(["calc", root.query, "--copy"]);
+            Ui.closeAll();
+        } else if (root.mode === "emoji") {
+            Karma.run(["emoji", "copy", entry.emoji]);
+            Ui.closeAll();
+        } else if (root.mode === "clipboard") {
             Karma.run(["clip", "copy", entry.id]);
             Ui.closeAll();
         } else if (root.mode === "keys") {
@@ -218,6 +291,10 @@ Item {
                 root.setMode("keys");
             } else if (entry.command === "net tui") {
                 root.setMode("wifi");
+            } else if (entry.command === "calc") {
+                root.setMode("calc");
+            } else if (entry.command === "emoji") {
+                root.setMode("emoji");
             } else {
                 Karma.run(["menu", "run", entry.label]);
                 Ui.closeAll();
@@ -441,9 +518,9 @@ Item {
                 }
 
                 Glyph {
-                    visible: entryRow.iconSource === ""
                     anchors.centerIn: appIcon
-                    text: root.mode === "apps" ? "\uf009" : root.mode === "clipboard" ? "\uf0ea" : root.mode === "keys" ? "\uf11c" : root.mode === "wifi" ? "\uf1eb" : "\uf054"
+                    text: root.mode === "apps" ? "\uf009" : root.mode === "clipboard" ? "\uf0ea" : root.mode === "keys" ? "\uf11c" : root.mode === "wifi" ? "\uf1eb" : root.mode === "calc" ? "\uf1ec" : "\uf054"
+                    visible: entryRow.iconSource === "" && root.mode !== "emoji"
                     font.pixelSize: Tokens.fontMd
                     color: list.currentIndex === entryRow.index ? Tokens.accent : Tokens.textMuted
                 }
@@ -553,7 +630,7 @@ Item {
             visible: root.results.length === 0 && root.passwordFor === ""
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
-            text: root.strip && root.walls.length === 0 ? "No images in the wallpaper folder (~/Pictures/Wallpapers)" : root.mode === "wifi" && root.query === "" ? "Looking for networks..." : root.mode === "clipboard" && root.query === "" ? "The clipboard history is empty" : "Nothing matches"
+            text: root.strip && root.walls.length === 0 ? "No images in the wallpaper folder (~/Pictures/Wallpapers)" : root.mode === "calc" ? (root.query.trim() === "" ? "Type a sum, e.g. 12 * 7 or 5 km in miles" : "...") : root.mode === "emoji" && root.emoji.length === 0 ? "The emoji list is missing (package unicode-emoji)" : root.mode === "wifi" && root.query === "" ? "Looking for networks..." : root.mode === "clipboard" && root.query === "" ? "The clipboard history is empty" : "Nothing matches"
             color: Tokens.textMuted
             font.family: Tokens.fontFamily
             font.pixelSize: Tokens.fontSm
@@ -571,7 +648,7 @@ Item {
                 anchors.left: parent.left
                 anchors.leftMargin: Tokens.spaceLg
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.passwordFor !== "" ? "\uf023" : root.mode === "apps" ? "\uf002" : root.mode === "actions" ? "\uf054" : root.mode === "clipboard" ? "\uf0ea" : root.mode === "keys" ? "\uf11c" : root.mode === "wifi" ? "\uf1eb" : "\uf03e"
+                text: root.passwordFor !== "" ? "\uf023" : root.mode === "apps" ? "\uf002" : root.mode === "actions" ? "\uf054" : root.mode === "clipboard" ? "\uf0ea" : root.mode === "keys" ? "\uf11c" : root.mode === "wifi" ? "\uf1eb" : root.mode === "calc" ? "\uf1ec" : root.mode === "emoji" ? "\uf118" : "\uf03e"
                 font.pixelSize: Tokens.fontMd
                 color: Tokens.accent
             }
@@ -597,6 +674,9 @@ Item {
                         return;
                     if (root.mode === "apps" && text.startsWith(">")) {
                         Ui.launcherMode = "actions";
+                        text = text.slice(1);
+                    } else if (root.mode === "apps" && text.startsWith("=")) {
+                        Ui.launcherMode = "calc";
                         text = text.slice(1);
                     }
                     root.query = text;
@@ -631,7 +711,7 @@ Item {
                 anchors.left: input.left
                 anchors.verticalCenter: parent.verticalCenter
                 visible: input.text === ""
-                text: root.passwordFor !== "" ? "Password for " + root.passwordFor + ", then Enter" : root.mode === "apps" ? "Search apps; Tab or > for karma commands" : root.mode === "actions" ? "Search commands; Tab for apps" : root.mode === "clipboard" ? "Search the clipboard; Enter copies" : root.mode === "keys" ? "Search keybindings; Enter runs one" : root.mode === "wifi" ? "Search networks; Enter connects" : "Left and right to choose; Escape closes"
+                text: root.passwordFor !== "" ? "Password for " + root.passwordFor + ", then Enter" : root.mode === "apps" ? "Search apps; Tab or > for karma commands" : root.mode === "actions" ? "Search commands; Tab for apps" : root.mode === "clipboard" ? "Search the clipboard; Enter copies" : root.mode === "keys" ? "Search keybindings; Enter runs one" : root.mode === "wifi" ? "Search networks; Enter connects" : root.mode === "calc" ? "Calculate; Enter copies the result" : root.mode === "emoji" ? "Search emoji; Enter copies" : "Left and right to choose; Escape closes"
                 color: Tokens.textMuted
                 font.family: Tokens.fontFamily
                 font.pixelSize: Tokens.fontMd

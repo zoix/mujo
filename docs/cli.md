@@ -210,6 +210,20 @@ returns `{dnd}`. While it is on the UI shows only critical notifications.
 [on|off|toggle]` keeps the session from locking by itself by stopping the idle
 daemon. Both are journaled and can be undone.
 
+`power limit [PERCENT|off]` stops charging at 50 to 100 percent
+(`{limit, method}`; `method` is `kernel` when the battery has a
+`charge_control_end_threshold` file, `framework_tool` when that tool is
+installed, otherwise `none`). Setting it runs `sudo`, so it needs a
+terminal; the value is also kept as `charge_limit` in `config.json`, which
+is what is shown when only root could ask the firmware. Journaled; undo
+sets the previous limit.
+
+`power auto [on|off|toggle]` mutates `power_auto`: while it is on, the
+interface runs `power sync` whenever the charger is plugged in or pulled,
+and `sync` sets `power-saver` on battery and `balanced` on the charger
+(`{auto, changed, profile}`; not journaled, it only carries out `auto`).
+The interface also warns once at 20% and once at 10% battery.
+
 `power` or `power list`: `{actions: [...]}`. `lock`, `suspend`, `logout`,
 `reboot`, `shutdown` return `{journal_id, action, command}`; with `--dry-run`
 nothing runs and `journal_id` is `null`. `logout`, `reboot` and `shutdown`
@@ -225,6 +239,59 @@ once with `picking: true`; the picker then runs the command again with
 `--geometry`.
 `data`: `{mode, path, copied, geometry}`. Saves to `~/Pictures/Screenshots`
 (`screenshot_dir` in `config.json`) and copies to the clipboard. Not journaled.
+
+`shot text [--geometry "X,Y WxH"] [--lang LANG]` reads the text in an area
+with tesseract and copies it: `{mode: "text", text, copied}`. No image is
+kept; exit 1 if the area holds no text.
+
+## karma record
+
+`record [toggle|start|stop|status] [region|screen] [--audio] [--dir DIR]`
+records with wf-recorder to `~/Videos/Recordings/karma-<date>-<time>.mp4`
+(`record_dir` in `config.json`). `toggle` (the default) starts, or stops
+the recording that is running. `data`: `{recording, mode, path}`. The
+recorder's process id and file are in `$XDG_RUNTIME_DIR/karma-record.pid`;
+stopping interrupts it, copies the path to the clipboard and tells the
+interface (IPC `record state`), which shows a red dot in the bar meanwhile.
+Not journaled.
+
+## karma calc
+
+`calc EXPRESSION... [--copy]` works the expression out with `qalc -t`:
+`{expression, result, copied}`; exit 1 if qalc has no answer.
+
+## karma emoji
+
+`emoji [pick]` (fzf), `emoji list`: `{emoji: [{emoji, name}]}` from
+`/usr/share/unicode/emoji/emoji-test.txt` without the skin-tone variants,
+`emoji copy EMOJI`: `{emoji, copied}`. Exit 3 if the list is not installed.
+
+## karma term
+
+`term` shows or hides the drop-down terminal: a kitty window of class
+`karma-drop` that a window rule keeps on the special workspace `term`. The
+first call starts it. `data`: `{started, toggled}`. Needs Hyprland.
+
+## karma focus
+
+`focus start [MINUTES]` (default 25, at most 480) writes
+`focus: {until, dnd_before}` to `config.json`, turns do-not-disturb on and
+schedules `karma focus finish` with a one-off systemd user timer
+(`karma-focus`). `focus stop` ends it early; either way do-not-disturb goes
+back to `dnd_before`. `focus` or `focus status`:
+`{running, until, minutes_left}`. Start and stop are journaled; undoing a
+start stops the session.
+
+## karma weather
+
+`weather set PLACE` looks the name up at open-meteo.com ("Name, Region"
+picks among namesakes) and stores `weather: {name, region, lat, lon}` in
+`config.json`, the coordinates rounded to two decimals. `weather` then
+returns `{set, place, region, unit, temperature, code, description, day,
+high, low, fetched}`, kept for 30 minutes in `~/.cache/karma/weather.json`
+(`--refresh` asks again). Without a place it returns `{set: false}` and
+makes no request. `weather units [c|f]` mutates `weather_units`;
+`weather clear` forgets the place. All three changes are journaled.
 
 ## karma clip
 
@@ -315,6 +382,11 @@ packages and unmerged commits; only the AUR is asked over the network. `data`:
 `pending` (dry run). In `--json` mode pacman's own output goes to stderr.
 Journaled as not reversible.
 
+`update check [--refresh]` changes nothing: `{repo, aur, count, checked}`,
+the names of the packages that can be upgraded, kept for an hour in
+`~/.cache/karma/updates.json` (a finished update removes it). The bar shows
+`count` while it is above zero.
+
 ## karma uninstall
 
 `uninstall [--skip-system]`, needs `--yes`; `--dry-run` prints the plan.
@@ -337,11 +409,12 @@ best effort and never fatal. `qs -c karma ipc show` lists the targets:
 | `notify` | `reload` (re-read `config.json`), `clear` (dismiss all cards), `open` (go to the newest one's app) | `karma dnd`, `karma notify` |
 | `theme` | `reload` (re-read the colours; the UI is not restarted) | `karma theme` |
 | `lock` | `lock` | `karma power lock` |
-| `launcher` | `apps`, `actions`, `wallpapers`, `clipboard`, `keys`, `wifi` (each toggles that mode), `close` | `--window` on `launch`, `menu`, `wall pick` |
+| `launcher` | `apps`, `actions`, `wallpapers`, `clipboard`, `keys`, `wifi`, `calc`, `emoji` (each toggles that mode), `close` | `--window` on `launch`, `menu`, `wall pick`, `calc`, `emoji` |
 | `session` | `toggle` (the power menu) | `karma power --window` |
 | `dashboard` | `toggle`, `workspaces` (the page of workspace miniatures) | `karma sys --window`, `karma sys workspaces --window` |
 | `sidebar` | `toggle` (quick settings) | `karma status --window` |
 | `picker` | `open`, `close` (the screenshot area picker) | `karma shot region` |
+| `record` | `state BOOL` (show or hide the recording dot) | `karma record` |
 | `bar` | `toggle` (hide or show the frame and bar) | by hand |
 
 ## karma theme

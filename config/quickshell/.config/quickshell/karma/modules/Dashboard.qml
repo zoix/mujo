@@ -19,7 +19,11 @@ Item {
     // 0 to 1 while a newly chosen page comes in.
     property real reveal: 1
 
-    onPageChanged: pageIn.restart()
+    onPageChanged: {
+        pageIn.restart();
+        if (active && page === "today")
+            keys.forceActiveFocus();
+    }
 
     NumberAnimation {
         id: pageIn
@@ -62,7 +66,28 @@ Item {
         width: row.implicitWidth
     }
 
-    onActiveChanged: Sys.watching = active
+    onActiveChanged: {
+        Sys.watching = active;
+        if (active && page === "today")
+            keys.forceActiveFocus();
+    }
+
+    // As in quick settings: Tab, the arrow keys or H and L change page, 1
+    // and 2 go straight to one, Escape closes. (On the Workspaces page the
+    // arrows move between the miniatures instead; see Overview.qml.)
+    Item {
+        id: keys
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Escape) {
+                Ui.closeDashboard();
+            } else if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab || event.key === Qt.Key_Right || event.key === Qt.Key_Left || event.key === Qt.Key_L || event.key === Qt.Key_H || event.key === Qt.Key_2) {
+                Ui.dashboardPage = "workspaces";
+            } else if (event.key !== Qt.Key_1) {
+                return;
+            }
+            event.accepted = true;
+        }
+    }
 
     SystemClock {
         id: clock
@@ -127,6 +152,26 @@ Item {
                             color: Tokens.textMuted
                             font.family: Tokens.fontFamily
                             font.pixelSize: Tokens.fontXs
+                        }
+
+                        // The weather, once a place is set (karma weather set).
+                        Row {
+                            visible: Weather.known
+                            spacing: Tokens.spaceXs
+
+                            Glyph {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: Weather.glyph
+                                color: Tokens.accent
+                                font.pixelSize: Tokens.fontXs
+                            }
+
+                            Text {
+                                text: Weather.line
+                                color: Tokens.textPrimary
+                                font.family: Tokens.fontFamily
+                                font.pixelSize: Tokens.fontXs
+                            }
                         }
                     }
                 }

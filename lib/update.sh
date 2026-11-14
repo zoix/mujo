@@ -7,6 +7,7 @@ karma_register update "System and karma update with a summary"
 help_update() {
   cat <<EOF
 Usage: $KARMA_NAME update [--karma-only | --system-only] [--yes]
+       $KARMA_NAME update check [--refresh]
 
 karma   'git pull --ff-only' in $(tilde "$KARMA_ROOT"), then the new config files
         are linked and the theme is rebuilt. Skipped if the checkout has no
@@ -19,6 +20,12 @@ system  'sudo pacman -Syu', then the AUR packages with yay or paru if one is
 pacman-contrib is installed, otherwise the last synced database) and the
 commits already fetched but not merged. Only the AUR is asked over the
 network; the official repositories are read from the last sync.
+
+check counts the packages waiting to be upgraded and changes nothing. The
+answer is kept for an hour (--refresh asks again); the interface shows the
+count in the bar. With pacman-contrib installed the official repositories
+are asked over the network (checkupdates); without it the last synced
+database is read.
 
 An update cannot be undone; it is recorded in the journal. If the kernel
 or Hyprland was upgraded the summary says to reboot or log out.
@@ -38,7 +45,44 @@ update_pending() {
   fi
 }
 
+UPDATE_CACHE=$KARMA_CACHE_DIR/updates.json
+
+update_cmd_check() {
+  local refresh=0
+  while (( $# )); do
+    case $1 in
+      --refresh) refresh=1; shift ;;
+      *) usage_error "unexpected argument '$1'" ;;
+    esac
+  done
+  local now result="" repo aur="" helper
+  now=$(date +%s)
+  if (( ! refresh )) && [[ -f $UPDATE_CACHE ]]; then
+    result=$(jq -c --argjson now "$now" 'select(.checked > $now - 3600)' "$UPDATE_CACHE" 2>/dev/null) || result=""
+  fi
+  if [[ -z $result ]]; then
+    need pacman
+    repo=$(update_pending)
+    if helper=$(pkg_helper); then aur=$(timeout 30 "$helper" -Qua 2>/dev/null || true); fi
+    result=$(jq -cn --arg r "$repo" --arg a "$aur" --argjson now "$now" '
+      def names: split("\n") | map(select(length > 0) | split(" ")[0]);
+      {repo: ($r | names), aur: ($a | names), checked: $now} | .count = (.repo + .aur | length)')
+    printf '%s\n' "$result" | atomic_write "$UPDATE_CACHE"
+  fi
+  local count
+  count=$(jq -r .count <<<"$result")
+  if (( count == 0 )); then say "Everything is up to date."
+  else say "$count package(s) can be upgraded: $(jq -r '.repo + .aur | join(" ")' <<<"$result")"; fi
+  printf '%s' "$result" | emit
+}
+
 cmd_update() {
+  if [[ ${1:-} == check ]]; then
+    shift
+    karma_set_cmd "update check"
+    update_cmd_check "$@"
+    return 0
+  fi
   local do_karma=1 do_system=1
   while (( $# )); do
     case $1 in
@@ -150,6 +194,7 @@ cmd_update() {
       fi
     fi
     after=$(pacman -Q 2>/dev/null | sort)
+    rm -f -- "$UPDATE_CACHE"
     mapfile -t upgraded < <(comm -13 <(printf '%s\n' "$before") <(printf '%s\n' "$after") | awk '{ print $1 }')
     [[ $system_ok == true ]] || warn "pacman reported an error; see its output above"
   fi

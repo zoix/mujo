@@ -86,6 +86,14 @@ ShellRoot {
             Ui.toggleLauncher("wifi");
         }
 
+        function calc(): void {
+            Ui.toggleLauncher("calc");
+        }
+
+        function emoji(): void {
+            Ui.toggleLauncher("emoji");
+        }
+
         function close(): void {
             Ui.closeAll();
         }
@@ -160,6 +168,27 @@ ShellRoot {
 
         function reload(): void {
             Tokens.reload();
+        }
+    }
+
+    IpcHandler {
+        target: "record"
+
+        function state(running: bool): void {
+            Ui.recording = running;
+        }
+    }
+
+    // A recording that outlived a restart of the interface is still shown.
+    Process {
+        running: true
+        command: [Karma.bin, "record", "status", "--json"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    Ui.recording = JSON.parse(this.text).data.recording === true;
+                } catch (error) {}
+            }
         }
     }
 

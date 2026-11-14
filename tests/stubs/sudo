@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 # Test double for sudo: runs the command as the current user.
 [[ $1 == -v ]] && exit 0
+[[ $1 == -n ]] && shift
 exec "$@"

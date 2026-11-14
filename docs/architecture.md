@@ -98,6 +98,7 @@ Each command module calls `karma_register NAME SUMMARY` and defines
 | `modules/Picker.qml` | The screenshot area picker: a frozen, dimmed screen to click or drag on |
 | `components/Constellation.qml` | The lock screen's slow ring of points and pulses |
 | `modules/Bar.qml`, `Workspaces.qml`, `Tray.qml`, `Status.qml`, `Clock.qml` | The bar's parts. Workspaces are listed per monitor |
+| `services/Weather.qml`, `Updates.qml` | The weather (`karma weather`) and the count of pending packages (`karma update check`), each asked again on a timer |
 | `modules/Osd.qml`, `Notifications.qml` | Volume/brightness panel on the right edge, shown when the keys are pressed; notification panel in the top-right corner |
 | `modules/Wallpaper.qml` | Background layer, one per screen |
 | `modules/Lock.qml`, `pam/password.conf`, `pam/fingerprint.conf` | Wayland session lock on every screen. The password is checked by PAM (`pam_unix`) on Enter; if a finger is enrolled with fprintd, the reader is checked alongside (`pam_fprintd`) the whole time. A marker file in the runtime directory exists while locked |

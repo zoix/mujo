@@ -80,6 +80,9 @@ Singleton {
     property int osdValue: 0
     property bool osdMuted: false
 
+    // A screen recording is running (karma record tells us).
+    property bool recording: false
+
     // The screenshot area picker (modules/Picker.qml), on the focused screen.
     property bool picker: false
 
@@ -98,7 +101,9 @@ Singleton {
     // The workspace overview takes the keyboard (arrows, Enter, Escape).
     readonly property bool overview: dashboard && dashboardPage === "workspaces"
 
-    readonly property bool modal: launcher || session || sidebar || overview
+    // The dashboard opened with its key takes the keyboard too (Tab changes
+    // page, Escape closes); opened by the pointer on the top edge it does not.
+    readonly property bool modal: launcher || session || sidebar || dashboard
 
     function focusedScreen(): string {
         return Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : (Quickshell.screens.length > 0 ? Quickshell.screens[0].name : "");

@@ -58,6 +58,12 @@ _karma() {
     'theme:design tokens: build, check, accent, reduce-motion'
     'wall:set or cycle the wallpaper'
     'dnd:do not disturb for notifications'
+    'focus:focus timer with do not disturb'
+    'weather:current weather for a place you choose'
+    'record:record the screen or a region'
+    'calc:calculate an expression'
+    'emoji:emoji picker'
+    'term:show or hide the drop-down terminal'
     'power:lock, suspend, logout, reboot, shutdown'
     'shot:region, window or screen screenshot'
     'clip:clipboard history picker'
@@ -161,11 +167,15 @@ _karma() {
           fi
           ;;
         pkg) (( CURRENT == 2 )) && _values 'pkg subcommand' install remove list ;;
-        update) _values 'option' --karma-only --system-only ;;
+        update) _values 'option' check --refresh --karma-only --system-only ;;
         uninstall) _values 'option' --skip-system ;;
         dnd) (( CURRENT == 2 )) && _values 'state' on off toggle ;;
-        power) (( CURRENT == 2 )) && _values 'action' list lock suspend logout reboot shutdown profile awake ;;
-        shot) _values 'mode or option' region window screen --no-save --no-copy --dir ;;
+        focus) (( CURRENT == 2 )) && _values 'focus subcommand' status start stop ;;
+        weather) (( CURRENT == 2 )) && _values 'weather subcommand' show set units clear --refresh ;;
+        record) _values 'record subcommand or option' toggle start stop status region screen --audio --dir ;;
+        emoji) (( CURRENT == 2 )) && _values 'emoji subcommand' pick list copy ;;
+        power) (( CURRENT == 2 )) && _values 'action' list lock suspend logout reboot shutdown profile awake limit auto sync ;;
+        shot) _values 'mode or option' region window screen text --no-save --no-copy --dir --lang ;;
         clip) (( CURRENT == 2 )) && _values 'clip subcommand' pick list copy clear ;;
         launch)
           if (( CURRENT == 2 )); then

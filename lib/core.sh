@@ -22,6 +22,9 @@ KARMA_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
 KARMA_STATE_HOME=${XDG_STATE_HOME:-$HOME/.local/state}
 KARMA_CONFIG_DIR=$KARMA_CONFIG_HOME/$KARMA_NAME
 KARMA_STATE_DIR=$KARMA_STATE_HOME/$KARMA_NAME
+# Answers fetched from elsewhere that may be thrown away (weather, pending updates).
+# shellcheck disable=SC2034  # used by the files that keep such answers
+KARMA_CACHE_DIR=${XDG_CACHE_HOME:-$HOME/.cache}/$KARMA_NAME
 # shellcheck disable=SC2034  # used by config.sh and theme.sh
 KARMA_CONFIG_FILE=$KARMA_CONFIG_DIR/config.json
 # shellcheck disable=SC2034  # used by journal.sh

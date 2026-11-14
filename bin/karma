@@ -49,6 +49,18 @@ source "$KARMA_ROOT/lib/launch.sh"
 source "$KARMA_ROOT/lib/menu.sh"
 # shellcheck source=../lib/keys.sh
 source "$KARMA_ROOT/lib/keys.sh"
+# shellcheck source=../lib/record.sh
+source "$KARMA_ROOT/lib/record.sh"
+# shellcheck source=../lib/calc.sh
+source "$KARMA_ROOT/lib/calc.sh"
+# shellcheck source=../lib/emoji.sh
+source "$KARMA_ROOT/lib/emoji.sh"
+# shellcheck source=../lib/term.sh
+source "$KARMA_ROOT/lib/term.sh"
+# shellcheck source=../lib/focus.sh
+source "$KARMA_ROOT/lib/focus.sh"
+# shellcheck source=../lib/weather.sh
+source "$KARMA_ROOT/lib/weather.sh"
 # shellcheck source=../lib/pkg.sh
 source "$KARMA_ROOT/lib/pkg.sh"
 # shellcheck source=../lib/sys.sh

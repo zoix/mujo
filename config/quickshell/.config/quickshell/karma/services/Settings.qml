@@ -19,6 +19,11 @@ Singleton {
     property bool awake: false
     property bool desktopClock: false
     property bool glass: false
+    property bool powerAuto: false
+    // When the focus session ends, in seconds since 1970 (0 = none).
+    property real focusUntil: 0
+    // Changes whenever the weather place or its units do ("" = no place).
+    property string weatherKey: ""
 
     function reload(): void {
         file.reload();
@@ -38,6 +43,9 @@ Singleton {
             root.awake = config.awake === true;
             root.desktopClock = config.desktop_clock === true;
             root.glass = config.glass === true;
+            root.powerAuto = config.power_auto === true;
+            root.focusUntil = config.focus && config.focus.until ? config.focus.until : 0;
+            root.weatherKey = config.weather ? config.weather.name + " " + config.weather.lat + " " + config.weather.lon + " " + (config.weather_units ?? "c") : "";
         } catch (error) {
             console.warn("karma: cannot read config.json:", error);
         }

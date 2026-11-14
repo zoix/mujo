@@ -214,6 +214,15 @@ Scope {
                     font.pixelSize: Tokens.fontLg
                 }
 
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    visible: Weather.known
+                    text: Weather.place + "  " + Weather.line + "  " + Weather.high + "\u00b0 / " + Weather.low + "\u00b0"
+                    color: Tokens.textMuted
+                    font.family: Tokens.fontFamily
+                    font.pixelSize: Tokens.fontSm
+                }
+
                 Rectangle {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.topMargin: Tokens.spaceXl

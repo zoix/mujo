@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Test double for checkupdates, so that tests never ask the real mirrors.
+# The pending packages are in $STUB_STATE/pending; without that file it
+# answers what the pacman double's -Qu does.
+if [[ -f ${STUB_STATE:?}/pending ]]; then cat "$STUB_STATE/pending"; else pacman -Qu; fi

@@ -8,6 +8,7 @@ help_shot() {
   cat <<EOF
 Usage: $KARMA_NAME shot [region | window | screen] [--no-save] [--no-copy] [--dir DIRECTORY]
        $KARMA_NAME shot region [--geometry "X,Y WxH" | --slurp]
+       $KARMA_NAME shot text [--geometry "X,Y WxH"] [--lang LANGUAGE]
 
 region  Choose an area (the default). With the interface running, the screen
         freezes: click a window or drag a rectangle, Escape cancels. Without
@@ -15,6 +16,9 @@ region  Choose an area (the default). With the interface running, the screen
         area as given and asks nothing.
 window  The focused window.
 screen  The focused monitor.
+text    Drag an area; the text in it is read (tesseract) and copied to the
+        clipboard. No image is kept. --lang names the language data to use
+        (default eng; e.g. spa needs the package tesseract-data-spa).
 
 The image is saved as karma-<date>-<time>.png in ~/Pictures/Screenshots (or
 --dir, or "screenshot_dir" in config.json) and copied to the clipboard.
@@ -27,12 +31,45 @@ shot_dir() {
   config_read | jq -r --arg d "${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots" '.screenshot_dir // $d'
 }
 
+# shot_text GEOMETRY LANG: read the text in an area and copy it.
+shot_text() {
+  local geometry=$1 lang=$2 tmp text
+  if (( OPT_DRY_RUN )); then
+    say "shot text (dry run, nothing captured)"
+    jq -n '{mode: "text", text: null, copied: false}' | emit
+    return 0
+  fi
+  require_wayland
+  need grim tesseract wl-copy
+  if [[ -z $geometry ]]; then
+    need slurp
+    geometry=$(slurp 2>/dev/null) || die "$EXIT_FAIL" "selection cancelled"
+  fi
+  karma_tmpdir tmp
+  grim -g "$geometry" "$tmp/text.png" 2>/dev/null || die "$EXIT_FAIL" "grim could not capture the screen"
+  text=$(tesseract "$tmp/text.png" - -l "$lang" 2>/dev/null) \
+    || die "$EXIT_FAIL" "tesseract could not read the image (is tesseract-data-$lang installed?)"
+  # Trailing blank lines and the form feed tesseract ends with are dropped.
+  text=$(printf '%s' "$text" | tr -d '\f' | sed -e :a -e '/^[[:space:]]*$/{$d;N;ba' -e '}')
+  if [[ -z ${text//[[:space:]]/} ]]; then
+    ui_notify "Text from screen" "No text was found in that area."
+    die "$EXIT_FAIL" "no text was found in that area"
+  fi
+  printf '%s' "$text" | wl-copy >/dev/null 2>&1 3>&- 9>&- || die "$EXIT_FAIL" "could not copy the text"
+  say "Copied $(wc -w <<<"$text") word(s) to the clipboard"
+  if command -v notify-send >/dev/null 2>&1; then
+    timeout 2 notify-send -a "$KARMA_NAME" -t 4000 "Text copied" "${text:0:120}" >/dev/null 2>&1 3>&- || true
+  fi
+  jq -n --arg t "$text" '{mode: "text", text: $t, copied: true}' | emit
+}
+
 cmd_shot() {
-  local mode="" save=1 copy=1 dir="" given="" use_slurp=0
+  local mode="" save=1 copy=1 dir="" given="" use_slurp=0 lang=eng
   while (( $# )); do
     case $1 in
-      region|window|screen)
-        [[ -z $mode ]] || usage_error "choose one of region, window or screen"
+      --lang) [[ ${2:-} =~ ^[a-z_+]+$ ]] || usage_error "--lang needs a language such as eng"; lang=$2; shift 2 ;;
+      region|window|screen|text)
+        [[ -z $mode ]] || usage_error "choose one of region, window, screen or text"
         mode=$1
         shift
         ;;
@@ -50,6 +87,10 @@ cmd_shot() {
   done
   mode=${mode:-region}
   karma_set_cmd "shot $mode"
+  if [[ $mode == text ]]; then
+    shot_text "$given" "$lang"
+    return 0
+  fi
   (( save || copy )) || usage_error "--no-save and --no-copy together leave nothing to do"
   dir=${dir:-$(shot_dir)}
   local path=""

@@ -55,6 +55,13 @@ Theme: normal motion${t}run${t}theme motion normal
 Theme: reduce motion on${t}run${t}theme reduce-motion on
 Theme: reduce motion off${t}run${t}theme reduce-motion off
 Notifications: do not disturb on or off${t}run${t}dnd toggle
+Focus: start 25 minutes${t}run${t}focus start 25
+Focus: start 50 minutes${t}run${t}focus start 50
+Focus: stop${t}run${t}focus stop
+Weather: now${t}run${t}weather
+Power: follow the charger on or off${t}run${t}power auto toggle
+Power: charge limit 80%${t}show${t}power limit 80
+Power: charge limit off${t}show${t}power limit off
 Wallpaper: choose${t}tui${t}wall pick
 Theme: dark, light or follow the wallpaper${t}mode${t}theme mode
 Wallpaper: desktop clock on or off${t}run${t}wall clock toggle
@@ -63,8 +70,15 @@ Wallpaper: previous${t}run${t}wall prev
 Screenshot: region${t}shot${t}shot region
 Screenshot: window${t}shot${t}shot window
 Screenshot: screen${t}shot${t}shot screen
+Screenshot: copy the text in an area${t}shot${t}shot text
+Recording: start or stop (area)${t}shot${t}record toggle region
+Recording: start or stop (screen)${t}shot${t}record toggle screen
+Recording: screen with sound${t}shot${t}record start screen --audio
 Clipboard: history${t}tui${t}clip
 Keys: cheat sheet${t}tui${t}keys tui
+Calculator${t}tui${t}calc
+Emoji: find and copy${t}tui${t}emoji
+Terminal: show or hide the drop-down${t}run${t}term
 Files${t}app${t}yazi
 System monitor${t}app${t}btop
 Status: everything at a glance${t}run${t}status
@@ -76,6 +90,7 @@ System: quick settings${t}tui${t}status
 System: dashboard${t}tui${t}sys
 System: health check (doctor)${t}show${t}doctor
 System: update karma and packages${t}show${t}update
+System: check for updates now${t}run${t}update check --refresh
 System: show what uninstall would do${t}show${t}uninstall --dry-run
 Power: lock${t}run${t}power lock
 Power: suspend${t}run${t}power suspend

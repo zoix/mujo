@@ -51,6 +51,9 @@ bind(mod .. " + Tab", run(karma .. "sys workspaces --window"), "Show all workspa
 bind(mod .. " + N", run(karma .. "notify open"), "Go to the newest notification")
 bind(mod .. " + A", run(karma .. "status --window"), "Open quick settings")
 bind(mod .. " + slash", run(karma .. "keys tui --window"), "Show the keybindings")
+bind(mod .. " + grave", run(karma .. "term"), "Show or hide the drop-down terminal")
+bind(mod .. " + C", run(karma .. "calc --window"), "Open the calculator")
+bind(mod .. " + period", run(karma .. "emoji --window"), "Open the emoji picker")
 
 -- Windows
 bind(mod .. " + Q", act('hl.dsp.window.close()'), "Close the window")
@@ -84,6 +87,9 @@ bind(mod .. " + SHIFT + S", act('hl.dsp.window.move({ workspace = "special:scrat
 bind("Print", run(karma .. "shot region"), "Screenshot a region")
 bind("SHIFT + Print", run(karma .. "shot screen"), "Screenshot this monitor")
 bind(mod .. " + Print", run(karma .. "shot window"), "Screenshot the focused window")
+bind(mod .. " + O", run(karma .. "shot text"), "Copy text from an area of the screen")
+bind(mod .. " + R", run(karma .. "record toggle region"), "Record an area of the screen, or stop recording")
+bind(mod .. " + SHIFT + R", run(karma .. "record toggle screen"), "Record the screen, or stop recording")
 
 -- Session
 bind(mod .. " + Escape", run(karma .. "power lock"), "Lock the screen")

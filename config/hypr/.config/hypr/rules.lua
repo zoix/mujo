@@ -24,6 +24,18 @@ hl.window_rule({
     center = true,
 })
 
+-- The drop-down terminal (karma term, SUPER + `) lives on a hidden workspace
+-- of its own and floats over the top half of the screen.
+hl.window_rule({
+    name      = "karma-drop",
+    match     = { class = "^karma-drop$" },
+    workspace = "special:term",
+    float     = true,
+    suppress_event = "maximize fullscreen",
+    size      = { "monitor_w * 0.8", "monitor_h * 0.5" },
+    move      = { "monitor_w * 0.1", "monitor_h * 0.04" },
+})
+
 -- With "glass" on, the desktop behind the frame and its panels is blurred.
 -- The rest of that layer is fully transparent and stays untouched.
 do

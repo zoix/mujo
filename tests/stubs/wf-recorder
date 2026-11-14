@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Test double for wf-recorder: writes its arguments down and waits to be interrupted.
+echo "$*" >"${STUB_STATE:?}/wf-recorder.args"
+trap 'exit 0' INT TERM
+while true; do sleep 0.1; done

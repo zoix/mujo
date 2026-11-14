@@ -57,6 +57,13 @@ imagemagick                 # measures wallpaper brightness for the automatic li
 grim                        # screenshots
 slurp                       # region selection for screenshots
 libnotify                   # notify-send
+wf-recorder                 # screen recording for `karma record`
+tesseract                   # reads text from the screen for `karma shot text`
+tesseract-data-eng          # English for tesseract
+libqalculate                # qalc, the calculator behind `karma calc`
+unicode-emoji               # emoji names for `karma emoji`
+pacman-contrib              # checkupdates: counts pending updates without touching the system
+curl                        # asks the weather service for `karma weather`
 
 # Look
 ttf-jetbrains-mono-nerd     # the only UI and terminal font

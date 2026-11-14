@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Test double for framework_tool: remembers the charge limit it was given.
+[[ $1 == --charge-limit && -n ${2:-} ]] || exit 1
+echo "$2" >"${STUB_STATE:?}/charge-limit"

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Test double for systemd-run: records what was asked instead of scheduling it.
+echo "$*" >>"${STUB_STATE:?}/systemd-run.log"

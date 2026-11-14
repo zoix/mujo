@@ -21,6 +21,8 @@ tui_window() {
     "clip "|"clip pick") panel="launcher clipboard" ;;
     "keys tui") panel="launcher keys" ;;
     "net tui") panel="launcher wifi" ;;
+    "calc ") panel="launcher calc" ;;
+    "emoji "|"emoji pick") panel="launcher emoji" ;;
     "power "|"power list") panel="session toggle" ;;
     "sys ") panel="dashboard toggle" ;;
     "sys workspaces") panel="dashboard workspaces" ;;

@@ -36,9 +36,12 @@ Flow {
         Keys.onPressed: event => {
             if (event.key === Qt.Key_Escape) {
                 Ui.closeDashboard();
-            } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down || event.key === Qt.Key_L || event.key === Qt.Key_J || event.key === Qt.Key_Tab) {
+            } else if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab || event.key === Qt.Key_1) {
+                // Tab changes page, as in quick settings.
+                Ui.dashboardPage = "today";
+            } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down || event.key === Qt.Key_L || event.key === Qt.Key_J) {
                 root.step(1);
-            } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Up || event.key === Qt.Key_H || event.key === Qt.Key_K || event.key === Qt.Key_Backtab) {
+            } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Up || event.key === Qt.Key_H || event.key === Qt.Key_K) {
                 root.step(-1);
             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
                 root.go();

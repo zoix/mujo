@@ -29,7 +29,7 @@ journal_count() {
 }
 
 @test "every command has help" {
-  for c in status audio net bt display wall dnd notify power shot clip launch menu keys sys pkg doctor update uninstall; do
+  for c in status audio net bt display wall dnd notify power shot record calc emoji term focus weather clip launch menu keys sys pkg doctor update uninstall; do
     run karma help "$c"
     [ "$status" -eq 0 ]
     [[ $output == "Usage: karma $c"* ]]

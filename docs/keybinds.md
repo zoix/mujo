@@ -13,10 +13,13 @@ screen. `SUPER` is the Windows key.
 | `SUPER + Space` | Launcher (`karma launch`); Tab or `>` switches to karma's commands, Tab or Backspace back |
 | `SUPER + X` | System menu (`karma menu`) |
 | `SUPER + V` | Clipboard history (`karma clip`) |
+| ``SUPER + ` `` | Show or hide the drop-down terminal (`karma term`) |
+| `SUPER + C` | Calculator in the launcher (`karma calc`); typing `=` in the launcher gets there too |
+| `SUPER + .` | Emoji picker in the launcher (`karma emoji`) |
 | `SUPER + N` | Go to the app of the newest notification (the same as clicking it) |
 | `SUPER + A` | Quick settings: toggles, notification history, look, sound and screen. Tab or the arrow keys change page (Quick, Look, System); 1, 2, 3 go straight to one |
-| `SUPER + Tab` | All workspaces as miniatures; arrows (or H/L, Tab) move, Enter goes there, Escape closes |
-| `SUPER + D` | Dashboard: calendar, system gauges, media (`karma sys`); also opens when the pointer touches the middle of the top edge |
+| `SUPER + Tab` | All workspaces as miniatures; arrows (or H/J/K/L) move, Enter goes there, Tab or 1 turns to the Today page, Escape closes |
+| `SUPER + D` | Dashboard: calendar, weather, system gauges, media (`karma sys`); Tab, the arrow keys or 2 turn to the Workspaces page, Escape closes. It also opens when the pointer touches the middle of the top edge |
 | `SUPER + W` | Wi-Fi picker (`karma net tui`) |
 | `SUPER + Shift + W` | Wallpaper picker (`karma wall pick`) |
 | `SUPER + /` | Keybindings (`karma keys tui`); Enter does what the chosen one does |
@@ -55,6 +58,9 @@ Without the interface, each falls back to a floating terminal. The same key clos
 | `Print` | Screenshot an area: click a window or drag a rectangle (saved and copied) |
 | `Shift + Print` | Screenshot the focused monitor |
 | `SUPER + Print` | Screenshot the focused window |
+| `SUPER + O` | Copy the text in an area of the screen (`karma shot text`) |
+| `SUPER + R` | Record an area of the screen; again to stop (`karma record`) |
+| `SUPER + Shift + R` | Record the whole screen; again to stop |
 | `SUPER + Escape` | Lock the screen |
 | `SUPER + Shift + Escape` | Power menu: lock, sleep, log out, reboot, shut down |
 | Volume, mute, mic mute, brightness | Through `karma audio` and `karma display`: journaled, undoable; they also work on the lock screen |

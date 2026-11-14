@@ -210,6 +210,18 @@ Item {
                 onClicked: root.run(["power", "awake", "toggle"])
             }
             Toggle {
+                glyph: "\uf0e7"
+                label: "Follow charger"
+                on: Settings.powerAuto
+                onClicked: root.run(["power", "auto", "toggle"])
+            }
+            Toggle {
+                glyph: "\uf252"
+                label: Settings.focusUntil > 0 ? "Focusing" : "Focus 25 min"
+                on: Settings.focusUntil > 0
+                onClicked: root.run(Settings.focusUntil > 0 ? ["focus", "stop"] : ["focus", "start"])
+            }
+            Toggle {
                 glyph: ""
                 label: Audio.muted ? "Muted" : "Sound on"
                 on: Audio.muted
