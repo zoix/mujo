@@ -13,11 +13,12 @@ Rectangle {
 
     required property ShellScreen screen
     readonly property HyprlandMonitor monitor: Hyprland.monitorFor(screen)
-    readonly property var list: Hyprland.workspaces.values.filter(w => w.id > 0 && w.monitor === root.monitor)
+    readonly property var list: Hyprland.workspaces.values.filter(w => w.id > 0 && w.monitor === root.monitor).sort((a, b) => a.id - b.id)
     readonly property int activeIndex: list.findIndex(w => w.active)
-    // Where the active workspace's slot is; the slot itself reports it.
-    property real pillY: 0
-    property real pillHeight: cell
+    // The pill covers the active workspace's slot: its number and its icons.
+    readonly property Item activeSlot: slots.count > 0 && activeIndex >= 0 ? slots.itemAt(activeIndex) : null
+    readonly property real pillY: activeSlot ? activeSlot.y : 0
+    readonly property real pillHeight: activeSlot ? activeSlot.height : cell
     readonly property int cell: Tokens.spaceXl
 
     // The icon of an app, from its window class.
@@ -87,19 +88,6 @@ Rectangle {
 
                 width: root.cell
                 height: inner.implicitHeight + Tokens.spaceXs + Tokens.spaceXs
-
-                Binding {
-                    target: root
-                    property: "pillY"
-                    value: slot.y
-                    when: slot.modelData.active
-                }
-                Binding {
-                    target: root
-                    property: "pillHeight"
-                    value: slot.height
-                    when: slot.modelData.active
-                }
 
                 Column {
                     id: inner
