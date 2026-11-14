@@ -2,6 +2,7 @@
 //   Quick   on/off tiles and the notification history
 //   Look    light or dark, palette, accent, motion
 //   Sound   volume, output device, brightness, power profile
+// Tab or the arrow keys change page.
 // It shows the current state and runs the karma CLI for every change.
 import QtQuick
 import Quickshell
@@ -111,10 +112,32 @@ Item {
         }
     }
 
+    readonly property var pages: ["quick", "look", "sound"]
+
+    function turn(by: int): void {
+        const at = root.pages.indexOf(root.page);
+        root.page = root.pages[(at + by + root.pages.length) % root.pages.length];
+    }
+
+    // Tab, the arrow keys or H and L move between the pages; 1, 2 and 3 go
+    // straight to one; Escape closes.
     Item {
         id: keys
         focus: true
-        Keys.onEscapePressed: Ui.closeAll()
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Escape) {
+                Ui.closeAll();
+            } else if (event.key === Qt.Key_Tab || event.key === Qt.Key_Right || event.key === Qt.Key_L) {
+                root.turn(1);
+            } else if (event.key === Qt.Key_Backtab || event.key === Qt.Key_Left || event.key === Qt.Key_H) {
+                root.turn(-1);
+            } else if (event.key >= Qt.Key_1 && event.key <= Qt.Key_3) {
+                root.page = root.pages[event.key - Qt.Key_1];
+            } else {
+                return;
+            }
+            event.accepted = true;
+        }
     }
 
     component Heading: Text {

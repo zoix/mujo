@@ -8,6 +8,7 @@
 //   atEnd: on a left or right edge, sit near the bottom instead of the middle
 //   centre: on a left or right edge, the height to centre on (-1 = not set)
 import QtQuick
+import QtQuick.Window
 import QtQuick.Shapes
 import qs.theme
 
@@ -116,18 +117,23 @@ Item {
         }
     }
 
-    // A strip over the seam with the frame. The turned shape can land half a
-    // pixel off the frame edge, which shows as a hairline gap; the strip
-    // overlaps both sides in the same colour.
+    // A strip over the seam with the frame. On the right edge the turned
+    // shape stops one screen pixel short of the frame, and the desktop shows through that
+    // hairline. The strip fills it in the same colour. With solid panels it
+    // is generous and reaches into the frame; with see-through panels it
+    // covers exactly that one pixel, because anything wider would be seen
+    // as a darker band where two layers overlap.
     Rectangle {
-        readonly property real t: Tokens.borderFocus
-        // (Not with see-through panels: two layers of the same colour would show.)
-        visible: Tokens.panelOpacity >= 1
-        color: Tokens.bgFrame
-        x: root.vertical ? (root.edge === "right" ? root.width - t : -t) : 0
-        y: root.vertical ? 0 : (root.edge === "bottom" ? root.height - t : -t)
-        width: root.vertical ? t + t : root.width
-        height: root.vertical ? root.height : t + t
+        readonly property bool solid: Tokens.panelOpacity >= 1
+        readonly property real pixel: 1 / Screen.devicePixelRatio
+        // (Measured on screen: only the panel on the right edge falls short.)
+        readonly property real inside: solid ? Tokens.borderFocus : root.edge === "right" ? pixel : 0
+        readonly property real outside: solid ? Tokens.borderFocus : 0
+        color: Tokens.panel
+        x: root.vertical ? (root.edge === "right" ? root.width - inside : -outside) : root.fillet
+        y: root.vertical ? root.fillet : (root.edge === "bottom" ? root.height - inside : -outside)
+        width: root.vertical ? inside + outside : root.width - root.fillet - root.fillet
+        height: root.vertical ? root.height - root.fillet - root.fillet : inside + outside
     }
 
     // The content keeps its full size and is uncovered as the panel grows,
