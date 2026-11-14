@@ -1,0 +1,127 @@
+//@ pragma IconTheme breeze
+
+// karma's interface. It only presents: live state is read from Quickshell's
+// services, and every change is made by running the karma CLI (services/Karma.qml).
+// karma in turn calls the IPC targets at the bottom of this file.
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import qs.modules
+import qs.theme
+import qs.services
+
+ShellRoot {
+    id: shell
+
+    property bool barVisible: true
+
+    Variants {
+        model: Quickshell.screens
+
+        Wallpaper {
+            required property ShellScreen modelData
+            screen: modelData
+        }
+    }
+
+    Variants {
+        model: shell.barVisible ? Quickshell.screens : []
+
+        Frame {
+            required property ShellScreen modelData
+            screen: modelData
+        }
+    }
+
+    Lock {
+        id: lock
+    }
+
+    IpcHandler {
+        target: "osd"
+
+        function volume(percent: int, muted: bool): void {
+            Ui.showOsd("volume", percent, muted);
+        }
+
+        function microphone(percent: int, muted: bool): void {
+            Ui.showOsd("microphone", percent, muted);
+        }
+
+        function brightness(percent: int): void {
+            Ui.showOsd("brightness", percent, false);
+        }
+    }
+
+    IpcHandler {
+        target: "launcher"
+
+        function apps(): void {
+            Ui.toggleLauncher("apps");
+        }
+
+        function actions(): void {
+            Ui.toggleLauncher("actions");
+        }
+
+        function wallpapers(): void {
+            Ui.toggleLauncher("wallpapers");
+        }
+
+        function close(): void {
+            Ui.closeAll();
+        }
+    }
+
+    IpcHandler {
+        target: "session"
+
+        function toggle(): void {
+            Ui.toggleSession();
+        }
+    }
+
+    IpcHandler {
+        target: "wallpaper"
+
+        function set(path: string): void {
+            Settings.reload();
+        }
+    }
+
+    IpcHandler {
+        target: "notify"
+
+        function reload(): void {
+            Settings.reload();
+        }
+
+        function clear(): void {
+            Notifs.clear();
+        }
+    }
+
+    IpcHandler {
+        target: "theme"
+
+        function reload(): void {
+            Tokens.reload();
+        }
+    }
+
+    IpcHandler {
+        target: "bar"
+
+        function toggle(): void {
+            shell.barVisible = !shell.barVisible;
+        }
+    }
+
+    IpcHandler {
+        target: "lock"
+
+        function lock(): void {
+            lock.lock();
+        }
+    }
+}

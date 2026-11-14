@@ -29,7 +29,7 @@ journal_count() {
 }
 
 @test "every command has help" {
-  for c in status audio net bt display wall power shot clip launch menu keys; do
+  for c in status audio net bt display wall dnd power shot clip launch menu keys; do
     run karma help "$c"
     [ "$status" -eq 0 ]
     [[ $output == "Usage: karma $c"* ]]
@@ -52,11 +52,25 @@ journal_count() {
   [ "$status" -eq 0 ]
   [ "$(data .before.volume)" = 40 ]
   [ "$(data .after.volume)" = 55 ]
+  [ "$(data .after.muted)" = false ]
   [ "$(data .journal_id)" != null ]
   run karma undo
   [ "$status" -eq 0 ]
   run karma audio volume --json
   [ "$(data .volume)" = 40 ]
+}
+
+@test "raising the volume unmutes, lowering does not, and undo restores both" {
+  karma audio mute on
+  run karma audio volume -10 --json
+  [ "$(data .after.muted)" = true ]
+  run karma audio volume +20 --json
+  [ "$(data .after.volume)" = 50 ]
+  [ "$(data .after.muted)" = false ]
+  karma undo
+  run karma audio --json
+  [ "$(data .output.volume)" = 30 ]
+  [ "$(data .output.muted)" = true ]
 }
 
 @test "audio volume --dry-run shows a diff and changes nothing" {
@@ -152,6 +166,140 @@ journal_count() {
   karma wall clear
   run karma wall --json
   [ "$(data .wallpaper)" = null ]
+}
+
+# ---- light and dark mode ----------------------------------------------------------
+
+@test "theme mode light rebuilds with the light palette and undo returns to dark" {
+  karma theme build
+  run karma theme mode --json
+  [ "$(data .mode)" = dark ]
+  [ "$(data .preference)" = auto ]
+  dark_bg=$(karma theme show color.bg.base --json | jq -r .data.value)
+
+  karma theme mode light
+  light_bg=$(karma theme show color.bg.base --json | jq -r .data.value)
+  [ "$dark_bg" != "$light_bg" ]
+  grep -q "$light_bg" "$(conf)/kitty/karma-theme.conf"
+  grep -q 'gtk-application-prefer-dark-theme=0' "$(conf)/gtk-3.0/settings.ini"
+  run karma theme check
+  [ "$status" -eq 0 ]
+
+  karma undo
+  run karma theme mode --json
+  [ "$(data .mode)" = dark ]
+  [ "$(data .preference)" = auto ]
+  run karma theme mode sepia
+  [ "$status" -eq 2 ]
+}
+
+@test "the console palette for /etc is the same in light and dark mode" {
+  karma theme build
+  before=$(sha256sum <"$(state)/theme/system/vtrgb/palette.vtrgb")
+  karma theme mode light
+  [ "$before" = "$(sha256sum <"$(state)/theme/system/vtrgb/palette.vtrgb")" ]
+}
+
+@test "with mode auto a bright wallpaper switches to light, and undoing it switches back" {
+  walls=$BATS_TEST_TMPDIR/walls
+  mkdir -p "$walls"
+  touch "$walls/bright-sky.png" "$walls/night.png"
+  karma theme build
+
+  karma wall set "$walls/night.png"
+  run karma theme mode --json
+  [ "$(data .mode)" = dark ]
+
+  run karma wall set "$walls/bright-sky.png"
+  [ "$status" -eq 0 ]
+  [[ $output == *"mode dark -> light"* ]]
+  run karma theme mode --json
+  [ "$(data .mode)" = light ]
+
+  # undo skips the automatic mode entry and reverts the wallpaper, which syncs the mode
+  karma undo
+  run karma wall --json
+  [ "$(data .wallpaper)" = "$walls/night.png" ]
+  run karma theme mode --json
+  [ "$(data .mode)" = dark ]
+}
+
+@test "with the accent on auto it follows the wallpaper's colour; a chosen accent stays" {
+  walls=$BATS_TEST_TMPDIR/walls
+  mkdir -p "$walls"
+  touch "$walls/blue-lake.png" "$walls/grey.png"
+  karma theme build
+  run karma theme accent --json
+  [ "$(data .accent)" = mauve ]
+  [ "$(data .preference)" = auto ]
+
+  karma wall set "$walls/blue-lake.png"
+  run karma theme accent --json
+  [ "$(data .accent)" = blue ]
+  # a grey image has no colour to follow: back to the default accent
+  karma wall set "$walls/grey.png"
+  run karma theme accent --json
+  [ "$(data .accent)" = mauve ]
+
+  karma theme accent green
+  karma wall set "$walls/blue-lake.png"
+  run karma theme accent --json
+  [ "$(data .accent)" = green ]
+  [ "$(data .preference)" = green ]
+}
+
+@test "wall list reports thumbnails once the folder is indexed" {
+  walls=$BATS_TEST_TMPDIR/walls
+  mkdir -p "$walls"
+  touch "$walls/a.png"
+  export XDG_CACHE_HOME=$BATS_TEST_TMPDIR/cache
+  karma wall dir "$walls"
+  run karma wall list --json
+  [ "$(data '.images[0].name')" = a ]
+  [ "$(data '.images[0].thumb')" = null ]
+  karma wall index
+  run karma wall list --json
+  [ -f "$(data '.images[0].thumb')" ]
+}
+
+@test "menu run performs an entry without a terminal" {
+  run karma menu run "Audio: mute or unmute"
+  [ "$status" -eq 0 ]
+  run karma audio --json
+  [ "$(data .output.muted)" = true ]
+  run karma menu run "No such entry"
+  [ "$status" -eq 1 ]
+  run karma menu list --json
+  [ "$(data '[.entries[] | select(.command == "theme accent blue")] | length')" = 1 ]
+}
+
+@test "a fixed mode ignores the wallpaper" {
+  walls=$BATS_TEST_TMPDIR/walls
+  mkdir -p "$walls"
+  touch "$walls/bright-sky.png"
+  karma theme build
+  karma theme mode dark
+  karma wall set "$walls/bright-sky.png"
+  run karma theme mode --json
+  [ "$(data .mode)" = dark ]
+  [ "$(data .preference)" = dark ]
+  karma theme mode auto
+  run karma theme mode --json
+  [ "$(data .mode)" = light ]
+}
+
+# ---- do not disturb ------------------------------------------------------------
+
+@test "dnd on, off and undo" {
+  run karma dnd --json
+  [ "$(data .dnd)" = false ]
+  karma dnd on
+  [ "$(jq -r .dnd "$(conf)/karma/config.json")" = true ]
+  karma undo
+  run karma dnd --json
+  [ "$(data .dnd)" = false ]
+  run karma dnd maybe
+  [ "$status" -eq 2 ]
 }
 
 # ---- network -----------------------------------------------------------------

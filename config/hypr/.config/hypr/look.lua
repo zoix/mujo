@@ -34,5 +34,8 @@ hl.config({
         disable_hyprland_logo    = true,
         disable_splash_rendering = true,
         background_color         = t.color.bg_frame,
+        -- If the lock screen's process dies, a restarted one may take over
+        -- the lock instead of leaving the session stuck.
+        allow_session_lock_restore = true,
     },
 })

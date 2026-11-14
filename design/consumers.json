@@ -3,11 +3,11 @@
   "consumers": [
     {
       "id": "quickshell",
-      "description": "Quickshell Tokens singleton",
-      "template": "quickshell/Tokens.qml.tmpl",
-      "target": "@config/quickshell/karma/theme/Tokens.qml",
+      "description": "Quickshell token values (read live by theme/Tokens.qml)",
+      "template": "quickshell/tokens.json.tmpl",
+      "target": "@config/quickshell/karma/theme/tokens.json",
       "scope": "user",
-      "comment": "//",
+      "comment": "",
       "reload": "quickshell",
       "lint": [
         "config/quickshell"
@@ -98,6 +98,7 @@
       "description": "GTK 3 settings: theme, dark preference, UI font",
       "template": "gtk/settings3.ini.tmpl",
       "target": "@config/gtk-3.0/settings.ini",
+      "reload": "gtk",
       "scope": "user",
       "comment": "#",
       "comment_end": "",

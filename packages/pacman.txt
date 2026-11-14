@@ -48,6 +48,7 @@ brightnessctl               # backlight for `karma display`
 playerctl                   # media keys
 wl-clipboard                # wl-copy and wl-paste
 cliphist                    # clipboard history for `karma clip`
+imagemagick                 # measures wallpaper brightness for the automatic light/dark mode
 grim                        # screenshots
 slurp                       # region selection for screenshots
 libnotify                   # notify-send

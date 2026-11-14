@@ -7,6 +7,7 @@ KARMA_REPO=$(cd -- "$(dirname -- "${BATS_TEST_FILENAME}")/.." && pwd)
 karma_test_env() {
   export XDG_CONFIG_HOME=$BATS_TEST_TMPDIR/config
   export XDG_STATE_HOME=$BATS_TEST_TMPDIR/state
+  export XDG_CACHE_HOME=$BATS_TEST_TMPDIR/cache
   export KARMA_SYSROOT=$BATS_TEST_TMPDIR/sysroot
   unset WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE KARMA_ROOT KARMA_UNDO_OF
   KARMA="$KARMA_REPO/bin/karma"

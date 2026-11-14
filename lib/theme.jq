@@ -8,10 +8,11 @@ def _path($ref): $ref | split(".") | map(if test("^[0-9]+$") then tonumber else 
 # Effective settings: tokens.json defaults, then config.json, then a one-off override.
 def settings($tok; $cfg; $over):
   ($tok.defaults
-   + ($cfg | {accent, reduce_motion} | with_entries(select(.value != null)))
+   + ($cfg | {accent, reduce_motion, mode} | with_entries(select(.value != null)))
    + $over)
   | if (.accent | type) != "string" then error("accent must be a string")
     elif (.reduce_motion | type) != "boolean" then error("reduce_motion must be true or false")
+    elif (.mode != "dark" and .mode != "light") then error("mode must be dark or light")
     else . end;
 
 def _resolve_once($root; $accent):
@@ -22,8 +23,8 @@ def _resolve_once($root; $accent):
            end
        else . end);
 
-# Resolve every {reference}, validate, apply settings. Output is what templates see.
-def resolve($s):
+# One pass over a token tree whose palette is already chosen.
+def _resolve_tree($s):
   if .schema_version != 1 then error("tokens.json: unsupported schema_version \(.schema_version)") else . end
   | if (any(.accents[]; . == $s.accent) | not)
     then error("unknown accent '\($s.accent)'; valid: \(.accents | join(", "))") else . end
@@ -37,6 +38,16 @@ def resolve($s):
   | if $s.reduce_motion then .motion.duration |= map_values(0) else . end
   | del(.defaults)
   | .settings = $s;
+
+# Resolve every {reference}, validate, apply settings. Output is what templates see.
+# In light mode the "light" subtree is merged over the tokens first. The
+# console palette (TTY and login screen, installed in /etc) stays dark in
+# both modes, so that a mode change never touches system files.
+def resolve($s):
+  (del(.light) | _resolve_tree($s)) as $dark
+  | if $s.mode == "light"
+    then ((. * (.light // {})) | del(.light) | _resolve_tree($s) | .console = $dark.console)
+    else $dark end;
 
 # ---- filters -----------------------------------------------------------------
 

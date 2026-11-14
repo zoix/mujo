@@ -10,13 +10,15 @@ screen. `SUPER` is the Windows key.
 | --- | --- |
 | `SUPER + Return` | Terminal (kitty) |
 | `SUPER + E` | File manager (yazi in kitty) |
-| `SUPER + Space` | Launcher (`karma launch`) |
+| `SUPER + Space` | Launcher (`karma launch`); type `>` for commands |
 | `SUPER + X` | System menu (`karma menu`) |
 | `SUPER + V` | Clipboard history (`karma clip`) |
 | `SUPER + W` | Wi-Fi picker (`karma net tui`) |
+| `SUPER + Shift + W` | Wallpaper picker (`karma wall pick`) |
 | `SUPER + /` | Keybindings (`karma keys tui`) |
 
-These open in a floating terminal; the same key closes it again.
+The launcher, the menu and the wallpaper picker are panels of the interface;
+the others open in a floating terminal. The same key closes each again.
 
 ## Windows
 
@@ -49,7 +51,8 @@ These open in a floating terminal; the same key closes it again.
 | `Print` | Screenshot a region (saved and copied) |
 | `Shift + Print` | Screenshot the focused monitor |
 | `SUPER + Print` | Screenshot the focused window |
-| `SUPER + Shift + Escape` | Log out |
+| `SUPER + Escape` | Lock the screen |
+| `SUPER + Shift + Escape` | Power menu: lock, sleep, log out, reboot, shut down |
 | Volume, mute, mic mute, brightness | Through `karma audio` and `karma display`: journaled, undoable; they also work on the lock screen |
 | Media keys | Next, previous, play/pause (playerctl) |
 | Lid closed / opened | Laptop panel off / on (from `host.lua`) |

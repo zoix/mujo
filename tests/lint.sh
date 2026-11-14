@@ -81,16 +81,25 @@ else
   echo "skipped: zsh is not installed"
 fi
 
-step "qmllint (generated Tokens.qml)"
-qmllint=$(command -v qmllint || echo /usr/lib/qt6/bin/qmllint)
-if [[ ! -x $qmllint ]]; then
-  skipped+=("qmllint (pacman -S qt6-declarative)")
-  echo "skipped: qmllint not found"
-elif ! pacman -Q quickshell >/dev/null 2>&1; then
-  skipped+=("qmllint (needs quickshell installed for its imports)")
-  echo "skipped: quickshell is not installed, so its QML module cannot be resolved"
+step "Quickshell tokens (generated tokens.json has every value Tokens.qml reads)"
+tokens_json=$sbx/config/quickshell/karma/theme/tokens.json
+missing=$(grep -oE ': t\.[A-Za-z]+$' config/quickshell/.config/quickshell/karma/theme/Tokens.qml | sed 's/.*t\.//' \
+  | while read -r key; do jq -e --arg k "$key" 'has($k)' "$tokens_json" >/dev/null 2>&1 || echo "$key"; done)
+if [[ -z $missing ]]; then echo ok; else echo "not in tokens.json: $missing"; fail=1; fi
+
+step "QML syntax (config/quickshell)"
+# The Qt 6 tool by full path: a `qmlformat` on PATH may be Qt 5's, which
+# rejects typed function signatures.
+qmlformat=/usr/lib/qt6/bin/qmlformat
+if [[ -x $qmlformat ]]; then
+  qml_ok=1
+  while IFS= read -r -d '' f; do
+    "$qmlformat" "$f" >/dev/null 2>&1 || { echo "syntax error: $f"; qml_ok=0; fail=1; }
+  done < <(find config/quickshell -name '*.qml' -print0)
+  (( qml_ok )) && echo ok
 else
-  "$qmllint" "$sbx/config/quickshell/karma/theme/Tokens.qml" && echo ok || fail=1
+  skipped+=("QML syntax (pacman -S qt6-declarative)")
+  echo "skipped: qmlformat not found"
 fi
 
 echo

@@ -22,6 +22,7 @@ bind(mod .. " + space", hl.dsp.exec_cmd(karma .. "launch --window"), "Open the l
 bind(mod .. " + X", hl.dsp.exec_cmd(karma .. "menu --window"), "Open the system menu")
 bind(mod .. " + V", hl.dsp.exec_cmd(karma .. "clip --window"), "Open the clipboard history")
 bind(mod .. " + W", hl.dsp.exec_cmd(karma .. "net tui --window"), "Open the Wi-Fi picker")
+bind(mod .. " + SHIFT + W", hl.dsp.exec_cmd(karma .. "wall pick --window"), "Choose a wallpaper")
 bind(mod .. " + slash", hl.dsp.exec_cmd(karma .. "keys tui --window"), "Show the keybindings")
 
 -- Windows
@@ -58,7 +59,8 @@ bind("SHIFT + Print", hl.dsp.exec_cmd(karma .. "shot screen"), "Screenshot this 
 bind(mod .. " + Print", hl.dsp.exec_cmd(karma .. "shot window"), "Screenshot the focused window")
 
 -- Session
-bind(mod .. " + SHIFT + Escape", hl.dsp.exec_cmd(karma .. "power logout --yes"), "Log out")
+bind(mod .. " + Escape", hl.dsp.exec_cmd(karma .. "power lock"), "Lock the screen")
+bind(mod .. " + SHIFT + Escape", hl.dsp.exec_cmd(karma .. "power --window"), "Open the power menu")
 
 -- Hardware keys: work on the lock screen too, and repeat while held.
 local held = { locked = true, repeating = true }

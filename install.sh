@@ -720,7 +720,11 @@ user_steps() {
   # GTK colour scheme for apps that read GSettings (libadwaita, portals).
   if command -v gsettings >/dev/null 2>&1 && [[ -S ${XDG_RUNTIME_DIR:-/run/user/$UID}/bus ]]; then
     local k v cur
-    for k in "color-scheme prefer-dark" "gtk-theme adw-gtk3-dark"; do
+    # The values follow the current mode (dark or light) from the tokens.
+    local scheme gtk_theme
+    scheme=$("$REPO/bin/karma" theme show gtk.color_scheme --json 2>/dev/null | jq -r '.data.value // "prefer-dark"')
+    gtk_theme=$("$REPO/bin/karma" theme show gtk.theme --json 2>/dev/null | jq -r '.data.value // "adw-gtk3-dark"')
+    for k in "color-scheme $scheme" "gtk-theme $gtk_theme"; do
       v=${k#* }
       k=${k%% *}
       cur=$(gsettings get org.gnome.desktop.interface "$k" 2>/dev/null | tr -d "'")

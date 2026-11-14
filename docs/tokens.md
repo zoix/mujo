@@ -10,6 +10,8 @@ written. Everything else reads roles from it through generated files.
 | `schema_version` | `1` |
 | `defaults` | `accent` (one of `accents`), `reduce_motion` (bool). Overridden by `~/.config/karma/config.json` |
 | `palette` | The 26 Catppuccin Mocha colours, lowercase `#rrggbb`. The only place raw names appear |
+| `light` | Overrides merged over everything else in light mode (`karma theme mode`): the Catppuccin Latte `palette`, the terminal `ansi` order and the `gtk` settings. The `console` colours (TTY, login screen) always resolve from the dark palette, so a mode change never touches `/etc` |
+| `gtk` | GTK theme name and dark preference for the current mode |
 | `accents` | The 14 names allowed as accent |
 | `color` | Roles: `bg.{frame,base,raised,control}`, `border.subtle`, `text.{primary,muted,on_accent}`, `accent`, `state.{success,warning,error,info}` |
 | `term` | Terminal `fg`, `bg`, `cursor`, `selection_bg` and 16 `ansi` colours (Catppuccin's mapping) |
@@ -18,7 +20,8 @@ written. Everything else reads roles from it through generated files.
 | `space` | `xs` 4, `sm` 8, `md` 12, `lg` 16, `xl` 24, `xxl` 32 |
 | `radius` | `sm` 6, `md` 10, `lg` 14, `xl` 18, `full` |
 | `border` | `thin` 1, `focus` 2 |
-| `layout` | `frame`, `bar`, `gap_in`, `gap_out`, `osd_width` |
+| `layout` | `frame`, `bar`, `gap_in`, `gap_out`, `osd_width`, `osd_height`, `notification_width` |
+| `timing` | `notification`, `osd`: how long transient UI stays up, in ms (not changed by `reduce_motion`) |
 | `motion` | `duration.{fast,normal,slow}` ms; `ease.{standard,enter,exit}` as `[x1, y1, x2, y2]` |
 
 Elevation is not a token: depth comes from the `bg.*` steps, never shadows or blur.

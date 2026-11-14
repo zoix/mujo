@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Test double for magick.
+#   Making a thumbnail (the last argument is a .jpg): the "thumbnail" is a
+#   text file holding the source's name.
+#   Measuring (… info:): reads that name. "bright" in it means a mean
+#   brightness of 80, otherwise 20; "blue" in it means a blue histogram,
+#   otherwise a grey one.
+last=${*: -1}
+if [[ $last == *.jpg ]]; then
+  printf '%s\n' "$1" >"$last"
+  exit 0
+fi
+name=$(cat "${1%\[0\]}" 2>/dev/null)
+if [[ $last == histogram:info: ]]; then
+  if [[ $name == *blue* ]]; then
+    echo "  9000: (30,102,245) #1E66F5 srgb(30,102,245)"
+  else
+    echo "  9000: (128,128,128) #808080 srgb(128,128,128)"
+  fi
+elif [[ $name == *bright* ]]; then
+  echo 80
+else
+  echo 20
+fi

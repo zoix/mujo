@@ -57,6 +57,7 @@ _karma() {
     'display:brightness and night light'
     'theme:design tokens: build, check, accent, reduce-motion'
     'wall:set or cycle the wallpaper'
+    'dnd:do not disturb for notifications'
     'power:lock, suspend, logout, reboot, shutdown'
     'shot:region, window or screen screenshot'
     'clip:clipboard history picker'
@@ -82,6 +83,7 @@ _karma() {
               'build:render every consumer from the tokens'
               'check:fail on drift or hardcoded values'
               'accent:show or set the accent colour'
+              'mode:dark, light or auto (follow the wallpaper)'
               'reduce-motion:show or set reduce_motion'
               'list:list consumers and their status'
               'show:print resolved tokens'
@@ -92,6 +94,7 @@ _karma() {
           else
             case $words[2] in
               accent) _karma_accents ;;
+              mode) _values 'mode' dark light auto ;;
               reduce-motion) _values 'state' on off ;;
               build|check) _karma_consumers ;;
               render) _files ;;
@@ -100,7 +103,7 @@ _karma() {
           ;;
         audio)
           if (( CURRENT == 2 )); then
-            _values 'audio subcommand' status volume mute output input
+            _values 'audio subcommand' status volume mute output input tui
           else
             case $words[2] in
               mute) _values 'state' on off toggle --input ;;
@@ -138,7 +141,7 @@ _karma() {
           ;;
         wall)
           if (( CURRENT == 2 )); then
-            _values 'wall subcommand' status set next prev clear dir
+            _values 'wall subcommand' status pick set next prev clear dir
           else
             case $words[2] in
               set) _files -g '*.(png|jpg|jpeg|webp)(-.)' ;;
@@ -146,6 +149,7 @@ _karma() {
             esac
           fi
           ;;
+        dnd) (( CURRENT == 2 )) && _values 'state' on off toggle ;;
         power) (( CURRENT == 2 )) && _values 'action' list lock suspend logout reboot shutdown ;;
         shot) _values 'mode or option' region window screen --no-save --no-copy --dir ;;
         clip) (( CURRENT == 2 )) && _values 'clip subcommand' pick list clear ;;

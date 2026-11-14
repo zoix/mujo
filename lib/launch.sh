@@ -34,7 +34,7 @@ launch_dirs() {
 }
 
 # launch_entries: one line per application, tab-separated:
-#   id, name, comment, command, terminal (true|false), file, launch count
+#   id, name, comment, command, terminal (true|false), file, launch count, icon
 # A user entry hides a system entry with the same id, as the spec requires.
 launch_entries() {
   local hist=$LAUNCH_HISTORY dir
@@ -75,14 +75,14 @@ launch_entries() {
       if (("NotShowIn" in v) && listed(v["NotShowIn"])) next
       cmd = v["Exec"]
       gsub(/%[fFuUdDnNickvm]/, "", cmd); gsub(/%%/, "%", cmd); gsub(/[ \t]+$/, "", cmd)
-      printf "%s\t%s\t%s\t%s\t%s\t%s\t%d\n", id, clean(v["Name"]), clean(v["Comment"]), clean(cmd),
-        (v["Terminal"] == "true" ? "true" : "false"), file, count[id] + 0
+      printf "%s\t%s\t%s\t%s\t%s\t%s\t%d\t%s\n", id, clean(v["Name"]), clean(v["Comment"]), clean(cmd),
+        (v["Terminal"] == "true" ? "true" : "false"), file, count[id] + 0, clean(v["Icon"])
     }' | LC_ALL=C sort -t$'\t' -k7,7nr -k2,2f
 }
 
 launch_row_json() {
   jq -cR 'split("\t") | {id: .[0], name: .[1], comment: .[2], exec: .[3],
-    terminal: (.[4] == "true"), file: .[5], launches: (.[6] | tonumber)}'
+    terminal: (.[4] == "true"), file: .[5], launches: (.[6] | tonumber), icon: (.[7] // "")}'
 }
 
 launch_count() {
@@ -136,7 +136,7 @@ cmd_launch() {
     run)
       (( $# == 1 )) || usage_error "run needs exactly one desktop id (see '$KARMA_NAME launch list')"
       local row
-      row=$(launch_entries | gawk -F'\t' -v id="$1" '$1 == id { print; exit }')
+      row=$(launch_entries | gawk -F'\t' -v id="$1" '$1 == id && !found { print; found = 1 }')
       [[ -n $row ]] || die "$EXIT_FAIL" "no application with the id '$1'"
       launch_start "$(launch_row_json <<<"$row")"
       ;;

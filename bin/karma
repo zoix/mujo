@@ -35,6 +35,8 @@ source "$KARMA_ROOT/lib/display.sh"
 source "$KARMA_ROOT/lib/theme.sh"
 # shellcheck source=../lib/wall.sh
 source "$KARMA_ROOT/lib/wall.sh"
+# shellcheck source=../lib/dnd.sh
+source "$KARMA_ROOT/lib/dnd.sh"
 # shellcheck source=../lib/power.sh
 source "$KARMA_ROOT/lib/power.sh"
 # shellcheck source=../lib/shot.sh

@@ -29,7 +29,10 @@ Usage: $KARMA_NAME theme <subcommand> [arguments]
 Subcommands:
   build [ID...]          Render tokens into every consumer (or only the given ones)
   check [ID...]          Fail on drift from the tokens or on hardcoded values
-  accent [NAME]          Show the accent, or set it and rebuild (journaled)
+  accent [NAME|auto]     Show the accent, or set it and rebuild (journaled).
+                         auto picks the accent closest to the wallpaper's colour
+  mode [dark|light|auto] Show the mode, or set it and rebuild (journaled).
+                         auto follows the wallpaper: light for a bright image
   reduce-motion [on|off] Show the setting, or set it and rebuild (journaled)
   list                   List consumers, their targets and whether they are current
   show [PATH]            Print the resolved tokens (optionally one subtree, e.g. color.bg)
@@ -52,6 +55,8 @@ cmd_theme() {
     build) theme_cmd_build "$@" ;;
     check) theme_cmd_check "$@" ;;
     accent) theme_cmd_accent "$@" ;;
+    mode) theme_cmd_mode "$@" ;;
+    sync) theme_cmd_sync "$@" ;;
     reduce-motion) theme_cmd_reduce_motion "$@" ;;
     list) theme_cmd_list "$@" ;;
     show) theme_cmd_show "$@" ;;
@@ -293,12 +298,25 @@ theme_run_reloads() {
     local hook=${C_RELOAD[$id]:-}
     [[ -n $hook && -z ${done_hooks[$hook]+x} ]] || continue
     done_hooks[$hook]=1
+    [[ $hook == gtk ]] && theme_gtk_sync
     ui_reload "$hook"
   done
 }
 
 theme_settings_label() {
-  jq -r '"accent \(.accent), reduce_motion \(if .reduce_motion then "on" else "off" end)"' <<<"$1"
+  jq -r '"accent \(.accent), mode \(.mode), reduce_motion \(if .reduce_motion then "on" else "off" end)"' <<<"$1"
+}
+
+# Tell running GTK and libadwaita apps (through GSettings) which scheme the
+# new tokens use. Only inside the graphical session; never fatal.
+theme_gtk_sync() {
+  ui_session || return 0
+  command -v gsettings >/dev/null 2>&1 || return 0
+  local scheme theme
+  scheme=$(jq -r '.gtk.color_scheme' "$PLAN_DIR/tokens.resolved.json")
+  theme=$(jq -r '.gtk.theme' "$PLAN_DIR/tokens.resolved.json")
+  gsettings set org.gnome.desktop.interface color-scheme "$scheme" >/dev/null 2>&1 || true
+  gsettings set org.gnome.desktop.interface gtk-theme "$theme" >/dev/null 2>&1 || true
 }
 
 # Shared tail of every mutating subcommand. Uses the current plan.
@@ -381,27 +399,142 @@ theme_set() {
     "$(jq -cn --arg k "$key" --argjson v "$new" '{($k): $v}')" "$undo" "$settings" "$key" "$new"
 }
 
+# The accent preference: a name, or auto (follow the wallpaper).
+theme_accent_pref() {
+  config_read | jq -r '.accent_pref // "auto"'
+}
+
+# theme_accent_wanted PREF: the accent that preference means right now.
+# auto picks the accent closest to the wallpaper's dominant colour, and the
+# default accent when there is no wallpaper or it has no colour to speak of.
+theme_accent_wanted() {
+  if [[ $1 == auto ]]; then
+    wall_accent "$(wall_current)" || jq -r .defaults.accent "$THEME_TOKENS"
+  else
+    echo "$1"
+  fi
+}
+
 theme_cmd_accent() {
   (( $# <= 1 )) || usage_error "too many arguments"
-  local accents cur
+  local accents cur pref
   accents=$(jq -r '.accents | join(" ")' "$THEME_TOKENS")
+  pref=$(theme_accent_pref)
   if (( $# == 0 )); then
     cur=$(theme_settings | jq -r .accent)
-    say "Accent: $cur"
-    say "Available: $accents"
-    jq -n --arg a "$cur" --arg l "$accents" '{accent: $a, available: ($l | split(" "))}' | emit
+    say "Accent: $cur (preference: $pref)"
+    say "Available: $accents auto"
+    jq -n --arg a "$cur" --arg p "$pref" --arg l "$accents" \
+      '{accent: $a, preference: $p, available: ($l | split(" "))}' | emit
     return 0
   fi
-  local new=$1
-  [[ " $accents " == *" $new "* ]] || usage_error "unknown accent '$new'; choose one of: $accents"
+  local want=$1 new
+  [[ $want == auto || " $accents " == *" $want "* ]] \
+    || usage_error "unknown accent '$want'; choose one of: $accents auto"
+  new=$(theme_accent_wanted "$want")
   (( OPT_DRY_RUN )) || karma_lock
   cur=$(theme_settings | jq -r .accent)
   if [[ $new == "$cur" ]]; then
-    say "Accent is already $new; nothing to do."
-    jq -n --arg a "$cur" '{journal_id: null, settings: {accent: $a}, files: []}' | emit
+    if [[ $want == "$pref" ]]; then
+      say "Accent is already $new; nothing to do."
+      jq -n --arg a "$cur" '{journal_id: null, settings: {accent: $a}, files: []}' | emit
+      return 0
+    fi
+    local before after
+    before=$(jq -cn --arg p "$pref" '{accent_pref: $p}')
+    after=$(jq -cn --arg p "$want" '{accent_pref: $p}')
+    change_begin "theme accent preference: $pref -> $want" "$before" "$after" || return 0
+    config_set accent_pref "\"$want\""
+    change_end "theme accent preference: $pref -> $want" "$before" "$after" "$(json_array theme accent "$pref")"
     return 0
   fi
-  theme_set accent "\"$new\"" "\"$cur\"" "theme accent: $cur -> $new" "$(json_array theme accent "$cur")"
+  (( OPT_DRY_RUN )) || config_set accent_pref "\"$want\""
+  theme_set accent "\"$new\"" "\"$cur\"" \
+    "theme accent: $cur -> $new$([[ $want == auto ]] && echo " (auto)" || true)" "$(json_array theme accent "$pref")"
+}
+
+# Internal: called after the wallpaper changed. Brings the mode and the
+# accent in line with it, for whichever of the two is set to auto, in one
+# build. Not reversible on its own, so that `undo` reverts the wallpaper,
+# which runs this again.
+theme_cmd_sync() {
+  (( $# == 0 )) || usage_error "unexpected argument '$1'"
+  # Lock first: when wallpapers change in quick succession, each sync must
+  # see the wallpaper that is current when its turn comes, not an older one.
+  (( OPT_DRY_RUN )) || karma_lock
+  local cur_mode cur_accent new_mode new_accent
+  cur_mode=$(theme_settings | jq -r .mode)
+  cur_accent=$(theme_settings | jq -r .accent)
+  new_mode=$(theme_mode_wanted "$(theme_mode_pref)")
+  new_accent=$(theme_accent_wanted "$(theme_accent_pref)")
+  if [[ $new_mode == "$cur_mode" && $new_accent == "$cur_accent" ]]; then
+    say "Mode and accent already match the wallpaper; nothing to do."
+    jq -n '{journal_id: null, settings: {}, files: []}' | emit
+    return 0
+  fi
+  local settings before after summary="theme: "
+  [[ $new_mode != "$cur_mode" ]] && summary+="mode $cur_mode -> $new_mode, "
+  [[ $new_accent != "$cur_accent" ]] && summary+="accent $cur_accent -> $new_accent, "
+  summary="${summary%, } (from the wallpaper)"
+  before=$(jq -cn --arg m "$cur_mode" --arg a "$cur_accent" '{mode: $m, accent: $a}')
+  after=$(jq -cn --arg m "$new_mode" --arg a "$new_accent" '{mode: $m, accent: $a}')
+  settings=$(theme_settings "$after")
+  theme_plan "$settings"
+  (( OPT_DRY_RUN )) || config_set accent "\"$new_accent\""
+  theme_commit "$summary" "$before" "$after" null "$settings" mode "\"$new_mode\""
+}
+
+# The mode preference: dark, light, or auto (follow the wallpaper).
+theme_mode_pref() {
+  config_read | jq -r '.mode_pref // "auto"'
+}
+
+# theme_mode_wanted PREF: the mode that preference means right now.
+theme_mode_wanted() {
+  if [[ $1 == auto ]]; then
+    wall_mode "$(wall_current)" || theme_settings | jq -r .mode
+  else
+    echo "$1"
+  fi
+}
+
+theme_cmd_mode() {
+  (( $# <= 1 )) || usage_error "too many arguments"
+  local cur pref
+  cur=$(theme_settings | jq -r .mode)
+  pref=$(theme_mode_pref)
+  if (( $# == 0 )); then
+    say "Mode: $cur (preference: $pref)"
+    say "Available: dark light auto"
+    jq -n --arg m "$cur" --arg p "$pref" '{mode: $m, preference: $p, available: ["dark", "light", "auto"]}' | emit
+    return 0
+  fi
+  local want=$1 new summary undo
+  case $want in
+    dark|light|auto) ;;
+    *) usage_error "expected dark, light or auto, got '$want'" ;;
+  esac
+  new=$(theme_mode_wanted "$want")
+  (( OPT_DRY_RUN )) || karma_lock
+  if [[ $new == "$cur" ]]; then
+    if [[ $want == "$pref" ]]; then
+      say "Mode is already $cur (preference: $pref); nothing to do."
+      jq -n --arg m "$cur" '{journal_id: null, settings: {mode: $m}, files: []}' | emit
+      return 0
+    fi
+    # Only the preference changes; the colours stay.
+    local before after
+    before=$(jq -cn --arg p "$pref" '{mode_pref: $p}')
+    after=$(jq -cn --arg p "$want" '{mode_pref: $p}')
+    change_begin "theme mode preference: $pref -> $want" "$before" "$after" || return 0
+    config_set mode_pref "\"$want\""
+    change_end "theme mode preference: $pref -> $want" "$before" "$after" "$(json_array theme mode "$pref")"
+    return 0
+  fi
+  summary="theme mode: $cur -> $new$([[ $want == auto ]] && echo " (auto)" || true)"
+  undo=$(json_array theme mode "$pref")
+  (( OPT_DRY_RUN )) || config_set mode_pref "\"$want\""
+  theme_set mode "\"$new\"" "\"$cur\"" "$summary" "$undo"
 }
 
 theme_cmd_reduce_motion() {

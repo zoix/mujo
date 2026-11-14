@@ -6,7 +6,7 @@ load helpers
 @test "build renders every consumer with a do-not-edit header" {
   run karma theme build
   [ "$status" -eq 0 ]
-  [ -f "$(conf)/quickshell/karma/theme/Tokens.qml" ]
+  [ -f "$(conf)/quickshell/karma/theme/tokens.json" ]
   [ -f "$(conf)/hypr/karma_tokens.lua" ]
   [ -f "$(conf)/kitty/karma-theme.conf" ]
   [ -f "$(conf)/btop/themes/karma.theme" ]
@@ -79,11 +79,11 @@ load helpers
   karma theme build
   run karma theme accent blue
   [ "$status" -eq 0 ]
-  grep -q '"#89b4fa"' "$(conf)/quickshell/karma/theme/Tokens.qml"
+  grep -q '"#89b4fa"' "$(conf)/quickshell/karma/theme/tokens.json"
   [ "$(jq -r .accent "$(conf)/karma/config.json")" = blue ]
   run karma undo
   [ "$status" -eq 0 ]
-  grep -q 'accent: "#cba6f7"' "$(conf)/quickshell/karma/theme/Tokens.qml"
+  grep -q '"accent": "#cba6f7"' "$(conf)/quickshell/karma/theme/tokens.json"
   [ "$(jq -r .accent "$(conf)/karma/config.json")" = mauve ]
   run karma theme check
   [ "$status" -eq 0 ]
@@ -95,7 +95,7 @@ load helpers
   run karma theme accent green --dry-run
   [ "$status" -eq 0 ]
   [[ $output == *"dry run"* ]]
-  [[ $output == *"+    readonly property color accent"* ]]
+  [[ $output == *'+  "accent": '* ]]
   [ "$before" = "$(sha256sum "$(conf)/kitty/karma-theme.conf")" ]
   [ ! -f "$(conf)/karma/config.json" ]
   run karma log --json
@@ -103,20 +103,22 @@ load helpers
 }
 
 @test "same accent is a no-op" {
+  karma theme accent mauve
+  entries=$(wc -l <"$(state)/journal.jsonl")
   run karma theme accent mauve
   [ "$status" -eq 0 ]
   [[ $output == *"already mauve"* ]]
-  [ ! -f "$(state)/journal.jsonl" ]
+  [ "$(wc -l <"$(state)/journal.jsonl")" -eq "$entries" ]
 }
 
 @test "reduce-motion zeroes every duration and undo restores them" {
   karma theme build
   karma theme reduce-motion on
-  grep -q 'durationNormal: 0' "$(conf)/quickshell/karma/theme/Tokens.qml"
-  grep -q 'reduceMotion: true' "$(conf)/quickshell/karma/theme/Tokens.qml"
+  grep -q '"durationNormal": 0' "$(conf)/quickshell/karma/theme/tokens.json"
+  grep -q '"reduceMotion": true' "$(conf)/quickshell/karma/theme/tokens.json"
   grep -q 'normal = 0,' "$(conf)/hypr/karma_tokens.lua"
   karma undo
-  grep -q 'durationNormal: 220' "$(conf)/quickshell/karma/theme/Tokens.qml"
+  grep -q '"durationNormal": 220' "$(conf)/quickshell/karma/theme/tokens.json"
 }
 
 @test "undo of a build restores the previous files; repeated undo walks back" {

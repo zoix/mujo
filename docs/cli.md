@@ -13,6 +13,7 @@ phase 4.
 | `karma display` | Brightness; night light | `brightnessctl`; Hyprland + `hyprsunset` |
 | `karma theme` | Build, check, accent, reduce-motion | nothing |
 | `karma wall` | Set or cycle the wallpaper | nothing |
+| `karma dnd` | Do not disturb for notifications | nothing |
 | `karma power` | lock, suspend, logout, reboot, shutdown | `systemctl`; lock needs the UI |
 | `karma shot` | Region, window or screen screenshot | Wayland (`grim`, `slurp`, `wl-copy`) |
 | `karma clip` | Clipboard history picker; `clip list`, `clip clear` | `cliphist`; picking needs Wayland |
@@ -84,10 +85,12 @@ Without a value the same subcommand only reports the current state.
 
 ## Interactive commands
 
-`launch`, `menu`, `clip`, `net tui`, `keys tui` and `bt tui` need a terminal
+`launch`, `menu`, `clip`, `wall pick`, `net tui`, `keys tui`, `bt tui` and `audio tui` need a terminal
 (exit 3 without one) and have no `--json` form (exit 2). With `--window` they
 open in a floating kitty window with the class `karma-tui-<command>`; running
-the same command again closes that window, so one key toggles it. Each has a
+the same command again closes that window, so one key toggles it. Four of
+them have a panel in the Quickshell UI, which `--window` uses instead while
+the UI runs: `launch`, `menu`, `wall pick` and `power` (the power menu). Each has a
 non-interactive sibling for scripts: `launch list`, `menu list`, `clip list`,
 `net scan`, `keys`, `bt`.
 
@@ -104,9 +107,10 @@ Each of the first four has the shape of its own command's status below, or is
 | Subcommand | Mutates | Notes |
 | --- | --- | --- |
 | `status` (default) | no | Levels and devices |
-| `volume [N\|+N\|-N] [--input]` | yes | Percent, clamped to 0-100 |
+| `volume [N\|+N\|-N] [--input] [--muted on\|off]` | yes | Percent, clamped to 0-100. Raising the volume unmutes; `--muted` sets mute in the same step |
 | `mute [on\|off\|toggle] [--input]` | yes | Without a word: toggle |
 | `output [ID\|NAME]`, `input [ID\|NAME]` | yes | Without an argument: list |
+| `tui` | - | The wiremix mixer |
 
 `--input` targets the default microphone. Status `data`:
 
@@ -119,7 +123,7 @@ Each of the first four has the shape of its own command's status below, or is
 
 `volume` and `mute` without a value: `{"volume": 40, "muted": false}`.
 `output`/`input` without an argument: `{"devices": [...]}`. State keys in
-`before`/`after`: `volume`, `muted`, `device` (node name). Undo of a device
+`before`/`after`: `volume` and `muted` (both, for a volume change), `device` (node name). Undo of a device
 change uses the node name, which survives a restart; ids do not.
 
 ## karma display
@@ -169,13 +173,26 @@ nmcli ask for the password; `--password-stdin` reads one line instead.
 | Subcommand | Mutates | Notes |
 | --- | --- | --- |
 | `status` (default) | no | `{wallpaper, directory, available}` |
+| `list` | no | `{directory, current, images: [{path, name, thumb}]}`; `thumb` is `null` until indexed |
+| `index` | no | Cache a thumbnail and the brightness and main colour of each image (`~/.cache/karma/wallpapers`) |
+| `pick` | - | With `--window` in the desktop: the thumbnail strip of the UI, which applies as you move. In a terminal: an fzf list with a preview (in kitty) |
 | `set FILE` | yes | png, jpg, jpeg or webp |
 | `next`, `prev` | yes | Cycle through the directory by name |
 | `clear` | yes | No wallpaper |
 | `dir [DIRECTORY]` | yes | Default `~/Pictures/Wallpapers`. Without an argument: `{directory}` |
 
 The choice is stored in `config.json` (`wallpaper`, `wallpaper_dir`) and sent
-to the UI (`wallpaper set PATH`). The Quickshell UI of phase 3 draws it.
+to the UI (`wallpaper set PATH`), which draws it on every screen.
+
+While `theme mode` is `auto`, a wallpaper change also sets the mode from the
+image's mean brightness (ImageMagick; 55% or more is light). That step has
+its own journal entry, marked not reversible, so `karma undo` reverts the
+wallpaper, and the mode follows it back.
+
+## karma dnd
+
+`dnd [on|off|toggle]` mutates `dnd` in `config.json`; without a word it
+returns `{dnd}`. While it is on the UI shows only critical notifications.
 
 ## karma power
 
@@ -183,7 +200,7 @@ to the UI (`wallpaper set PATH`). The Quickshell UI of phase 3 draws it.
 `reboot`, `shutdown` return `{journal_id, action, command}`; with `--dry-run`
 nothing runs and `journal_id` is `null`. `logout`, `reboot` and `shutdown`
 need `--yes` (exit 2 without it). Entries are journaled as not reversible.
-`lock` calls the Quickshell lock screen and exits 3 while that is not running.
+`lock` calls the Quickshell lock screen and exits 3 while the UI is not running.
 
 ## karma shot
 
@@ -205,7 +222,9 @@ command. Launch counts live in `~/.local/state/karma/launch-history.tsv`.
 
 ## karma menu
 
-`pick` (default, interactive), `list`: `{entries: [{label, kind, command}]}`.
+`pick` (default, interactive), `list`: `{entries: [{label, kind, command}]}`,
+`run LABEL`: do what that entry does without a terminal (`{label, kind, command, done}`);
+a setting's result is shown as a notification. The UI's launcher uses it.
 `kind` is `run`, `tui`, `app`, `shot`, `accent` or `confirm`.
 
 ## karma keys
@@ -215,10 +234,19 @@ command. Launch counts live in `~/.local/state/karma/launch-history.tsv`.
 
 ## UI notifications
 
-After a change karma calls the Quickshell IPC, best effort:
-`osd volume PERCENT MUTED`, `osd microphone PERCENT MUTED`,
-`osd brightness PERCENT`, `wallpaper set PATH`, `theme reload`, and
-`lock lock` for `power lock`. These targets are implemented in phase 3.
+After a change karma calls the Quickshell IPC (`qs -c karma ipc call ...`),
+best effort and never fatal. `qs -c karma ipc show` lists the targets:
+
+| Target | Function | Called by |
+| --- | --- | --- |
+| `osd` | `volume PERCENT MUTED`, `microphone PERCENT MUTED`, `brightness PERCENT` | `karma audio`, `karma display` |
+| `wallpaper` | `set PATH` | `karma wall` |
+| `notify` | `reload` (re-read `config.json`), `clear` (dismiss all cards) | `karma dnd` |
+| `theme` | `reload` (re-read the colours; the UI is not restarted) | `karma theme` |
+| `lock` | `lock` | `karma power lock` |
+| `launcher` | `apps`, `actions`, `wallpapers` (each toggles that mode), `close` | `--window` on `launch`, `menu`, `wall pick` |
+| `session` | `toggle` (the power menu) | `karma power --window` |
+| `bar` | `toggle` (hide or show the frame and bar) | by hand |
 
 ## karma theme
 
@@ -226,7 +254,8 @@ After a change karma calls the Quickshell IPC, best effort:
 | --- | --- | --- |
 | `build [ID...]` | yes | Render all or the given consumers. Journaled; undo restores the previous files |
 | `check [ID...]` | no | Exit 1 on drift or hardcoded values |
-| `accent [NAME]` | yes | Without NAME: show. With NAME: set in config.json, rebuild, journal |
+| `accent [NAME\|auto]` | yes | Without NAME: show. With NAME: set in config.json, rebuild, journal. `auto` (the default) picks the accent closest to the wallpaper's main colour |
+| `mode [dark\|light\|auto]` | yes | Dark (Catppuccin Mocha) or light (Latte) palette for every app. `auto` (the default) follows the wallpaper: light when the image is bright. Without a word: `{mode, preference, available}` |
 | `reduce-motion [on\|off]` | yes | Same pattern for `reduce_motion` |
 | `list` | no | Consumers, paths and status |
 | `show [PATH]` | no | Resolved tokens, or one subtree (`color.bg`, `term.ansi.5`) |

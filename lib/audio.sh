@@ -7,16 +7,19 @@ karma_register audio "Volume, mute, output and input device"
 help_audio() {
   cat <<EOF
 Usage: $KARMA_NAME audio [status]
-       $KARMA_NAME audio volume [N | +N | -N] [--input]
+       $KARMA_NAME audio volume [N | +N | -N] [--input] [--muted on|off]
        $KARMA_NAME audio mute [on | off | toggle] [--input]
        $KARMA_NAME audio output [ID | NAME]
        $KARMA_NAME audio input [ID | NAME]
+       $KARMA_NAME audio tui [--window]
 
 status   Volume and mute of the default output and input, and every device.
 volume   Show or set the volume in percent (0-100); +N and -N are steps.
+         Raising the volume also unmutes. --muted sets mute in the same step.
 mute     Show or change mute; without a word it toggles.
 output   List the outputs, or make one the default (by id or node name).
 input    The same for inputs (microphones).
+tui      Open the wiremix mixer (per-application volumes, routing).
 
 --input makes volume and mute act on the default microphone.
 Changes are journaled; '$KARMA_NAME undo' puts the previous value back.
@@ -82,14 +85,19 @@ audio_osd() {
 audio_parse() {
   AUDIO_KIND=output
   AUDIO_ARGS=()
-  local a
-  for a in "$@"; do
-    case $a in
+  AUDIO_MUTED=""
+  while (( $# )); do
+    case $1 in
       --input) AUDIO_KIND=input ;;
       --output) AUDIO_KIND=output ;;
-      --*) usage_error "unknown option '$a'" ;;
-      *) AUDIO_ARGS+=("$a") ;;
+      --muted)
+        AUDIO_MUTED=$(on_off "${2:-}" false) || usage_error "--muted needs on or off"
+        shift
+        ;;
+      --*) usage_error "unknown option '$1'" ;;
+      *) AUDIO_ARGS+=("$1") ;;
     esac
+    shift
   done
 }
 
@@ -115,6 +123,14 @@ cmd_audio() {
     volume) audio_cmd_volume "$@" ;;
     mute) audio_cmd_mute "$@" ;;
     output|input) audio_cmd_device "$sub" "$@" ;;
+    tui)
+      (( $# == 0 )) || usage_error "unexpected argument '$1'"
+      (( OPT_JSON )) && usage_error "'$KARMA_CMD' is interactive and has no --json output"
+      need wiremix
+      [[ -t 0 && -t 2 ]] \
+        || die "$EXIT_ENV" "'$KARMA_NAME $KARMA_CMD' needs a terminal (inside the desktop, add --window)"
+      exec wiremix
+      ;;
     *) usage_error "unknown subcommand '$sub'" ;;
   esac
 }
@@ -147,18 +163,33 @@ audio_cmd_volume() {
   fi
   new=$(step_value "${AUDIO_ARGS[0]}" "$cur" 0 100) \
     || usage_error "expected a percentage such as 40, +5 or -5, got '${AUDIO_ARGS[0]}'"
-  local before after undo
-  before=$(jq -cn --argjson v "$cur" '{volume: $v}')
-  change_begin "audio $(audio_label): $cur% -> $new%" "$before" "$(jq -cn --argjson v "$new" '{volume: $v}')" \
-    || return 0
-  wpctl set-volume -l 1.0 "$(audio_target "$AUDIO_KIND")" "$new%" \
-    || die "$EXIT_FAIL" "wpctl could not set the volume"
-  level=$(audio_level "$AUDIO_KIND") || level="$new false"
-  new=${level% *}
-  after=$(jq -cn --argjson v "$new" '{volume: $v}')
+  # Turning the volume up while muted unmutes, as the keys on any device do.
+  local new_muted=$muted
+  if [[ -n $AUDIO_MUTED ]]; then
+    new_muted=$AUDIO_MUTED
+  elif (( new > cur )); then
+    new_muted=false
+  fi
+  local before planned after undo summary
+  summary="audio $(audio_label): $cur% -> $new%"
+  if [[ $new_muted != "$muted" ]]; then
+    summary+=", $([[ $new_muted == true ]] && echo muted || echo unmuted)"
+  fi
+  before=$(jq -cn --argjson v "$cur" --argjson m "$muted" '{volume: $v, muted: $m}')
+  planned=$(jq -cn --argjson v "$new" --argjson m "$new_muted" '{volume: $v, muted: $m}')
+  change_begin "$summary" "$before" "$planned" || return 0
+  local target
+  target=$(audio_target "$AUDIO_KIND")
+  wpctl set-volume -l 1.0 "$target" "$new%" || die "$EXIT_FAIL" "wpctl could not set the volume"
+  if [[ $new_muted != "$muted" ]]; then
+    wpctl set-mute "$target" "$([[ $new_muted == true ]] && echo 1 || echo 0)" \
+      || die "$EXIT_FAIL" "wpctl could not change mute"
+  fi
+  level=$(audio_level "$AUDIO_KIND") || level="$new $new_muted"
+  after=$(jq -cn --argjson v "${level% *}" --argjson m "${level#* }" '{volume: $v, muted: $m}')
   # shellcheck disable=SC2046  # the flag is optional
-  undo=$(json_array audio volume "$cur" $(audio_kind_flag))
-  change_end "audio $(audio_label): $cur% -> $new%" "$before" "$after" "$undo"
+  undo=$(json_array audio volume "$cur" --muted "$([[ $muted == true ]] && echo on || echo off)" $(audio_kind_flag))
+  change_end "$summary" "$before" "$after" "$undo"
   audio_osd "$AUDIO_KIND"
 }
 
