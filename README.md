@@ -196,6 +196,8 @@ closed. You are welcome to fork it and make it your own.
 mujo stands on [Hyprland](https://hypr.land), [Quickshell](https://quickshell.org),
 [Catppuccin](https://catppuccin.com) and [Ghostty](https://ghostty.org).
 
+Built with [Claude Code](https://claude.com/claude-code).
+
 ## License
 
 [MIT](LICENSE)
