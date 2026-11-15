@@ -596,8 +596,9 @@ journal_count() {
 @test "update upgrades the system, reports it and recommends a reboot for a new kernel" {
   run karma update --system-only </dev/null
   [ "$status" -eq 2 ]
+  # --system-only: the test must never run git pull in the real checkout
   # pacman's own output goes to stderr in --json mode; stdout is the JSON alone
-  output=$(karma update --yes --json 2>/dev/null </dev/null)
+  output=$(karma update --system-only --yes --json 2>/dev/null </dev/null)
   [ "$(data '.system.packages | join(" ")')" = "jq linux" ]
   # AUR packages are updated through the helper
   grep -q -- "-Sua --noconfirm" "$STUB_STATE/yay.log"
