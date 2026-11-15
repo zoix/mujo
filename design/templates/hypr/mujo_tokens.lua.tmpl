@@ -14,7 +14,9 @@ return {
     },
     border_size  = {{ border.thin }},
     border_focus = {{ border.focus }},
-    rounding     = {{ radius.md }},
+    -- The frame's inner corner (radius.xl) minus the gap to the window
+    -- (layout.gap_out), so that the two curves run parallel.
+    rounding     = {{ radius.lg }},
     gaps_in      = {{ layout.gap_in }},
     gaps_out     = {{ layout.gap_out }},
     font_family  = {{ font.family | q }},
