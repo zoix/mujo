@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo/mark-dark.svg">
+    <img src="docs/logo/mark-light.svg" width="96" height="96" alt="The mujo logo: a gate whose posts form the letter m">
+  </picture>
+</p>
+
 <h1 align="center">mujo</h1>
 
 <p align="center">

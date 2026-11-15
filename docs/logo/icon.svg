@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-48 -48 96 96" width="96" height="96" role="img" aria-label="mujo">
+  <title>mujo</title>
+  <rect x="-48" y="-48" width="96" height="96" rx="22" fill="#1e1e2e"/>
+  <g transform="scale(.72)">
+  <g transform="translate(0 -3)" fill="none" stroke="#cdd6f4" stroke-linecap="round">
+    <path stroke-width="9" d="M-40 -27Q0 -37 40 -27"/>
+    <path stroke-width="8" d="M-30 -8H30M-23 -8L-26 38M23 -8L26 38M0 -8V10"/>
+    <circle cx="0" cy="27" r="5.5" fill="#fab387" stroke="none"/>
+  </g>
+  </g>
+</svg>
