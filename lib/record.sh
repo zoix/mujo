@@ -43,6 +43,7 @@ record_stop() {
   # wf-recorder finishes the file when interrupted.
   kill -INT "$pid" 2>/dev/null || true
   while kill -0 "$pid" 2>/dev/null && (( n < 50 )); do sleep 0.1; n=$(( n + 1 )); done
+  kill -TERM "$pid" 2>/dev/null || true
   rm -f -- "$RECORD_PID"
   ui_ipc record state false
   if command -v wl-copy >/dev/null 2>&1 && [[ -n ${WAYLAND_DISPLAY:-} ]]; then
@@ -119,7 +120,9 @@ cmd_record() {
   fi
   (( audio )) && args+=(--audio)
   mkdir -p -- "$dir" || die "$EXIT_FAIL" "cannot create $dir"
-  setsid wf-recorder "${args[@]}" >/dev/null 2>&1 </dev/null 3>&- 9>&- &
+  # A background job of a script starts with the interrupt signal ignored;
+  # env restores it, since interrupting is how the recording is ended.
+  setsid env --default-signal=INT wf-recorder "${args[@]}" >/dev/null 2>&1 </dev/null 3>&- 9>&- &
   local pid=$!
   sleep 0.3
   kill -0 "$pid" 2>/dev/null || die "$EXIT_FAIL" "wf-recorder could not start"
