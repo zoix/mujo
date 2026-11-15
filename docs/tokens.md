@@ -100,8 +100,8 @@ trying things out.
 | `reload` | Optional hook run after a change: `quickshell`, `hyprland`, `ghostty`, `tmux`, `gtk` |
 | `lint` | Repo paths of hand-written config that belongs with this consumer |
 
-Current consumers (14): `quickshell` (tokens.json, read live by Tokens.qml),
-`hypr` (mujo_tokens.lua), `ghostty`, `tmux`, `btop`, `yazi`, `fzf` (FZF_DEFAULT_OPTS_FILE), `zsh`, `gtk3` and `gtk4`
+Current consumers (15): `quickshell` (tokens.json, read live by Tokens.qml),
+`hypr` (mujo_tokens.lua), `ghostty`, `ghostty-drop` (the drop-down terminal's see-through background), `tmux`, `btop`, `yazi`, `fzf` (FZF_DEFAULT_OPTS_FILE), `zsh`, `gtk3` and `gtk4`
 (gtk.css colour overrides), `gtk3-settings` and `gtk4-settings` (settings.ini:
 theme, dark preference, UI font), `greetd` (tuigreet theme), `vtrgb` (console
 palette).

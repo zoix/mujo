@@ -515,7 +515,7 @@ best effort and never fatal. `qs -c mujo ipc show` lists the targets:
 | `palette [catppuccin\|wallpaper]` | yes | `wallpaper` tints backgrounds, borders and text with the wallpaper's main colour and makes the accent a colour of that hue (when the accent is `auto`); red, green and the other named colours stay. A wallpaper without a clear colour keeps the Catppuccin colours. Without a word: `{palette, hue, available}` |
 | `mode [dark\|light\|auto]` | yes | Dark (Catppuccin Mocha) or light (Latte) palette for every app. `auto` (the default) follows the wallpaper: light when the image is bright. Without a word: `{mode, preference, available}` |
 | `motion [normal\|gentle]` | yes | `gentle` makes every animation about twice as slow and has Hyprland fade instead of slide. Without a word: `{motion, reduce_motion, available}` |
-| `glass [on\|off]` | yes | `on` makes the frame and its panels see-through, with the desktop blurred behind them |
+| `glass [on\|off]` | yes | `on` makes the frame, its panels and the drop-down terminal's background see-through, with the desktop blurred behind them |
 | `reduce-motion [on\|off]` | yes | `on` switches every animation off |
 | `list` | no | Consumers, paths and status |
 | `show [PATH]` | no | Resolved tokens, or one subtree (`color.bg`, `term.ansi.5`) |

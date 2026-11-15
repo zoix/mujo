@@ -78,6 +78,8 @@ mujo() { "$MUJO" "$@"; }
   mujo power battery refresh on
   [ "$(cat "$lua")" = 'return { solid = true, monitor = { output = "eDP-1", mode = "2880x1920@60.00", position = "0x0", scale = "2" } }' ]
   grep -qx reload "$STUB_STATE/hyprctl.log"
+  # no blur on battery: the drop-down terminal's background is solid meanwhile
+  grep -qx 'background-opacity = 1' "$XDG_CONFIG_HOME/ghostty/mujo-drop"
   # asked again on battery, the mode chosen at first is kept
   echo 60 >"$STUB_STATE/refresh"
   run mujo power sync --json
@@ -88,6 +90,7 @@ mujo() { "$MUJO" "$@"; }
   run mujo power sync --json
   [ "$(data .battery.changed)" = true ]
   [ "$(data .battery.on_battery)" = false ]
+  grep -qx 'background-opacity = 0.82' "$XDG_CONFIG_HOME/ghostty/mujo-drop"
   [ ! -e "$lua" ]
   [ "$(jq -r .battery_now "$XDG_CONFIG_HOME/mujo/config.json")" = null ]
   # each switch is journaled and can be undone

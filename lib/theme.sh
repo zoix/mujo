@@ -40,8 +40,9 @@ Subcommands:
   motion [normal|gentle] Show the setting, or set it and rebuild (journaled).
                          gentle is slower, and fades instead of sliding
   glass [on|off]         Show the setting, or set it and rebuild (journaled).
-                         on makes the frame and its panels see-through, with
-                         the desktop blurred behind them
+                         on makes the frame, its panels and the drop-down
+                         terminal's background see-through, with the desktop
+                         blurred behind them
   reduce-motion [on|off] Show the setting, or set it and rebuild (journaled).
                          on switches every animation off
   list                   List consumers, their targets and whether they are current
@@ -377,6 +378,17 @@ theme_current_hash() {
   else
     echo none
   fi
+}
+
+# theme_quiet_build ID...: render the given consumers again without a journal
+# entry. For files that follow the state of the machine (on battery or not)
+# and not a choice of the user's.
+theme_quiet_build() {
+  theme_load_consumers
+  theme_plan "$(theme_settings)" "$@"
+  (( $(theme_changed_count) > 0 )) || return 0
+  theme_apply_plan "$(journal_new_id)"
+  theme_run_reloads
 }
 
 theme_ids_from_args() {

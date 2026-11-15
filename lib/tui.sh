@@ -57,6 +57,11 @@ tui_term() {
   need ghostty
   local -a cmd=(ghostty)
   [[ -n $class ]] && cmd+=("--class=$class")
+  # The drop-down terminal has a few settings of its own (theme consumer
+  # ghostty-drop): a see-through background while glass is on.
+  if [[ $class == "$MUJO_NAME.drop" && -f $MUJO_CONFIG_HOME/ghostty/$MUJO_NAME-drop ]]; then
+    cmd+=("--config-file=$MUJO_CONFIG_HOME/ghostty/$MUJO_NAME-drop")
+  fi
   [[ -n $title ]] && cmd+=("--title=$title")
   (( $# )) && cmd+=(-e "$@")
   tui_detach "${cmd[@]}"

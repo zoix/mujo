@@ -35,7 +35,7 @@ behaves the same wherever a change comes from.
 - **See it first.** `--dry-run` on any command prints what would change and changes nothing.
 - **Take it back.** Changes are journaled with the state before and after. `mujo undo` reverts the last one; actions that cannot be undone say so and ask for `--yes`.
 - **Works without the screen.** Everything that does not need Wayland runs over SSH or on a TTY, and `--json` gives scripts stable output.
-- **One source for the look.** Colours, sizes, fonts and durations live in one file and are rendered into 14 programs, from the bar to the login screen.
+- **One source for the look.** Colours, sizes, fonts and durations live in one file and are rendered into every program that shows it, from the bar to the login screen.
 - **Updates you can walk back.** `mujo update` takes a snapshot before and after when snapper covers `/`, and `mujo update rollback` returns the system files to the earlier one.
 - **Leaves cleanly.** The installer backs up what it replaces, and `mujo uninstall` restores it.
 
@@ -124,7 +124,7 @@ console palette. `mujo theme check` fails if any of them drifts.
 mujo theme mode auto          # light or dark, following the wallpaper
 mujo theme accent auto        # the accent closest to the wallpaper's colour
 mujo theme palette wallpaper  # tint the whole palette with the wallpaper
-mujo theme glass on           # see-through panels with the desktop blurred behind
+mujo theme glass on           # see-through panels and drop-down terminal, blurred behind
 mujo theme motion gentle      # slower, fades instead of slides
 mujo theme reduce-motion on   # no animation at all
 ```

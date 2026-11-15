@@ -38,6 +38,15 @@
       ]
     },
     {
+      "id": "ghostty-drop",
+      "description": "The drop-down terminal's see-through background (with glass on)",
+      "template": "ghostty/mujo-drop.tmpl",
+      "target": "@config/ghostty/mujo-drop",
+      "scope": "user",
+      "comment": "#",
+      "reload": "ghostty"
+    },
+    {
       "id": "tmux",
       "description": "tmux colours: status line, panes, messages, copy mode, pop-ups",
       "template": "tmux/mujo-theme.conf.tmpl",

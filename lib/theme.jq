@@ -11,6 +11,9 @@ def _path($ref): $ref | split(".") | map(if test("^[0-9]+$") then tonumber else 
 def settings($tok; $cfg; $over):
   ($tok.defaults
    + ($cfg | {accent, reduce_motion, mode, motion, palette, hue, glass} | with_entries(select(.value != null)))
+   # Not a choice but a state: on battery, `mujo power battery solid` has
+   # switched the blur off, and what is see-through is drawn solid meanwhile.
+   + {solid: ($cfg.battery_now.solid // false)}
    + $over)
   | if .accent == "wallpaper" and (.palette != "wallpaper" or .hue == null) then .accent = $tok.defaults.accent else . end
   | if (.accent | type) != "string" then error("accent must be a string")
@@ -82,6 +85,11 @@ def _resolve_tree($s):
   # that read .motion.gentle fade instead of sliding.
   # Glass: the frame and its panels let the (blurred) desktop show through.
   | .layout.panel_opacity = (if $s.glass then 0.72 else 1 end)
+  # The drop-down terminal joins in: it lies over other windows, and its
+  # background lets them through, blurred; the text stays as it is. Solid
+  # again while the blur is off on battery. Other terminals are always solid.
+  | .term.opacity = (if $s.glass and ($s.solid | not) then 0.82 else 1 end)
+  | .term.blur = (.term.opacity < 1)
   | .motion.gentle = ($s.motion == "gentle")
   | if .motion.gentle then .motion.duration |= map_values(. * 1.8 | round) else . end
   | if $s.reduce_motion then .motion.duration |= map_values(0) else . end
