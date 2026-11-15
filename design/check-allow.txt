@@ -3,3 +3,4 @@
 lib/theme.jq|"rgba?\(|the hypr/hypra filters build Hyprland rgb()/rgba() strings
 design/templates/quickshell/tokens.json.tmpl|accentColors|the swatches of the accent picker are the palette accents by name
 lib/theme.jq|_hsl\(|the wallpaper palette generator names the palette entries it replaces
+config/icons/.local/share/icons/hicolor/scalable/apps/mujo.svg|#[0-9a-f]{6}|the logo keeps its own colours whatever the theme
