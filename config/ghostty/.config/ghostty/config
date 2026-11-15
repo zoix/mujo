@@ -13,11 +13,14 @@ cursor-style = bar
 cursor-style-blink = false
 shell-integration-features = no-cursor
 
-# Selecting text copies it to both clipboards: Ctrl+Shift+V pastes it, and so
-# does a middle click (a three-finger tap on the touchpad). Since Ghostty 1.4
-# "clipboard" means the system clipboard only, which broke the middle click.
+# Selecting text copies it to both clipboards, and a middle click (a
+# three-finger tap on the touchpad) pastes the system clipboard, the same
+# thing Ctrl+Shift+V pastes. Ghostty's default pastes the selection clipboard,
+# which programs that draw their own selection (Claude Code, Neovim, tmux
+# with the mouse on) never fill: they copy to the system clipboard only.
 copy-on-select = both
-scrollback-limit = 10000000
+middle-click-action = clipboard-paste
+scrollback-limit-bytes = 10000000
 auto-update = off
 
 # Ghostty binds Ctrl+Enter to fullscreen by default. Terminal programs use
