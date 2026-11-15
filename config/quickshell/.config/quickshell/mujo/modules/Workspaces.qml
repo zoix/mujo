@@ -16,6 +16,14 @@ Rectangle {
     readonly property HyprlandMonitor monitor: Hyprland.monitorFor(screen)
     readonly property var list: Hyprland.workspaces.values.filter(w => w.id > 0 && w.monitor === root.monitor).sort((a, b) => a.id - b.id)
     readonly property int activeIndex: list.findIndex(w => w.active)
+    // The hidden workspace shown over this screen right now ("" = none), for
+    // example "special:term" while the drop-down terminal is down. Its windows
+    // are listed with the active workspace's.
+    property string shownSpecial: ""
+    readonly property var specialWindows: {
+        const w = shownSpecial === "" ? null : Hyprland.workspaces.values.find(w => w.name === shownSpecial);
+        return w ? w.toplevels.values : [];
+    }
     // The pill covers the active workspace's slot: its number and its icons.
     readonly property Item activeSlot: slots.count > 0 && activeIndex >= 0 ? slots.itemAt(activeIndex) : null
     readonly property real pillY: activeSlot ? activeSlot.y : 0
@@ -42,6 +50,12 @@ Rectangle {
         function onRawEvent(event: var): void {
             if (event.name === "openwindow" || event.name === "closewindow" || event.name === "movewindow")
                 Hyprland.refreshToplevels();
+            // activespecial>>NAME,MONITOR; NAME is empty when it is hidden again.
+            if (event.name === "activespecial") {
+                const parts = event.data.split(",");
+                if (root.monitor && parts[parts.length - 1] === root.monitor.name)
+                    root.shownSpecial = parts.slice(0, -1).join(",");
+            }
         }
     }
 
@@ -81,7 +95,7 @@ Rectangle {
                 id: slot
 
                 required property HyprlandWorkspace modelData
-                readonly property var icons: modelData.toplevels.values.map(t => root.iconFor(t)).filter(i => i !== "").slice(0, 3)
+                readonly property var icons: (modelData.active ? root.specialWindows : []).concat(modelData.toplevels.values).map(t => root.iconFor(t)).filter(i => i !== "").slice(0, 3)
 
                 width: root.cell
                 height: inner.implicitHeight + Tokens.spaceXs + Tokens.spaceXs

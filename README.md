@@ -48,11 +48,10 @@ frame instead of floating over your windows.
 | --- | --- |
 | ![Launcher](docs/screenshots/launcher.webp) **Launcher** `SUPER + Space`<br>Apps, every mujo command (`>`), a calculator (`=`), clipboard, emoji, Wi-Fi | ![Dashboard](docs/screenshots/dashboard.webp) **Dashboard** `SUPER + D`<br>Calendar, system gauges, media, weather |
 | ![Wallpaper strip](docs/screenshots/wallpapers.webp) **Wallpapers** `SUPER + Shift + W`<br>Moving along the strip applies the image; light or dark and the accent follow it | ![Keybindings](docs/screenshots/keys.webp) **Keybindings** `SUPER + /`<br>Every bind with its description; pick one to run it |
-| ![Power menu](docs/screenshots/power-menu.webp) **Power menu** `SUPER + Shift + Escape` | |
+| ![Power menu](docs/screenshots/power-menu.webp) **Power menu** `SUPER + Shift + Escape` | ![Quick settings](docs/screenshots/quick-settings.webp) **Quick settings** `SUPER + A`<br>Wi-Fi, Bluetooth, night light, power and battery options, notification history |
 
 Also in the box:
 
-- **Quick settings** (`SUPER + A`): Wi-Fi, Bluetooth, volume, brightness, night light, power profile, keep-awake and notification history.
 - **Workspace overview** (`SUPER + Tab`) with live pictures of the windows.
 - **Lock screen** with password or fingerprint, and media controls.
 - **Screenshots and recording**: an area picker on `Print`, `mujo record`, and `mujo shot text` to copy text out of any part of the screen.
