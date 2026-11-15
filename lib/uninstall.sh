@@ -92,6 +92,23 @@ un_refold() {
   ln -s -- "$link" "$path"
 }
 
+# un_mime_defaults APP TYPE...: take back the file types the installer gave
+# to APP, where they still point to it. An empty mimeapps.list is removed.
+un_mime_defaults() {
+  local app=$1 file=${XDG_CONFIG_HOME:-$HOME/.config}/mimeapps.list type tmp
+  shift
+  [[ -f $file ]] || return 0
+  tmp=$(mktemp "$file.XXXXXX") || return 1
+  local -a drop=()
+  for type in "$@"; do drop+=("$type=$app"); done
+  grep -vxFf <(printf '%s\n' "${drop[@]}") -- "$file" >"$tmp" || true
+  if grep -qv -e '^\[' -e '^[[:space:]]*$' -- "$tmp"; then
+    mv -- "$tmp" "$file"
+  else
+    rm -f -- "$tmp" "$file"
+  fi
+}
+
 un_restore_path() {
   local backup=$1 path=$2
   mkdir -p -- "$(dirname -- "$path")"
@@ -186,6 +203,12 @@ un_home() {
         if [[ -d $upath && ! -L $upath ]]; then
           un_act "fold $(tilde "$upath") back into a link to $ulink" un_refold "$upath" "$ulink"
         fi
+      elif jq -e 'has("mime_defaults")' <<<"$entry" >/dev/null; then
+        local mapp
+        local -a mtypes=()
+        mapp=$(jq -r .mime_defaults.app <<<"$entry")
+        mapfile -t mtypes < <(jq -r '.mime_defaults.types[]' <<<"$entry")
+        un_act "no longer open ${#mtypes[@]} file type(s) with ${mapp%.desktop}" un_mime_defaults "$mapp" "${mtypes[@]}"
       elif kind=$(jq -er '.packages_removed // empty | join(" ")' <<<"$entry"); then
         un_note "packages the installer removed are not reinstalled: $kind"
       fi

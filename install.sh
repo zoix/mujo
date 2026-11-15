@@ -633,6 +633,15 @@ do_write_new() {
   printf '%s\n' "$content" >"$dest"
 }
 
+# do_mime_defaults APP TYPE...: make APP the program for the file types, and
+# write down which ones, so that uninstall can take exactly these back.
+do_mime_defaults() {
+  local app=$1
+  shift
+  xdg-mime default "$app" "$@"
+  record "$(jq -cn --arg a "$app" '{mime_defaults: {app: $a, types: $ARGS.positional}}' --args "$@")"
+}
+
 do_retire() {
   local owner
   backup_path "$OLD_CONF"
@@ -743,6 +752,30 @@ user_steps() {
   else
     info "gsettings skipped (no session bus); settings.ini covers GTK apps"
   fi
+
+  # Pictures open in imv and videos in mpv, instead of in the browser. Only
+  # types without a choice of yours in mimeapps.list are set.
+  local apps=${MUJO_SYSROOT:-}/usr/share/applications mimeapps=${XDG_CONFIG_HOME:-$HOME/.config}/mimeapps.list
+  local entry app type
+  local -a unset_types
+  for entry in \
+    "imv-dir.desktop image/png image/jpeg image/webp image/gif image/bmp image/tiff image/avif" \
+    "mpv.desktop video/mp4 video/x-matroska video/webm video/quicktime video/x-msvideo video/mpeg audio/mpeg audio/flac audio/ogg audio/x-wav"; do
+    app=${entry%% *}
+    if [[ ! -f $apps/$app ]] || ! command -v xdg-mime >/dev/null 2>&1; then
+      info "file types for ${app%.desktop} skipped (it is not installed)"
+      continue
+    fi
+    unset_types=()
+    for type in ${entry#* }; do
+      grep -qs "^${type//+/\\+}=" "$mimeapps" || unset_types+=("$type")
+    done
+    if (( ${#unset_types[@]} )); then
+      act "open ${#unset_types[@]} file type(s) with ${app%.desktop}: ${unset_types[*]}" do_mime_defaults "$app" "${unset_types[@]}"
+    else
+      ok "file types for ${app%.desktop} are set"
+    fi
+  done
 }
 
 # ---------------------------------------------------------------- system steps

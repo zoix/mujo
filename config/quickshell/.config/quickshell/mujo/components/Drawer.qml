@@ -21,6 +21,10 @@ Item {
     property real centre: -1
     default property alias content: holder.data
 
+    // A panel placed by `centre` keeps this far from the top and bottom of
+    // the frame: its curved join would otherwise land on the rounded corner
+    // of the window behind it and leave a dark speck there.
+    readonly property real clear: Tokens.spaceXl
     readonly property bool vertical: edge === "left" || edge === "right"
     readonly property real fillet: Tokens.radiusLg
     readonly property real corner: Tokens.radiusXl
@@ -41,7 +45,7 @@ Item {
     width: vertical ? depth : along
     height: vertical ? along : depth
     x: edge === "left" ? Tokens.bar : edge === "right" ? parent.width - Tokens.frame - width : (parent.width - Tokens.bar - Tokens.frame - width) / 2 + Tokens.bar + shift
-    y: edge === "top" ? Tokens.frame : edge === "bottom" ? parent.height - Tokens.frame - height : centre >= 0 ? Math.max(Tokens.frame, Math.min(parent.height - Tokens.frame - height, centre - height / 2)) : atEnd ? parent.height - Tokens.frame - height - Tokens.button : (parent.height - height) / 2 + shift
+    y: edge === "top" ? Tokens.frame : edge === "bottom" ? parent.height - Tokens.frame - height : centre >= 0 ? Math.max(Tokens.frame + clear, Math.min(parent.height - Tokens.frame - clear - height, centre - height / 2)) : atEnd ? parent.height - Tokens.frame - height - Tokens.button : (parent.height - height) / 2 + shift
 
     Behavior on progress {
         NumberAnimation {

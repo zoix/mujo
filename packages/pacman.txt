@@ -25,6 +25,7 @@ fzf                         # launcher, menus, shell key bindings
 yazi                        # file manager
 tmux                        # terminal multiplexer
 imv                         # image viewer (opens pictures from yazi)
+mpv                         # video and audio player (opens recordings)
 btop                        # system monitor
 bluetui                     # Bluetooth TUI
 wiremix                     # audio mixer TUI

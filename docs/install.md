@@ -44,6 +44,9 @@ guessing. Every run is appended to `~/.local/state/mujo/install.log`.
    - `~/.config/hypr/host.lua` and `~/.config/zsh/local.zsh` are written once.
    - `mujo theme build` generates the theme files.
    - GSettings: dark colour scheme and adw-gtk3 (when a session bus exists).
+   - File types: pictures open in imv, videos and music in mpv. Only types
+     you have not chosen a program for in `mimeapps.list` are set, and
+     `mujo uninstall` takes exactly those back.
 6. **`/etc`.** The greetd config and console palette (generated, staged in
    `~/.local/state/mujo/theme/system/`) and `mujo-vtrgb.service`. Each file
    is shown as a diff or in full before it is written; the previous version is

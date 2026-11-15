@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Test double for notify-send: nothing reaches the real desktop. Calls are
+# written down so that a test can check them.
+printf '%s\n' "$*" >>"${STUB_STATE:?}/notify-send.log"
