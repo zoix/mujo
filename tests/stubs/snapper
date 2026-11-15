@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Test double for snapper. Every call is logged to $STUB_STATE/snapper.log;
+# create prints the next snapshot number (kept in $STUB_STATE/snapper.n).
+s=${STUB_STATE:?}
+printf '%s\n' "$*" >>"$s/snapper.log"
+[[ $1 == -c ]] && shift 2
+case $1 in
+  create)
+    [[ -e $s/snapper.fail ]] && exit 1
+    n=$(( $(cat "$s/snapper.n" 2>/dev/null || echo 40) + 1 ))
+    echo "$n" >"$s/snapper.n"
+    echo "$n"
+    ;;
+  list) printf '%s\n' "# | Pre # | Post # | Description" "41 | 41 | 42 | mujo update" ;;
+  undochange) echo "create:0 modify:2 delete:0" ;;
+  *) exit 1 ;;
+esac

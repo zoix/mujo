@@ -61,6 +61,7 @@ mujo theme accent blue       # or auto
 mujo power reboot --dry-run  # see what an action would do
 mujo doctor                  # is everything in place?
 mujo update                  # mujo and the system
+mujo update rollback --yes   # put the system back as it was before that update
 ```
 
 Put your wallpapers in `~/Pictures/Wallpapers`. All keys:

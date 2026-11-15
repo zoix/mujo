@@ -167,7 +167,7 @@ _mujo() {
           fi
           ;;
         pkg) (( CURRENT == 2 )) && _values 'pkg subcommand' install remove list ;;
-        update) _values 'option' check --refresh --mujo-only --system-only ;;
+        update) _values 'option' check snapshots rollback --refresh --mujo-only --system-only --no-snapshot ;;
         uninstall) _values 'option' --skip-system ;;
         dnd) (( CURRENT == 2 )) && _values 'state' on off toggle ;;
         focus) (( CURRENT == 2 )) && _values 'focus subcommand' status start stop ;;

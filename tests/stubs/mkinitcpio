@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Test double for mkinitcpio: logs its arguments.
+printf '%s\n' "$*" >>"${STUB_STATE:?}/mkinitcpio.log"

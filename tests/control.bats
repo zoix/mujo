@@ -605,6 +605,77 @@ journal_count() {
   [ "$(data .reboot_recommended)" = true ]
   run mujo log --json
   [ "$(data '.entries[0].reversible')" = false ]
+  # no snapper configuration for /: no snapshot, and snapper is never called
+  [ ! -e "$STUB_STATE/snapper.log" ]
+}
+
+snapper_config() {
+  mkdir -p "$MUJO_SYSROOT/etc/snapper/configs"
+  printf '%s\n' 'SUBVOLUME="/home"' >"$MUJO_SYSROOT/etc/snapper/configs/home"
+  printf '%s\n' '# root' 'SUBVOLUME="/"' 'FSTYPE="btrfs"' >"$MUJO_SYSROOT/etc/snapper/configs/root"
+}
+
+@test "update takes a snapshot before and after when snapper covers /" {
+  snapper_config
+  run mujo update --system-only --dry-run
+  [[ $output == *"Snapshot: one before and one after"* ]]
+  [ ! -e "$STUB_STATE/snapper.log" ]
+  output=$(mujo update --system-only --yes --json 2>/dev/null </dev/null)
+  [ "$(data .snapshot.config)" = root ]
+  [ "$(data .snapshot.pre)" = 41 ]
+  [ "$(data .snapshot.post)" = 42 ]
+  [ "$(sed -n 1p "$STUB_STATE/snapper.log")" = "-c root create --type pre --cleanup-algorithm number --print-number --description mujo update" ]
+  [[ $(sed -n 2p "$STUB_STATE/snapper.log") == "-c root create --type post --pre-number 41 "*"2 package(s)" ]]
+  [ "$(jq -r '.packages | join(" ")' "$(state)/update-snapshot.json")" = "jq linux" ]
+  run mujo update snapshots
+  [ "$status" -eq 0 ]
+  [[ $output == *"41 | 41 | 42"* ]]
+}
+
+@test "update --no-snapshot skips the snapshots, and a failing snapper does not stop the update" {
+  snapper_config
+  output=$(mujo update --system-only --no-snapshot --yes --json 2>/dev/null </dev/null)
+  [ "$(data .snapshot)" = null ]
+  [ ! -e "$STUB_STATE/snapper.log" ]
+  touch "$STUB_STATE/snapper.fail"
+  rm -f "$STUB_STATE/packages"
+  output=$(mujo update --system-only --yes --json 2>/dev/null </dev/null)
+  [ "$(data .snapshot)" = null ]
+  [ "$(data '.system.packages | join(" ")')" = "jq linux" ]
+  [ ! -e "$(state)/update-snapshot.json" ]
+}
+
+@test "update rollback undoes the last update's changes and puts the kernel back in /boot" {
+  snapper_config
+  run mujo update rollback --yes
+  [ "$status" -eq 1 ]
+  [[ $output == *"no update with snapshots"* ]]
+  mujo update --system-only --yes >/dev/null 2>&1 </dev/null
+  mkdir -p "$MUJO_SYSROOT/usr/lib/modules/7.3.4-arch1-1" "$MUJO_SYSROOT/boot"
+  echo old-kernel >"$MUJO_SYSROOT/usr/lib/modules/7.3.4-arch1-1/vmlinuz"
+  echo linux >"$MUJO_SYSROOT/usr/lib/modules/7.3.4-arch1-1/pkgbase"
+  echo new-kernel >"$MUJO_SYSROOT/boot/vmlinuz-linux"
+  run mujo update rollback
+  [ "$status" -eq 2 ]
+  run mujo update rollback --dry-run
+  [ "$status" -eq 0 ]
+  [[ $output == *"undochange 41..42"* ]]
+  ! grep -q undochange "$STUB_STATE/snapper.log"
+  output=$(mujo update rollback --yes --json 2>/dev/null)
+  [ "$(data '.kernels | join(" ")')" = linux ]
+  [ "$(data .reboot_recommended)" = true ]
+  grep -qx -- "-c root undochange 41..42" "$STUB_STATE/snapper.log"
+  [ "$(cat "$MUJO_SYSROOT/boot/vmlinuz-linux")" = old-kernel ]
+  [ "$(cat "$STUB_STATE/mkinitcpio.log")" = "-P" ]
+  [ ! -e "$(state)/update-snapshot.json" ]
+  # a pair can be named; a malformed one is a usage error
+  run mujo update rollback 7..9 --yes
+  [ "$status" -eq 0 ]
+  grep -qx -- "-c root undochange 7..9" "$STUB_STATE/snapper.log"
+  run mujo update rollback 9..7 --yes
+  [ "$status" -eq 2 ]
+  run mujo update rollback nine --yes
+  [ "$status" -eq 2 ]
 }
 
 # ---- menu and status ---------------------------------------------------------

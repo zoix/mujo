@@ -24,7 +24,7 @@ has `--dry-run`.
 | `mujo pkg` | Search, install and remove packages with fzf | `pacman`, `sudo`; `yay` or `paru` for the AUR |
 | `mujo sys` | Processor, memory, temperature, disk, uptime | nothing |
 | `mujo doctor` | Check packages, links, theme, services, session | nothing |
-| `mujo update` | Update mujo (git) and the system (pacman), with a summary | `git`; `pacman` and `sudo` |
+| `mujo update` | Update mujo (git) and the system (pacman), with a summary; snapshots and rollback | `git`; `pacman` and `sudo`; `snapper` for snapshots |
 | `mujo uninstall` | Remove mujo's links and restore the backups | `sudo` for the `/etc` part |
 
 A command whose "Needs" are missing exits with code 3 and says what is missing.
@@ -365,7 +365,7 @@ graphical session). Exit code 1 if any check failed; warnings do not fail.
 
 ## mujo update
 
-`update [--mujo-only | --system-only]`. Pulls the checkout
+`update [--mujo-only | --system-only] [--no-snapshot]`. Pulls the checkout
 (`git pull --ff-only`; skipped without an upstream branch), relinks the config
 and rebuilds the theme if commits arrived, then runs `sudo pacman -Syu` and,
 if `yay` or `paru` is installed, `yay -Sua` for AUR packages. In a
@@ -375,12 +375,34 @@ packages and unmerged commits; only the AUR is asked over the network. `data`:
 
 ```json
 {"journal_id": "...", "mujo": {"state": "updated", "commits": 3},
- "system": {"packages": ["linux", "jq"]}, "reboot_recommended": true}
+ "system": {"packages": ["linux", "jq"]},
+ "snapshot": {"config": "root", "pre": 41, "post": 42, "time": "...", "packages": ["linux", "jq"]},
+ "reboot_recommended": true}
 ```
 
 `mujo.state` is `updated`, `current`, `no-upstream`, `failed`, `skipped`, or
 `pending` (dry run). In `--json` mode pacman's own output goes to stderr.
 Journaled as not reversible.
+
+**Snapshots.** If snapper has a configuration whose subvolume is `/` (btrfs),
+the system update is wrapped in a pair of snapshots: `snapper create --type
+pre` before pacman runs and `--type post` after the AUR helper finishes, both
+with the `number` clean-up algorithm, so snapper's own limits remove old ones.
+`snapshot` is `null` without such a configuration, with `--no-snapshot`, or if
+snapper fails (the update goes on with a warning). The last pair is kept in
+`~/.local/state/mujo/update-snapshot.json`.
+
+`update snapshots` lists the pairs (`sudo snapper list --type pre-post`).
+
+`update rollback [BEFORE..AFTER]`, needs `--yes`; `--dry-run` prints the
+steps. It runs `sudo snapper undochange BEFORE..AFTER` (by default the pair of
+the last update), which puts back every file under `/` that the update
+changed and leaves later changes and `/home` alone. `/boot` is not in the
+snapshot, so each kernel image in `/usr/lib/modules/*/vmlinuz` that differs
+from `/boot/vmlinuz-<pkgbase>` is copied there and `mkinitcpio -P` rebuilds
+the initramfs. Reboot afterwards. `data`: `{journal_id, config, pre, post,
+kernels, reboot_recommended}`. A system that no longer boots has to be
+repaired from a rescue medium with the same snapper command.
 
 `update check [--refresh]` changes nothing: `{repo, aur, count, checked}`,
 the names of the packages that can be upgraded, kept for an hour in
