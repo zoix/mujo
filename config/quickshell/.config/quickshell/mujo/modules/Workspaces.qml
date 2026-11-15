@@ -5,6 +5,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Hyprland
+import qs.services
 import qs.theme
 import qs.components
 
@@ -23,11 +24,7 @@ Rectangle {
 
     // The icon of an app, from its window class.
     function iconFor(toplevel: var): string {
-        const name = toplevel.lastIpcObject ? (toplevel.lastIpcObject.class ?? "") : "";
-        if (name === "")
-            return "";
-        const entry = DesktopEntries.heuristicLookup(name);
-        return Quickshell.iconPath(entry && entry.icon ? entry.icon : name.toLowerCase(), true);
+        return Mujo.appIcon(toplevel.lastIpcObject ? (toplevel.lastIpcObject.class ?? "") : "");
     }
 
     implicitWidth: cell + Tokens.borderFocus + Tokens.borderFocus

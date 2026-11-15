@@ -124,11 +124,7 @@ Flow {
                     IconImage {
                         anchors.centerIn: parent
                         implicitSize: Math.min(Tokens.icon, parent.height - Tokens.spaceXs)
-                        source: {
-                            const name = win.info.class ?? "";
-                            const entry = name !== "" ? DesktopEntries.heuristicLookup(name) : null;
-                            return name === "" ? "" : Quickshell.iconPath(entry && entry.icon ? entry.icon : name.toLowerCase(), true);
-                        }
+                        source: Mujo.appIcon(win.info.class ?? "")
                     }
                 }
             }
