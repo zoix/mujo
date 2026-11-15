@@ -179,8 +179,8 @@ export XDG_CONFIG_HOME=$(mktemp -d) XDG_STATE_HOME=$(mktemp -d)
 bin/mujo theme build && bin/mujo theme check
 ```
 
-Issues and pull requests are welcome. For anything larger than a fix, open an
-issue first so we can agree on the shape.
+mujo is a personal project, shared as it is: issues and pull requests are
+closed. You are welcome to fork it and make it your own.
 
 ## Docs
 
