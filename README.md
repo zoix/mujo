@@ -5,6 +5,14 @@ interface and a `karma` CLI that owns every change to the system, with
 dry runs, a journal and undo. Catppuccin Mocha (dark) or Latte (light), chosen from the wallpaper; one accent.
 Optionally the whole palette is tinted with the wallpaper's colour.
 
+![The desktop: Neovim, yazi and the karma CLI in Ghostty, inside the frame with the bar on the left](docs/screenshots/desktop.webp)
+
+| | |
+| --- | --- |
+| ![Launcher](docs/screenshots/launcher.webp) Launcher, `SUPER + Space` | ![Dashboard](docs/screenshots/dashboard.webp) Dashboard, `SUPER + D` |
+| ![Wallpaper strip](docs/screenshots/wallpapers.webp) Wallpapers, `SUPER + Shift + W` | ![Keybindings](docs/screenshots/keys.webp) Keybindings, `SUPER + /` |
+| ![Power menu](docs/screenshots/power-menu.webp) Power menu, `SUPER + Shift + Escape` | |
+
 **Status: phase 4 (complete).** `install.sh` sets up Hyprland with the karma
 look, Ghostty, a themed zsh, greetd with tuigreet and the console
 palette. The `karma` CLI controls audio, Wi-Fi, Bluetooth, brightness, night
