@@ -17,5 +17,10 @@ copy-on-select = clipboard
 scrollback-limit = 10000000
 auto-update = off
 
+# Ghostty binds Ctrl+Enter to fullscreen by default. Terminal programs use
+# that key themselves (Claude Code sends a message with it), so it is passed
+# through; SUPER + Shift + F makes any window fullscreen.
+keybind = ctrl+enter=unbind
+
 # Your own settings: create ~/.config/ghostty/local (optional, never overwritten).
 config-file = ?local
