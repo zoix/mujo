@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Test double for hyprctl: one built-in screen with a 120 Hz and a 60 Hz mode.
+# Its current refresh rate is in $STUB_STATE/refresh (120 by default).
+s=${STUB_STATE:?}
+printf '%s\n' "$*" >>"$s/hyprctl.log"
+case $1 in
+  monitors)
+    printf '[{"name":"eDP-1","width":2880,"height":1920,"refreshRate":%s,"x":0,"y":0,"scale":2,"focused":true,"availableModes":["2880x1920@120.00Hz","2880x1920@60.00Hz","1920x1200@120.00Hz"]}]\n' \
+      "$(cat "$s/refresh" 2>/dev/null || echo 120)"
+    ;;
+  reload) echo ok ;;
+  *) exit 1 ;;
+esac

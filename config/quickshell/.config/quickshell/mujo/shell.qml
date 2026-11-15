@@ -15,6 +15,14 @@ ShellRoot {
 
     property bool barVisible: true
 
+    // On battery with "solid panels" chosen, the frame and its panels are
+    // opaque: Hyprland no longer blurs what is behind them.
+    Binding {
+        target: Tokens
+        property: "solid"
+        value: Settings.solidNow
+    }
+
     Variants {
         model: Quickshell.screens
 

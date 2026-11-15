@@ -216,6 +216,18 @@ Item {
                 onClicked: root.run(["power", "auto", "toggle"])
             }
             Toggle {
+                glyph: "\uf108"
+                label: "60 Hz on battery"
+                on: Settings.batteryRefresh
+                onClicked: root.run(["power", "battery", "refresh", "toggle"])
+            }
+            Toggle {
+                glyph: "\uf0c8"
+                label: "Solid on battery"
+                on: Settings.batterySolid
+                onClicked: root.run(["power", "battery", "solid", "toggle"])
+            }
+            Toggle {
                 glyph: "\uf252"
                 label: Settings.focusUntil > 0 ? "Focusing" : "Focus 25 min"
                 on: Settings.focusUntil > 0

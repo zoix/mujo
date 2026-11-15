@@ -57,6 +57,47 @@ mujo() { "$MUJO" "$@"; }
   [ "$(data .auto)" = false ]
 }
 
+@test "power battery: solid panels and a lower refresh rate apply only on battery" {
+  ac=$MUJO_SYSROOT/sys/class/power_supply/ACAD
+  mkdir -p "$ac"
+  echo Mains >"$ac/type"
+  echo 0 >"$ac/online"
+  export HYPRLAND_INSTANCE_SIGNATURE=test
+  lua=$(state)/battery.lua
+  run mujo power battery --json
+  [ "$(data .refresh)" = false ]
+  [ "$(data .solid)" = false ]
+  run mujo power sync --json
+  [ "$(data .battery.on_battery)" = true ]
+  [ "$(data .battery.changed)" = false ]
+  [ ! -e "$lua" ]
+  # solid panels only matter while glass is on
+  mujo power battery solid on
+  [ ! -e "$lua" ]
+  mujo theme glass on >/dev/null
+  mujo power battery refresh on
+  [ "$(cat "$lua")" = 'return { solid = true, monitor = { output = "eDP-1", mode = "2880x1920@60.00", position = "0x0", scale = "2" } }' ]
+  grep -qx reload "$STUB_STATE/hyprctl.log"
+  # asked again on battery, the mode chosen at first is kept
+  echo 60 >"$STUB_STATE/refresh"
+  run mujo power sync --json
+  [ "$(data .battery.changed)" = false ]
+  [ "$(data .battery.monitor.mode)" = "2880x1920@60.00" ]
+  # the charger lifts both
+  echo 1 >"$ac/online"
+  run mujo power sync --json
+  [ "$(data .battery.changed)" = true ]
+  [ "$(data .battery.on_battery)" = false ]
+  [ ! -e "$lua" ]
+  [ "$(jq -r .battery_now "$XDG_CONFIG_HOME/mujo/config.json")" = null ]
+  # each switch is journaled and can be undone
+  mujo undo
+  run mujo power battery refresh --json
+  [ "$(data .refresh)" = false ]
+  run mujo power battery glass on
+  [ "$status" -eq 2 ]
+}
+
 @test "focus: start turns do-not-disturb on, stop puts it back" {
   run mujo focus --json
   [ "$(data .running)" = false ]

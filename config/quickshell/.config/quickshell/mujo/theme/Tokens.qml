@@ -93,7 +93,9 @@ Singleton {
     readonly property int thumbHeight: t.thumbHeight
     readonly property int card: t.card
     // The frame and its panels: the frame colour, see-through with "glass" on.
-    readonly property real panelOpacity: t.panelOpacity
+    // (Solid while a battery saving asks for it: shell.qml sets this.)
+    property bool solid: false
+    readonly property real panelOpacity: solid ? 1 : t.panelOpacity
     readonly property color panel: Qt.alpha(bgFrame, panelOpacity)
     // Behind groups of controls on the bar: a light wash of the accent.
     readonly property color group: Qt.alpha(accent, 0.16)

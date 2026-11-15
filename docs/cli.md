@@ -221,8 +221,24 @@ sets the previous limit.
 `power auto [on|off|toggle]` mutates `power_auto`: while it is on, the
 interface runs `power sync` whenever the charger is plugged in or pulled,
 and `sync` sets `power-saver` on battery and `balanced` on the charger
-(`{auto, changed, profile}`; not journaled, it only carries out `auto`).
-The interface also warns once at 20% and once at 10% battery.
+(`{auto, changed, profile, battery}`; not journaled, it only carries out
+`auto` and `battery`). The interface also warns once at 20% and once at 10%
+battery.
+
+`power battery [refresh|solid] [on|off|toggle]` mutates `battery_refresh` and
+`battery_solid`, what to save while on battery; without a value it reports
+`{refresh, solid, now}`. `sync` applies them when the charger is pulled and
+lifts them when it is plugged in:
+
+- `refresh`: the built-in screen (eDP, LVDS or DSI) is set to the lowest
+  refresh rate its current resolution offers, 48 Hz or more.
+- `solid`: while `glass` is on, the blur behind the frame is switched off and
+  the panels are drawn opaque. The `glass` setting itself is not changed.
+
+What applies is kept in `battery_now` (`{solid, monitor}` or `null`) and in
+`~/.local/state/mujo/battery.lua`, which `~/.config/hypr/battery.lua` reads
+after `host.lua`; `sync` reloads Hyprland when it changes. `sync` reports it
+as `battery: {on_battery, solid, monitor, changed}`.
 
 `power` or `power list`: `{actions: [...]}`. `lock`, `suspend`, `logout`,
 `reboot`, `shutdown` return `{journal_id, action, command}`; with `--dry-run`

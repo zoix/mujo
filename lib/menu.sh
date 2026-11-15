@@ -60,6 +60,8 @@ Focus: start 50 minutes${t}run${t}focus start 50
 Focus: stop${t}run${t}focus stop
 Weather: now${t}run${t}weather
 Power: follow the charger on or off${t}run${t}power auto toggle
+Power: 60 Hz on battery on or off${t}run${t}power battery refresh toggle
+Power: solid panels on battery on or off${t}run${t}power battery solid toggle
 Power: charge limit 80%${t}show${t}power limit 80
 Power: charge limit off${t}show${t}power limit off
 Wallpaper: choose${t}tui${t}wall pick

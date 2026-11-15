@@ -174,7 +174,7 @@ _mujo() {
         weather) (( CURRENT == 2 )) && _values 'weather subcommand' show set units clear --refresh ;;
         record) _values 'record subcommand or option' toggle start stop status region screen --audio --dir ;;
         emoji) (( CURRENT == 2 )) && _values 'emoji subcommand' pick list copy ;;
-        power) (( CURRENT == 2 )) && _values 'action' list lock suspend logout reboot shutdown profile awake limit auto sync ;;
+        power) (( CURRENT == 2 )) && _values 'action' list lock suspend logout reboot shutdown profile awake limit auto battery sync ;;
         shot) _values 'mode or option' region window screen text --no-save --no-copy --dir --lang ;;
         clip) (( CURRENT == 2 )) && _values 'clip subcommand' pick list copy clear ;;
         launch)

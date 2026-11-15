@@ -41,7 +41,7 @@ Singleton {
     }
 
     function sync(): void {
-        if (present && Settings.powerAuto)
+        if (present && (Settings.powerAuto || Settings.batteryRefresh || Settings.batterySolid))
             Mujo.run(["power", "sync"]);
     }
 

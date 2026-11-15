@@ -14,6 +14,7 @@ Usage: $MUJO_NAME power [list]
        $MUJO_NAME power awake [on | off | toggle]
        $MUJO_NAME power limit [PERCENT | off]
        $MUJO_NAME power auto [on | off | toggle]
+       $MUJO_NAME power battery [refresh | solid] [on | off | toggle]
 
 lock      Lock the screen. The lock screen is part of the Quickshell UI, so
           this needs the graphical session (exit 3 otherwise).
@@ -37,6 +38,15 @@ auto      Follow the charger: power-saver on battery, balanced when plugged
           in. The interface makes the switch when the charger is plugged in
           or pulled ('$MUJO_NAME power sync' does it by hand). Journaled;
           can be undone.
+
+battery   What to save while on battery, each switched on its own:
+          refresh  the built-in screen runs at its lowest refresh rate
+                   (60 Hz instead of 120) and returns to its usual one on
+                   the charger;
+          solid    the frame and its panels are drawn solid, without the
+                   blurred desktop behind them, while "glass" is on.
+          Both follow the charger like auto does, and need Hyprland.
+          Journaled; can be undone.
 
 logout, reboot and shutdown cannot be undone and need --yes. --dry-run shows
 the command that would run. Each action is recorded in the journal first.
@@ -203,29 +213,128 @@ power_on_ac() {
   (( ! seen ))
 }
 
-# Set the profile that suits the power source. Not journaled: it only
-# carries out the "auto" setting, which is.
+# Read by config/hypr battery.lua while the battery savings apply.
+POWER_BATTERY_STATE=$MUJO_STATE_DIR/battery.lua
+
+power_has_hyprland() {
+  [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]] && command -v hyprctl >/dev/null 2>&1
+}
+
+# The built-in screen at the lowest refresh rate its current resolution has,
+# as {output, mode, position, scale}; nothing if it already runs that slowly.
+power_battery_monitor() {
+  power_has_hyprland || return 1
+  hyprctl monitors -j 2>/dev/null | jq -ce '
+    first(.[] | select(.name | test("^(eDP|LVDS|DSI)"))) as $m
+    | [$m.availableModes[]
+       | capture("^(?<w>[0-9]+)x(?<h>[0-9]+)@(?<r>[0-9.]+)Hz$")
+       | select((.w | tonumber) == $m.width and (.h | tonumber) == $m.height and (.r | tonumber) >= 48)]
+    | min_by(.r | tonumber)
+    | select(. != null and (.r | tonumber) < $m.refreshRate - 1)
+    | {output: $m.name, mode: "\(.w)x\(.h)@\(.r)", position: "\($m.x)x\($m.y)", scale: ($m.scale | tostring)}'
+}
+
+# Apply or lift the battery savings to match the power source and the two
+# settings. Prints {on_battery, solid, monitor, changed}. Not journaled: it
+# carries out settings that are.
+power_battery_apply() {
+  local config now want on_battery=true monitor=null solid=false
+  config=$(config_read)
+  now=$(jq -c '.battery_now // null' <<<"$config")
+  power_on_ac && on_battery=false
+  if [[ $on_battery == true ]]; then
+    [[ $(jq -r '.battery_solid == true and .glass == true' <<<"$config") == true ]] && solid=true
+    if [[ $(jq -r '.battery_refresh == true' <<<"$config") == true ]]; then
+      # Keep the mode chosen when the charger was pulled: by now the screen
+      # already runs at it, so asking again would find nothing to lower.
+      monitor=$(jq -c '.monitor // null' <<<"$now")
+      [[ $monitor != null ]] || monitor=$(power_battery_monitor) || monitor=null
+    fi
+  fi
+  want=null
+  if [[ $solid == true || $monitor != null ]]; then
+    want=$(jq -cn --argjson s "$solid" --argjson m "$monitor" '{solid: $s, monitor: $m}')
+  fi
+  local changed=false
+  if [[ $(jq -cS . <<<"$want") != "$(jq -cS . <<<"$now")" ]] && (( ! OPT_DRY_RUN )); then
+    changed=true
+    if [[ $want == null ]]; then
+      rm -f -- "$POWER_BATTERY_STATE"
+    else
+      jq -r '"return { solid = \(.solid)"
+        + (if .monitor then ", monitor = { output = \(.monitor.output | @json), mode = \(.monitor.mode | @json), position = \(.monitor.position | @json), scale = \(.monitor.scale | @json) }" else "" end)
+        + " }"' <<<"$want" | atomic_write "$POWER_BATTERY_STATE"
+    fi
+    config_set battery_now "$want"
+    if power_has_hyprland; then hyprctl reload >/dev/null 2>&1 || true; fi
+    if [[ $want == null ]]; then say "Battery savings: lifted"
+    else say "Battery savings: $(jq -r '[(if .solid then "solid panels" else empty end), (if .monitor then "screen at " + .monitor.mode else empty end)] | join(", ")' <<<"$want")"; fi
+  fi
+  jq -cn --argjson b "$on_battery" --argjson w "$want" --argjson c "$changed" \
+    '{on_battery: $b, solid: ($w.solid // false), monitor: ($w.monitor // null), changed: $c}'
+}
+
+# Set the profile that suits the power source, and the battery savings. Not
+# journaled: it only carries out the "auto" and "battery" settings, which are.
 power_cmd_sync() {
   (( $# == 0 )) || usage_error "unexpected argument '$1'"
-  local auto want cur
+  local auto want cur battery
+  battery=$(power_battery_apply)
   auto=$(config_read | jq -r '.power_auto == true')
   if power_on_ac; then want=balanced; else want=power-saver; fi
   if [[ $auto != true ]]; then
-    say "power auto is off; nothing done."
-    jq -n '{auto: false, changed: false}' | emit
+    say "power auto is off; the profile was left alone."
+    jq -n --argjson b "$battery" '{auto: false, changed: false, battery: $b}' | emit
     return 0
   fi
   need busctl
   cur=$(power_profile_get) || die "$EXIT_ENV" "power-profiles-daemon is not running"
   if [[ $cur == "$want" ]] || (( OPT_DRY_RUN )); then
     say "Power profile: $cur (wanted: $want)"
-    jq -n --arg p "$cur" '{auto: true, changed: false, profile: $p}' | emit
+    jq -n --arg p "$cur" --argjson b "$battery" '{auto: true, changed: false, profile: $p, battery: $b}' | emit
     return 0
   fi
   busctl set-property "$POWER_PP_DEST" "$POWER_PP_PATH" "$POWER_PP_DEST" ActiveProfile s "$want" 2>/dev/null \
     || die "$EXIT_FAIL" "could not set the power profile"
   say "Power profile: $cur -> $want"
-  jq -n --arg p "$want" '{auto: true, changed: true, profile: $p}' | emit
+  jq -n --arg p "$want" --argjson b "$battery" '{auto: true, changed: true, profile: $p, battery: $b}' | emit
+}
+
+power_cmd_battery() {
+  (( $# <= 2 )) || usage_error "too many arguments"
+  local config refresh solid
+  config=$(config_read)
+  refresh=$(jq -r '.battery_refresh == true' <<<"$config")
+  solid=$(jq -r '.battery_solid == true' <<<"$config")
+  if (( $# == 0 )); then
+    say "On battery: lower refresh rate $([[ $refresh == true ]] && echo on || echo off), solid panels $([[ $solid == true ]] && echo on || echo off)"
+    jq -n --argjson r "$refresh" --argjson s "$solid" --argjson n "$(jq -c '.battery_now // null' <<<"$config")" \
+      '{refresh: $r, solid: $s, now: $n}' | emit
+    return 0
+  fi
+  local what=$1 cur new
+  case $what in
+    refresh) cur=$refresh ;;
+    solid) cur=$solid ;;
+    *) usage_error "expected refresh or solid, got '$what'" ;;
+  esac
+  if (( $# == 1 )); then
+    say "On battery, $what: $([[ $cur == true ]] && echo on || echo off)"
+    jq -n --arg w "$what" --argjson v "$cur" '{($w): $v}' | emit
+    return 0
+  fi
+  new=$(on_off "$2" "$cur") || usage_error "expected on, off or toggle, got '$2'"
+  local wc wn before after
+  wc=$([[ $cur == true ]] && echo on || echo off)
+  wn=$([[ $new == true ]] && echo on || echo off)
+  before=$(jq -cn --arg w "$what" --argjson v "$cur" '{($w): $v}')
+  after=$(jq -cn --arg w "$what" --argjson v "$new" '{($w): $v}')
+  change_begin "power battery $what: $wc -> $wn" "$before" "$after" || return 0
+  mujo_lock
+  config_set "battery_$what" "$new"
+  change_end "power battery $what: $wc -> $wn" "$before" "$after" "$(json_array power battery "$what" "$wc")"
+  flock -u 9 2>/dev/null || true
+  "$MUJO_BIN" power sync >/dev/null 2>&1 3>&1 || true
 }
 
 power_cmd_auto() {
@@ -262,6 +371,7 @@ cmd_power() {
     awake) power_cmd_awake "$@"; return 0 ;;
     limit) power_cmd_limit "$@"; return 0 ;;
     auto) power_cmd_auto "$@"; return 0 ;;
+    battery) power_cmd_battery "$@"; return 0 ;;
     sync) power_cmd_sync "$@"; return 0 ;;
   esac
   (( $# == 0 )) || usage_error "unexpected argument '$1'"
