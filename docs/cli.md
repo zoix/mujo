@@ -260,6 +260,10 @@ once with `picking: true`; the picker then runs the command again with
 with tesseract and copies it: `{mode: "text", text, copied}`. No image is
 kept; exit 1 if the area holds no text.
 
+`shot copy FILE` puts a saved screenshot on the clipboard again and
+`shot open FILE` opens a screenshot or recording in the program for its
+type; `data` is `{file, action, done}`. Both need a Wayland session.
+
 ## mujo record
 
 `record [toggle|start|stop|status] [region|screen] [--audio] [--dir DIR]`
@@ -356,13 +360,31 @@ Read-only. `data`:
 {"cpu": {"total": 16560151, "idle": 16287148, "cores": 24},
  "memory": {"total_kb": 131156640, "available_kb": 127231148, "percent": 3},
  "temperature_c": 53, "disk": {"total_kb": 975694848, "used_kb": 15857984, "percent": 2},
+ "net": {"interface": "wlan0", "address": "192.168.0.9", "rx_bytes": 36007294, "tx_bytes": 20965687},
  "uptime_s": 6896}
 ```
 
 `cpu.total` and `cpu.idle` are counters since boot; the load between two
 readings is `1 - Δidle / Δtotal`. `sys workspaces` lists the Hyprland
 workspaces with their windows (`{workspaces: [{id, name, monitor, windows}]}`). The human output takes two readings itself.
-`temperature_c` is `null` without a sensor. `sys --window` opens the dashboard.
+`temperature_c` is `null` without a sensor. `net` is the interface that
+carries the default route, with byte counters since it came up (two readings
+give the speed), or `null` when offline. `sys --window` opens the dashboard.
+
+`sys activity` gathers what the dashboard's Activity page shows:
+
+```json
+{"changes": [{"id": "20261115T202411Z-1f0c", "time": "2026-11-15T20:24:11Z",
+              "summary": "dnd: on -> off", "reversible": true, "undone": false}],
+ "battery": [[86330, 17], [284, 55]],
+ "captures": [{"time": 1794717924, "kind": "screenshot",
+               "path": "/home/u/Pictures/Screenshots/mujo-20261114-224524.png"}]}
+```
+
+`changes` holds the seven newest journal entries. `battery` is the charge
+over the last 24 hours as `[seconds ago, percent]`, oldest first, from
+UPower's own record (empty without one). `captures` lists the six newest
+screenshots and recordings (`kind` is `screenshot` or `recording`).
 
 ## mujo about
 

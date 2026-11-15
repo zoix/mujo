@@ -9,6 +9,9 @@ mujo_test_env() {
   export XDG_STATE_HOME=$BATS_TEST_TMPDIR/state
   export XDG_CACHE_HOME=$BATS_TEST_TMPDIR/cache
   export MUJO_SYSROOT=$BATS_TEST_TMPDIR/sysroot
+  # Screenshots and recordings never go to (or come from) the real folders.
+  export XDG_PICTURES_DIR=$BATS_TEST_TMPDIR/pictures
+  export XDG_VIDEOS_DIR=$BATS_TEST_TMPDIR/videos
   unset WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE MUJO_ROOT MUJO_UNDO_OF
   MUJO="$MUJO_REPO/bin/mujo"
 }

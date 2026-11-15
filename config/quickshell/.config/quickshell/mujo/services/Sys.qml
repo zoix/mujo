@@ -21,6 +21,18 @@ Singleton {
     property int disk: 0         // percent
     property int uptime: 0       // seconds
 
+    // The connection that carries the traffic: bytes per second between the
+    // last two readings, the totals since it came up, and the last two
+    // minutes of download speed for a graph.
+    property string netInterface: ""
+    property string netAddress: ""
+    property real netDown: 0
+    property real netUp: 0
+    property real netReceived: 0
+    property real netSent: 0
+    property var netHistory: []
+    property real lastNetTime: 0
+
     property real lastTotal: 0
     property real lastIdle: 0
 
@@ -44,6 +56,25 @@ Singleton {
         root.temperature = data.temperature_c ?? -1;
         root.disk = data.disk.percent;
         root.uptime = data.uptime_s;
+        const net = data.net;
+        const now = Date.now();
+        if (net) {
+            const seconds = (now - root.lastNetTime) / 1000;
+            if (root.netInterface === net.interface && root.lastNetTime > 0 && seconds > 0) {
+                root.netDown = Math.max(0, (net.rx_bytes - root.netReceived) / seconds);
+                root.netUp = Math.max(0, (net.tx_bytes - root.netSent) / seconds);
+                root.netHistory = root.netHistory.concat([root.netDown]).slice(-60);
+            }
+            root.netInterface = net.interface;
+            root.netAddress = net.address ?? "";
+            root.netReceived = net.rx_bytes;
+            root.netSent = net.tx_bytes;
+            root.lastNetTime = now;
+        } else {
+            root.netInterface = "";
+            root.netDown = 0;
+            root.netUp = 0;
+        }
     }
 
     onWatchingChanged: {

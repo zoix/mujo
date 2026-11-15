@@ -1,8 +1,9 @@
-// The dashboard: a panel that drops from the top edge, with two pages.
+// The dashboard: a panel that drops from the top edge, with three pages.
 //   Today       the date with a calendar, system gauges, the media player
 //   Workspaces  a miniature of every workspace (modules/Overview.qml)
-// It shows things; the only actions are the media buttons and going to a
-// workspace.
+//   Activity    latest changes, network, battery, captures (modules/Activity.qml)
+// It shows things; the actions are the media buttons, going to a workspace,
+// undoing a change and copying or opening a capture.
 import QtQuick
 import Quickshell
 import Quickshell.Widgets
@@ -21,8 +22,10 @@ Item {
 
     onPageChanged: {
         pageIn.restart();
-        if (active && page === "today")
+        if (active && page !== "workspaces")
             keys.forceActiveFocus();
+        if (active && page === "activity")
+            Activity.refresh();
     }
 
     NumberAnimation {
@@ -40,7 +43,7 @@ Item {
     readonly property int cardHeight: Tokens.ring + Tokens.ring + Tokens.spaceXl + Tokens.spaceXl
 
     implicitWidth: row.implicitWidth + Tokens.spaceMd + Tokens.spaceMd
-    implicitHeight: tabs.height + Tokens.spaceSm + (page === "today" ? row.implicitHeight : overview.implicitHeight) + Tokens.spaceMd + Tokens.spaceMd
+    implicitHeight: tabs.height + Tokens.spaceSm + (page === "workspaces" ? overview.implicitHeight : row.implicitHeight) + Tokens.spaceMd + Tokens.spaceMd
 
     Behavior on implicitHeight {
         Anim {}
@@ -50,10 +53,20 @@ Item {
         id: tabs
         x: Tokens.spaceMd
         y: Tokens.spaceMd
-        width: Tokens.card + Tokens.card
-        labels: ["Today", "Workspaces"]
-        index: root.page === "today" ? 0 : 1
-        onChosen: index => Ui.dashboardPage = index === 0 ? "today" : "workspaces"
+        width: row.implicitWidth
+        labels: ["Today", "Workspaces", "Activity"]
+        index: root.pages.indexOf(root.page)
+        onChosen: index => Ui.dashboardPage = root.pages[index]
+    }
+
+    ActivityPage {
+        visible: root.page === "activity"
+        opacity: root.reveal
+        active: root.active && visible
+        x: Tokens.spaceMd
+        y: tabs.y + tabs.height + Tokens.spaceSm
+        width: row.implicitWidth
+        height: root.cardHeight
     }
 
     Overview {
@@ -68,21 +81,34 @@ Item {
 
     onActiveChanged: {
         Sys.watching = active;
-        if (active && page === "today")
+        if (active && page !== "workspaces")
             keys.forceActiveFocus();
+        if (active && page === "activity")
+            Activity.refresh();
     }
 
-    // As in quick settings: Tab, the arrow keys or H and L change page, 1
-    // and 2 go straight to one, Escape closes. (On the Workspaces page the
+    readonly property var pages: ["today", "workspaces", "activity"]
+
+    // As in quick settings: Tab, the arrow keys or H and L change page, 1 to
+    // 3 go straight to one, Escape closes. (On the Workspaces page the
     // arrows move between the miniatures instead; see Overview.qml.)
     Item {
         id: keys
         Keys.onPressed: event => {
+            const at = root.pages.indexOf(root.page);
             if (event.key === Qt.Key_Escape) {
                 Ui.closeDashboard();
-            } else if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab || event.key === Qt.Key_Right || event.key === Qt.Key_Left || event.key === Qt.Key_L || event.key === Qt.Key_H || event.key === Qt.Key_2) {
+            } else if (event.key === Qt.Key_Tab || event.key === Qt.Key_Right || event.key === Qt.Key_L) {
+                Ui.dashboardPage = root.pages[(at + 1) % root.pages.length];
+            } else if (event.key === Qt.Key_Backtab || event.key === Qt.Key_Left || event.key === Qt.Key_H) {
+                Ui.dashboardPage = root.pages[(at + root.pages.length - 1) % root.pages.length];
+            } else if (event.key === Qt.Key_1) {
+                Ui.dashboardPage = "today";
+            } else if (event.key === Qt.Key_2) {
                 Ui.dashboardPage = "workspaces";
-            } else if (event.key !== Qt.Key_1) {
+            } else if (event.key === Qt.Key_3) {
+                Ui.dashboardPage = "activity";
+            } else {
                 return;
             }
             event.accepted = true;

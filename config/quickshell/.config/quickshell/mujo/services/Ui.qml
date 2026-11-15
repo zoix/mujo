@@ -19,7 +19,7 @@ Singleton {
 
     // The dashboard: pinned open by a key, or open while the pointer is on it.
     property bool dashboard: false
-    property string dashboardPage: "today"   // today | workspaces
+    property string dashboardPage: "today"   // today | workspaces | activity
 
     // The pop-out beside a bar icon: which one ("" = none), on which screen
     // and at what height. It opens a moment after the pointer rests on an

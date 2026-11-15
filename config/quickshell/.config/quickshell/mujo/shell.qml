@@ -154,6 +154,10 @@ ShellRoot {
         function workspaces(): void {
             Ui.toggleDashboard("workspaces");
         }
+
+        function activity(): void {
+            Ui.toggleDashboard("activity");
+        }
     }
 
     IpcHandler {

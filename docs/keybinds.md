@@ -19,7 +19,7 @@ screen. `SUPER` is the Windows key.
 | `SUPER + N` | Go to the app of the newest notification (the same as clicking it) |
 | `SUPER + A` | Quick settings: toggles, notification history, look, sound and screen. Tab or the arrow keys change page (Quick, Look, System); 1, 2, 3 go straight to one |
 | `SUPER + Tab` | All workspaces as miniatures; arrows (or H/J/K/L) move, Enter goes there, Tab or 1 turns to the Today page, Escape closes |
-| `SUPER + D` | Dashboard: calendar, weather, system gauges, media (`mujo sys`); Tab, the arrow keys or 2 turn to the Workspaces page, Escape closes. It also opens when the pointer touches the middle of the top edge |
+| `SUPER + D` | Dashboard: calendar, weather, system gauges, media (`mujo sys`); Tab or the arrow keys turn the page, 1 to 3 go straight to Today, Workspaces or Activity (latest changes with undo, network, battery, screenshots), Escape closes. It also opens when the pointer touches the middle of the top edge |
 | `SUPER + W` | Wi-Fi picker (`mujo net tui`) |
 | `SUPER + Shift + W` | Wallpaper picker (`mujo wall pick`) |
 | `SUPER + /` | Keybindings (`mujo keys tui`); Enter does what the chosen one does |

@@ -207,7 +207,7 @@ EOF
   [ "$(data .recording)" = false ]
   run mujo record start screen --dry-run --json
   [ "$(data .recording)" = false ]
-  [[ "$(data .path)" == */Videos/Recordings/mujo-*.mp4 ]]
+  [[ "$(data .path)" == */videos/Recordings/mujo-*.mp4 ]]
   run mujo record start screen
   [ "$status" -eq 3 ]
   run mujo record stop

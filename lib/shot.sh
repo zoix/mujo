@@ -9,6 +9,8 @@ help_shot() {
 Usage: $MUJO_NAME shot [region | window | screen] [--no-save] [--no-copy] [--dir DIRECTORY]
        $MUJO_NAME shot region [--geometry "X,Y WxH" | --slurp]
        $MUJO_NAME shot text [--geometry "X,Y WxH"] [--lang LANGUAGE]
+       $MUJO_NAME shot copy FILE
+       $MUJO_NAME shot open FILE
 
 region  Choose an area (the default). With the interface running, the screen
         freezes: click a window or drag a rectangle, Escape cancels. Without
@@ -19,6 +21,9 @@ screen  The focused monitor.
 text    Drag an area; the text in it is read (tesseract) and copied to the
         clipboard. No image is kept. --lang names the language data to use
         (default eng; e.g. spa needs the package tesseract-data-spa).
+
+copy    Put a saved screenshot on the clipboard again.
+open    Open a saved screenshot or recording in the program for its type.
 
 The image is saved as mujo-<date>-<time>.png in ~/Pictures/Screenshots (or
 --dir, or "screenshot_dir" in config.json) and copied to the clipboard.
@@ -63,7 +68,41 @@ shot_text() {
   jq -n --arg t "$text" '{mode: "text", text: $t, copied: true}' | emit
 }
 
+# shot_file SUB FILE: copy a saved screenshot to the clipboard again, or open
+# a screenshot or recording in the program for its type.
+shot_file() {
+  local sub=$1 file=${2:-}
+  [[ -n $file ]] || usage_error "$sub needs a file"
+  [[ -f $file ]] || die "$EXIT_FAIL" "no such file: $file"
+  mujo_set_cmd "shot $sub"
+  if (( OPT_DRY_RUN )); then
+    say "Would $sub $file"
+    jq -n --arg f "$file" --arg a "$sub" '{file: $f, action: $a, done: false}' | emit
+    return 0
+  fi
+  require_wayland
+  if [[ $sub == copy ]]; then
+    need wl-copy
+    local mime
+    mime=$(file -b --mime-type -- "$file" 2>/dev/null) || mime=image/png
+    wl-copy --type "$mime" <"$file" >/dev/null 2>&1 3>&- 9>&- \
+      || die "$EXIT_FAIL" "could not copy $file"
+    ui_notify "Copied" "$(basename -- "$file")"
+    say "Copied $file"
+  else
+    need xdg-open
+    tui_detach xdg-open "$file"
+    say "Opened $file"
+  fi
+  jq -n --arg f "$file" --arg a "$sub" '{file: $f, action: $a, done: true}' | emit
+}
+
 cmd_shot() {
+  if [[ ${1:-} == copy || ${1:-} == open ]]; then
+    (( $# <= 2 )) || usage_error "unexpected argument '$3'"
+    shot_file "$@"
+    return 0
+  fi
   local mode="" save=1 copy=1 dir="" given="" use_slurp=0 lang=eng
   while (( $# )); do
     case $1 in

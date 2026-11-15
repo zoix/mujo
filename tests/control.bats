@@ -571,6 +571,37 @@ journal_count() {
   [ "$status" -eq 2 ]
 }
 
+@test "sys activity lists the latest changes, the battery's day and the captures" {
+  run mujo audio volume +15
+  mkdir -p "$XDG_PICTURES_DIR/Screenshots" "$MUJO_SYSROOT/var/lib/upower"
+  : >"$XDG_PICTURES_DIR/Screenshots/mujo-20261114-224524.png"
+  now=$(date +%s)
+  printf '%s\t%s\t%s\n' $((now - 90000)) 80.000 discharging $((now - 3600)) 40.000 discharging $((now - 60)) 55.000 charging \
+    >"$MUJO_SYSROOT/var/lib/upower/history-charge-TEST.dat"
+  run mujo sys activity --json
+  [ "$status" -eq 0 ]
+  [[ "$(data '.changes[0].summary')" == "audio volume:"* ]]
+  [ "$(data '.changes[0].reversible')" = true ]
+  # only the last 24 hours of the battery's record
+  [ "$(data '.battery | length')" -eq 2 ]
+  [ "$(data '.battery[-1][1]')" -eq 55 ]
+  [ "$(data '.captures[0].kind')" = screenshot ]
+  [[ "$(data '.captures[0].path')" == */mujo-20261114-224524.png ]]
+  run mujo sys --json
+  [ "$(data .net)" = null ]
+}
+
+@test "shot copy and open want an existing file" {
+  run mujo shot copy
+  [ "$status" -eq 2 ]
+  run mujo shot open /nonexistent.png
+  [ "$status" -eq 1 ]
+  : >"$BATS_TEST_TMPDIR/a.png"
+  run mujo shot copy "$BATS_TEST_TMPDIR/a.png" --dry-run --json
+  [ "$status" -eq 0 ]
+  [ "$(data .done)" = false ]
+}
+
 @test "about reports the machine, the health check and the latest changes" {
   run mujo audio volume +15
   [ "$status" -eq 0 ]

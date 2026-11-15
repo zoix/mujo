@@ -26,6 +26,7 @@ tui_window() {
     "power "|"power list") panel="session toggle" ;;
     "sys ") panel="dashboard toggle" ;;
     "sys workspaces") panel="dashboard workspaces" ;;
+    "sys activity") panel="dashboard activity" ;;
     "status ") panel="sidebar toggle" ;;
     "about ") panel="about toggle" ;;
   esac
