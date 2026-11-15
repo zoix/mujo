@@ -27,3 +27,7 @@ keybind = ctrl+enter=unbind
 
 # Your own settings: create ~/.config/ghostty/local (optional, never overwritten).
 config-file = ?local
+
+# No "Reloaded the configuration" message in every window when the theme
+# changes: mujo reloads Ghostty itself and already shows what it changed.
+app-notifications = no-config-reload
