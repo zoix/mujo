@@ -20,6 +20,9 @@ shell-integration-features = no-cursor
 # with the mouse on) never fill: they copy to the system clipboard only.
 copy-on-select = both
 middle-click-action = clipboard-paste
+# A right click (a two-finger tap on the touchpad) pastes too, instead of
+# opening Ghostty's menu.
+right-click-action = paste
 scrollback-limit-bytes = 10000000
 auto-update = off
 
@@ -30,7 +33,3 @@ keybind = ctrl+enter=unbind
 
 # Your own settings: create ~/.config/ghostty/local (optional, never overwritten).
 config-file = ?local
-
-# No "Reloaded the configuration" message in every window when the theme
-# changes: mujo reloads Ghostty itself and already shows what it changed.
-app-notifications = no-config-reload
