@@ -215,7 +215,7 @@ journal_count() {
   grep -q 'glass = true' "$(conf)/hypr/mujo_tokens.lua"
   # the drop-down terminal's background joins in
   grep -qx 'background-opacity = 0.82' "$(conf)/ghostty/mujo-drop"
-  grep -qx 'background-opacity = 0.92' "$(conf)/ghostty/mujo-theme"
+  grep -qx 'background-opacity = 0.96' "$(conf)/ghostty/mujo-theme"
   grep -qx 'background-blur = true' "$(conf)/ghostty/mujo-theme"
   mujo undo
   [ "$(jq .panelOpacity "$tokens")" = 1 ]

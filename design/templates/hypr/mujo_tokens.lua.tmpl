@@ -6,7 +6,9 @@
 return {
     color = {
         accent          = "{{ color.accent | hypr }}",
-        border_active   = "{{ color.accent | hypr }}",
+        -- The text colour: near white in dark mode, near black in light
+        -- mode, so it stands out on any wallpaper and with any accent.
+        border_active   = "{{ color.text.primary | hypr }}",
         border_inactive = "{{ color.border.subtle | hypr }}",
         bg_frame        = "{{ color.bg.frame | hypr }}",
         bg_base         = "{{ color.bg.base | hypr }}",

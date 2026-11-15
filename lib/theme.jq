@@ -90,7 +90,7 @@ def _resolve_tree($s):
   # read all day; more in the drop-down one, which lies over other windows.
   # Solid again while the blur is off on battery.
   | ($s.glass and ($s.solid | not)) as $through
-  | .term.opacity = (if $through then 0.92 else 1 end)
+  | .term.opacity = (if $through then 0.96 else 1 end)
   | .term.drop_opacity = (if $through then 0.82 else 1 end)
   | .term.blur = $through
   | .motion.gentle = ($s.motion == "gentle")
