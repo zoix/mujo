@@ -53,7 +53,7 @@ return {
 
   -- Language servers. Neovim talks to them itself; this plugin only knows
   -- how to start each one. A server is used if its program is installed
-  -- (for example: karma pkg install, then lua-language-server or gopls).
+  -- (for example: mujo pkg install, then lua-language-server or gopls).
   {
     "neovim/nvim-lspconfig",
     event = { "BufReadPre", "BufNewFile" },

@@ -11,7 +11,7 @@ skipped=()
 
 step() { printf '\n== %s\n' "$*"; }
 
-shell_files=(install.sh bin/karma lib/*.sh tests/*.sh tests/stubs/*)
+shell_files=(install.sh bin/mujo lib/*.sh tests/*.sh tests/stubs/*)
 
 step "bash syntax"
 for f in "${shell_files[@]}"; do bash -n "$f" || fail=1; done
@@ -36,17 +36,17 @@ fi
 step "theme build + check (sandboxed)"
 sbx=$(mktemp -d)
 trap 'rm -rf "$sbx"' EXIT
-if XDG_CONFIG_HOME=$sbx/config XDG_STATE_HOME=$sbx/state bin/karma theme build >/dev/null \
-   && XDG_CONFIG_HOME=$sbx/config XDG_STATE_HOME=$sbx/state bin/karma theme check; then
+if XDG_CONFIG_HOME=$sbx/config XDG_STATE_HOME=$sbx/state bin/mujo theme build >/dev/null \
+   && XDG_CONFIG_HOME=$sbx/config XDG_STATE_HOME=$sbx/state bin/mujo theme check; then
   :
 else
   fail=1
 fi
 
-step "Lua syntax (config/hypr and the generated karma_tokens.lua)"
+step "Lua syntax (config/hypr and the generated mujo_tokens.lua)"
 if command -v luac >/dev/null; then
   lua_ok=1
-  for f in config/hypr/.config/hypr/*.lua "$sbx/config/hypr/karma_tokens.lua"; do
+  for f in config/hypr/.config/hypr/*.lua "$sbx/config/hypr/mujo_tokens.lua"; do
     luac -p -- "$f" || { lua_ok=0; fail=1; }
   done
   (( lua_ok )) && echo ok
@@ -68,24 +68,24 @@ else
   echo "skipped: Hyprland is not installed"
 fi
 
-step "zsh syntax (config/zsh and the generated karma-theme.zsh)"
+step "zsh syntax (config/zsh and the generated mujo-theme.zsh)"
 if command -v zsh >/dev/null; then
   zsh_ok=1
   while IFS= read -r -d '' f; do
     zsh -n -- "$f" || { zsh_ok=0; fail=1; }
   done < <(find config/zsh -type f -print0)
-  zsh -n -- "$sbx/config/zsh/karma-theme.zsh" || { zsh_ok=0; fail=1; }
+  zsh -n -- "$sbx/config/zsh/mujo-theme.zsh" || { zsh_ok=0; fail=1; }
   (( zsh_ok )) && echo ok
 else
   skipped+=("zsh syntax (pacman -S zsh)")
   echo "skipped: zsh is not installed"
 fi
 
-step "tmux config (tmux.conf and the generated karma-theme.conf load without errors)"
+step "tmux config (tmux.conf and the generated mujo-theme.conf load without errors)"
 if command -v tmux >/dev/null; then
   # A private server and a private home, so the real tmux is never touched.
   mkdir -p "$sbx/home/.config/tmux"
-  cp config/tmux/.config/tmux/tmux.conf "$sbx/config/tmux/karma-theme.conf" "$sbx/home/.config/tmux/"
+  cp config/tmux/.config/tmux/tmux.conf "$sbx/config/tmux/mujo-theme.conf" "$sbx/home/.config/tmux/"
   tmux_sock=$sbx/tmux.sock
   if out=$(HOME=$sbx/home TMUX='' tmux -S "$tmux_sock" -f /dev/null new-session -d -s lint \; \
              source-file "$sbx/home/.config/tmux/tmux.conf" 2>&1) && [[ -z $out ]]; then
@@ -100,8 +100,8 @@ else
 fi
 
 step "Quickshell tokens (generated tokens.json has every value Tokens.qml reads)"
-tokens_json=$sbx/config/quickshell/karma/theme/tokens.json
-missing=$(grep -oE ': t\.[A-Za-z]+$' config/quickshell/.config/quickshell/karma/theme/Tokens.qml | sed 's/.*t\.//' \
+tokens_json=$sbx/config/quickshell/mujo/theme/tokens.json
+missing=$(grep -oE ': t\.[A-Za-z]+$' config/quickshell/.config/quickshell/mujo/theme/Tokens.qml | sed 's/.*t\.//' \
   | while read -r key; do jq -e --arg k "$key" 'has($k)' "$tokens_json" >/dev/null 2>&1 || echo "$key"; done)
 if [[ -z $missing ]]; then echo ok; else echo "not in tokens.json: $missing"; fail=1; fi
 

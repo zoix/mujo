@@ -1,16 +1,16 @@
 # shellcheck shell=bash
-# karma doctor: check that everything karma needs is in place. Read-only.
+# mujo doctor: check that everything mujo needs is in place. Read-only.
 
-karma_register doctor "Check dependencies, services, links and tokens"
+mujo_register doctor "Check dependencies, services, links and tokens"
 
 help_doctor() {
   cat <<EOF
-Usage: $KARMA_NAME doctor
+Usage: $MUJO_NAME doctor
 
 Checks, and for each problem says how to fix it:
   packages   every package in packages/pacman.txt is installed
   links      every file in config/ is linked into your home directory
-  theme      generated files match the tokens ('$KARMA_NAME theme check')
+  theme      generated files match the tokens ('$MUJO_NAME theme check')
   settings   config.json and the journal are readable
   services   NetworkManager, Bluetooth, the login screen, PipeWire
   session    Hyprland config errors, the interface, idle locking
@@ -29,7 +29,7 @@ doctor_add() {
 }
 
 doctor_packages() {
-  local list=$KARMA_ROOT/packages/pacman.txt
+  local list=$MUJO_ROOT/packages/pacman.txt
   if ! command -v pacman >/dev/null 2>&1; then
     doctor_add packages skip "pacman is not available here"
     return 0
@@ -48,7 +48,7 @@ doctor_packages() {
 }
 
 doctor_links() {
-  local root=$KARMA_ROOT/config pkg file rel dest total=0
+  local root=$MUJO_ROOT/config pkg file rel dest total=0
   local -a broken=()
   while IFS= read -r -d '' file; do
     pkg=${file#"$root"/}
@@ -62,7 +62,7 @@ doctor_links() {
   if (( ${#broken[@]} )); then
     local shown="${broken[*]:0:4}"
     (( ${#broken[@]} > 4 )) && shown+=" and $(( ${#broken[@]} - 4 )) more"
-    doctor_add links fail "${#broken[@]} of $total config file(s) are not linked: $shown" "$KARMA_ROOT/install.sh --skip-system"
+    doctor_add links fail "${#broken[@]} of $total config file(s) are not linked: $shown" "$MUJO_ROOT/install.sh --skip-system"
   else
     doctor_add links ok "all $total config files are linked"
   fi
@@ -70,36 +70,36 @@ doctor_links() {
 
 doctor_theme() {
   local out problems
-  out=$("$KARMA_BIN" theme check --json 2>/dev/null) || true
+  out=$("$MUJO_BIN" theme check --json 2>/dev/null) || true
   problems=$(jq -r '.data.problems // [] | length' <<<"$out" 2>/dev/null) || problems=""
   if [[ -z $problems ]]; then
-    doctor_add theme fail "'$KARMA_NAME theme check' did not run" "$KARMA_NAME theme check"
+    doctor_add theme fail "'$MUJO_NAME theme check' did not run" "$MUJO_NAME theme check"
   elif (( problems > 0 )); then
-    doctor_add theme fail "$problems generated file(s) are missing or out of date" "$KARMA_NAME theme build"
+    doctor_add theme fail "$problems generated file(s) are missing or out of date" "$MUJO_NAME theme build"
   else
     doctor_add theme ok "generated theme files match the tokens"
   fi
 }
 
 doctor_settings() {
-  if [[ -f $KARMA_CONFIG_FILE ]] && ! jq -e 'type == "object"' "$KARMA_CONFIG_FILE" >/dev/null 2>&1; then
-    doctor_add settings fail "$(tilde "$KARMA_CONFIG_FILE") is not a JSON object" "fix or remove the file"
+  if [[ -f $MUJO_CONFIG_FILE ]] && ! jq -e 'type == "object"' "$MUJO_CONFIG_FILE" >/dev/null 2>&1; then
+    doctor_add settings fail "$(tilde "$MUJO_CONFIG_FILE") is not a JSON object" "fix or remove the file"
   else
     doctor_add settings ok "config.json is readable"
   fi
-  if [[ -f $KARMA_JOURNAL ]]; then
+  if [[ -f $MUJO_JOURNAL ]]; then
     local bad
-    bad=$(jq -cR 'fromjson? // "bad"' "$KARMA_JOURNAL" 2>/dev/null | grep -c '^"bad"$' || true)
+    bad=$(jq -cR 'fromjson? // "bad"' "$MUJO_JOURNAL" 2>/dev/null | grep -c '^"bad"$' || true)
     if (( bad > 0 )); then
       doctor_add settings warn "$bad line(s) of the journal are not valid JSON and are ignored"
     else
-      doctor_add settings ok "the journal is readable ($(wc -l <"$KARMA_JOURNAL") entries)"
+      doctor_add settings ok "the journal is readable ($(wc -l <"$MUJO_JOURNAL") entries)"
     fi
   fi
   local wall
   wall=$(config_read | jq -r '.wallpaper // empty')
   if [[ -n $wall && ! -f $wall ]]; then
-    doctor_add settings warn "the wallpaper $wall no longer exists" "$KARMA_NAME wall clear"
+    doctor_add settings warn "the wallpaper $wall no longer exists" "$MUJO_NAME wall clear"
   fi
 }
 
@@ -119,7 +119,7 @@ doctor_services() {
   if systemctl is-enabled -q greetd.service 2>/dev/null; then
     doctor_add services ok "greetd.service (the login screen) is enabled"
   else
-    doctor_add services warn "greetd.service is not enabled; another login screen is in use" "$KARMA_ROOT/install.sh"
+    doctor_add services warn "greetd.service is not enabled; another login screen is in use" "$MUJO_ROOT/install.sh"
   fi
   if systemctl --user is-active -q pipewire.service 2>/dev/null && systemctl --user is-active -q wireplumber.service 2>/dev/null; then
     doctor_add services ok "PipeWire and WirePlumber are running"
@@ -142,10 +142,10 @@ doctor_session() {
   else
     doctor_add session ok "Hyprland has no config errors"
   fi
-  if command -v qs >/dev/null 2>&1 && timeout 2 qs -c "$KARMA_NAME" ipc show >/dev/null 2>&1; then
-    doctor_add session ok "the interface (qs -c $KARMA_NAME) is running"
+  if command -v qs >/dev/null 2>&1 && timeout 2 qs -c "$MUJO_NAME" ipc show >/dev/null 2>&1; then
+    doctor_add session ok "the interface (qs -c $MUJO_NAME) is running"
   else
-    doctor_add session fail "the interface is not running" "systemctl --user restart $KARMA_NAME-ui.service"
+    doctor_add session fail "the interface is not running" "systemctl --user restart $MUJO_NAME-ui.service"
   fi
   if pgrep -x dunst >/dev/null 2>&1 || pgrep -x mako >/dev/null 2>&1; then
     doctor_add session warn "another notification daemon is running and may take notifications from the interface" \

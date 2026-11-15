@@ -1,7 +1,7 @@
 # tmux
 
-`config/tmux` is karma's tmux setup. The colours are not in it: they come
-from `~/.config/tmux/karma-theme.conf`, which `karma theme build` generates
+`config/tmux` is mujo's tmux setup. The colours are not in it: they come
+from `~/.config/tmux/mujo-theme.conf`, which `mujo theme build` generates
 from the design tokens, so tmux follows the accent, the light or dark mode
 and the wallpaper palette like everything else. A running tmux picks up a
 theme change at once.

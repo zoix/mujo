@@ -1,8 +1,8 @@
 # shellcheck shell=bash
-# karma display: backlight brightness (brightnessctl) and the night light
+# mujo display: backlight brightness (brightnessctl) and the night light
 # (hyprsunset, driven through `hyprctl hyprsunset`).
 
-karma_register display "Brightness and night light"
+mujo_register display "Brightness and night light"
 
 DISPLAY_NIGHT_DEFAULT=4000   # kelvin
 DISPLAY_NIGHT_MIN=1000
@@ -10,9 +10,9 @@ DISPLAY_NIGHT_MAX=10000
 
 help_display() {
   cat <<EOF
-Usage: $KARMA_NAME display [status]
-       $KARMA_NAME display brightness [N | +N | -N]
-       $KARMA_NAME display night [on | off | toggle] [--temp KELVIN]
+Usage: $MUJO_NAME display [status]
+       $MUJO_NAME display brightness [N | +N | -N]
+       $MUJO_NAME display night [on | off | toggle] [--temp KELVIN]
 
 status      Brightness and the night light state.
 brightness  Show or set the backlight in percent (1-100); +N and -N are steps.
@@ -20,7 +20,7 @@ night       Show or switch the night light. --temp sets the colour temperature
             ($DISPLAY_NIGHT_MIN-$DISPLAY_NIGHT_MAX K, default $DISPLAY_NIGHT_DEFAULT) and is remembered.
             Needs a running Hyprland session (exit 3 otherwise).
 
-Changes are journaled; '$KARMA_NAME undo' puts the previous value back.
+Changes are journaled; '$MUJO_NAME undo' puts the previous value back.
 EOF
 }
 
@@ -70,7 +70,7 @@ display_night_word() {
 cmd_display() {
   local sub=${1:-status}
   (( $# )) && shift
-  karma_set_cmd "display $sub"
+  mujo_set_cmd "display $sub"
   case $sub in
     status) display_cmd_status "$@" ;;
     brightness) display_cmd_brightness "$@" ;;
@@ -168,7 +168,7 @@ display_cmd_night() {
     [[ $(hyprctl hyprsunset identity 2>/dev/null) == ok ]] \
       || die "$EXIT_FAIL" "hyprsunset did not switch off"
   fi
-  karma_lock
+  mujo_lock
   config_set night_temperature "$temp"
   config_set night_on "$new_on"
   change_end "$summary" "$cur" "$planned" \

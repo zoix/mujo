@@ -1,14 +1,14 @@
 # shellcheck shell=bash
-# karma clip: clipboard history (cliphist) with an fzf picker.
+# mujo clip: clipboard history (cliphist) with an fzf picker.
 
-karma_register clip "Clipboard history picker"
+mujo_register clip "Clipboard history picker"
 
 help_clip() {
   cat <<EOF
-Usage: $KARMA_NAME clip [pick] [--window]
-       $KARMA_NAME clip list [--limit N]
-       $KARMA_NAME clip copy ID
-       $KARMA_NAME clip clear --yes
+Usage: $MUJO_NAME clip [pick] [--window]
+       $MUJO_NAME clip list [--limit N]
+       $MUJO_NAME clip copy ID
+       $MUJO_NAME clip clear --yes
 
 pick   Choose an entry with fzf and copy it back to the clipboard (the
        default). Ctrl-X deletes the entry under the cursor. Needs Wayland.
@@ -21,13 +21,13 @@ EOF
 cmd_clip() {
   local sub=${1:-pick}
   (( $# )) && shift
-  karma_set_cmd "clip $sub"
+  mujo_set_cmd "clip $sub"
   need cliphist
   case $sub in
     pick) clip_cmd_pick "$@" ;;
     list) clip_cmd_list "$@" ;;
     copy)
-      (( $# == 1 )) || usage_error "copy needs exactly one entry id (see '$KARMA_NAME clip list')"
+      (( $# == 1 )) || usage_error "copy needs exactly one entry id (see '$MUJO_NAME clip list')"
       [[ $1 =~ ^[0-9]+$ ]] || usage_error "an entry id is a number, got '$1'"
       require_wayland
       need wl-copy

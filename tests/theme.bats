@@ -4,154 +4,154 @@
 load helpers
 
 @test "build renders every consumer with a do-not-edit header" {
-  run karma theme build
+  run mujo theme build
   [ "$status" -eq 0 ]
-  [ -f "$(conf)/quickshell/karma/theme/tokens.json" ]
-  [ -f "$(conf)/hypr/karma_tokens.lua" ]
-  [ -f "$(conf)/ghostty/karma-theme" ]
-  [ -f "$(conf)/btop/themes/karma.theme" ]
+  [ -f "$(conf)/quickshell/mujo/theme/tokens.json" ]
+  [ -f "$(conf)/hypr/mujo_tokens.lua" ]
+  [ -f "$(conf)/ghostty/mujo-theme" ]
+  [ -f "$(conf)/btop/themes/mujo.theme" ]
   [ -f "$(conf)/yazi/theme.toml" ]
-  [ -f "$(conf)/fzf/karma.fzfrc" ]
-  [ -f "$(conf)/zsh/karma-theme.zsh" ]
+  [ -f "$(conf)/fzf/mujo.fzfrc" ]
+  [ -f "$(conf)/zsh/mujo-theme.zsh" ]
   [ -f "$(conf)/gtk-3.0/gtk.css" ]
   [ -f "$(conf)/gtk-4.0/gtk.css" ]
   [ -f "$(state)/theme/system/greetd/config.toml" ]
   [ -f "$(state)/theme/system/vtrgb/palette.vtrgb" ]
-  grep -q "Do not edit" "$(conf)/ghostty/karma-theme"
+  grep -q "Do not edit" "$(conf)/ghostty/mujo-theme"
   grep -q "Do not edit" "$(conf)/gtk-3.0/gtk.css"
   run grep -q "Do not edit" "$(state)/theme/system/vtrgb/palette.vtrgb"
   [ "$status" -ne 0 ]
 }
 
 @test "build is journaled and a second build changes nothing" {
-  karma theme build
-  run karma theme build --json
+  mujo theme build
+  run mujo theme build --json
   [ "$status" -eq 0 ]
   [ "$(jq '[.data.files[] | select(.status != "unchanged")] | length' <<<"$output")" = 0 ]
-  run karma log --json
+  run mujo log --json
   [ "$(jq '.data.entries | length' <<<"$output")" = 2 ]
   [ "$(jq -r '.data.entries[0].reversible' <<<"$output")" = false ]
   [ "$(jq -r '.data.entries[1].reversible' <<<"$output")" = true ]
 }
 
 @test "check passes after a build" {
-  karma theme build
-  run karma theme check
+  mujo theme build
+  run mujo theme check
   [ "$status" -eq 0 ]
   [[ $output == *"theme check: ok"* ]]
 }
 
 @test "check fails before a build and after a hand edit" {
-  run karma theme check
+  run mujo theme check
   [ "$status" -eq 1 ]
-  karma theme build
-  echo "# edited" >>"$(conf)/ghostty/karma-theme"
-  run karma theme check --json ghostty
+  mujo theme build
+  echo "# edited" >>"$(conf)/ghostty/mujo-theme"
+  run mujo theme check --json ghostty
   [ "$status" -eq 1 ]
   [ "$(jq -r '.data.problems[0].kind' <<<"$output")" = drift ]
   [ "$(jq -r '.data.problems[0].consumer' <<<"$output")" = ghostty ]
 }
 
 @test "check finds hardcoded colours in a copy of the repo" {
-  cp -r "$KARMA_REPO" "$BATS_TEST_TMPDIR/repo"
+  cp -r "$MUJO_REPO" "$BATS_TEST_TMPDIR/repo"
   mkdir -p "$BATS_TEST_TMPDIR/repo/config/ghostty"
   echo 'background = #ff0000' >"$BATS_TEST_TMPDIR/repo/config/ghostty/config"
   echo 'color: mauve' >"$BATS_TEST_TMPDIR/repo/config/ghostty/extra.conf"
-  "$BATS_TEST_TMPDIR/repo/bin/karma" theme build
-  run "$BATS_TEST_TMPDIR/repo/bin/karma" theme check --json
+  "$BATS_TEST_TMPDIR/repo/bin/mujo" theme build
+  run "$BATS_TEST_TMPDIR/repo/bin/mujo" theme check --json
   [ "$status" -eq 1 ]
   [ "$(jq '[.data.problems[] | select(.rule == "hex-colour")] | length' <<<"$output")" = 1 ]
   [ "$(jq '[.data.problems[] | select(.rule == "palette-name")] | length' <<<"$output")" = 1 ]
 }
 
 @test "check flags number literals on size properties in QML" {
-  cp -r "$KARMA_REPO" "$BATS_TEST_TMPDIR/repo"
-  mkdir -p "$BATS_TEST_TMPDIR/repo/config/quickshell/karma"
+  cp -r "$MUJO_REPO" "$BATS_TEST_TMPDIR/repo"
+  mkdir -p "$BATS_TEST_TMPDIR/repo/config/quickshell/mujo"
   printf 'Item {\n    width: 52\n    opacity: 1\n    radius: Tokens.radiusMd\n}\n' \
-    >"$BATS_TEST_TMPDIR/repo/config/quickshell/karma/Bar.qml"
-  "$BATS_TEST_TMPDIR/repo/bin/karma" theme build
-  run "$BATS_TEST_TMPDIR/repo/bin/karma" theme check --json
+    >"$BATS_TEST_TMPDIR/repo/config/quickshell/mujo/Bar.qml"
+  "$BATS_TEST_TMPDIR/repo/bin/mujo" theme build
+  run "$BATS_TEST_TMPDIR/repo/bin/mujo" theme check --json
   [ "$status" -eq 1 ]
   [ "$(jq '[.data.problems[] | select(.rule == "qml-literal")] | length' <<<"$output")" = 1 ]
 }
 
 @test "accent change rebuilds, is journaled, and undo restores it" {
-  karma theme build
-  run karma theme accent blue
+  mujo theme build
+  run mujo theme accent blue
   [ "$status" -eq 0 ]
-  grep -q '"#89b4fa"' "$(conf)/quickshell/karma/theme/tokens.json"
-  [ "$(jq -r .accent "$(conf)/karma/config.json")" = blue ]
-  run karma undo
+  grep -q '"#89b4fa"' "$(conf)/quickshell/mujo/theme/tokens.json"
+  [ "$(jq -r .accent "$(conf)/mujo/config.json")" = blue ]
+  run mujo undo
   [ "$status" -eq 0 ]
-  grep -q '"accent": "#cba6f7"' "$(conf)/quickshell/karma/theme/tokens.json"
-  [ "$(jq -r .accent "$(conf)/karma/config.json")" = mauve ]
-  run karma theme check
+  grep -q '"accent": "#cba6f7"' "$(conf)/quickshell/mujo/theme/tokens.json"
+  [ "$(jq -r .accent "$(conf)/mujo/config.json")" = mauve ]
+  run mujo theme check
   [ "$status" -eq 0 ]
 }
 
 @test "dry-run changes nothing and records nothing" {
-  karma theme build
-  before=$(sha256sum "$(conf)/ghostty/karma-theme")
-  run karma theme accent green --dry-run
+  mujo theme build
+  before=$(sha256sum "$(conf)/ghostty/mujo-theme")
+  run mujo theme accent green --dry-run
   [ "$status" -eq 0 ]
   [[ $output == *"dry run"* ]]
   [[ $output == *'+  "accent": '* ]]
-  [ "$before" = "$(sha256sum "$(conf)/ghostty/karma-theme")" ]
-  [ ! -f "$(conf)/karma/config.json" ]
-  run karma log --json
+  [ "$before" = "$(sha256sum "$(conf)/ghostty/mujo-theme")" ]
+  [ ! -f "$(conf)/mujo/config.json" ]
+  run mujo log --json
   [ "$(jq '.data.entries | length' <<<"$output")" = 1 ]
 }
 
 @test "same accent is a no-op" {
-  karma theme accent mauve
+  mujo theme accent mauve
   entries=$(wc -l <"$(state)/journal.jsonl")
-  run karma theme accent mauve
+  run mujo theme accent mauve
   [ "$status" -eq 0 ]
   [[ $output == *"already mauve"* ]]
   [ "$(wc -l <"$(state)/journal.jsonl")" -eq "$entries" ]
 }
 
 @test "reduce-motion zeroes every duration and undo restores them" {
-  karma theme build
-  karma theme reduce-motion on
-  grep -q '"durationNormal": 0' "$(conf)/quickshell/karma/theme/tokens.json"
-  grep -q '"reduceMotion": true' "$(conf)/quickshell/karma/theme/tokens.json"
-  grep -q 'normal = 0,' "$(conf)/hypr/karma_tokens.lua"
-  karma undo
-  grep -q '"durationNormal": 220' "$(conf)/quickshell/karma/theme/tokens.json"
+  mujo theme build
+  mujo theme reduce-motion on
+  grep -q '"durationNormal": 0' "$(conf)/quickshell/mujo/theme/tokens.json"
+  grep -q '"reduceMotion": true' "$(conf)/quickshell/mujo/theme/tokens.json"
+  grep -q 'normal = 0,' "$(conf)/hypr/mujo_tokens.lua"
+  mujo undo
+  grep -q '"durationNormal": 220' "$(conf)/quickshell/mujo/theme/tokens.json"
 }
 
 @test "undo of a build restores the previous files; repeated undo walks back" {
-  karma theme build
-  echo "# old" >>"$(conf)/ghostty/karma-theme"
-  karma theme build ghostty
-  run grep -q "# old" "$(conf)/ghostty/karma-theme"
+  mujo theme build
+  echo "# old" >>"$(conf)/ghostty/mujo-theme"
+  mujo theme build ghostty
+  run grep -q "# old" "$(conf)/ghostty/mujo-theme"
   [ "$status" -ne 0 ]
-  karma undo
-  grep -q "# old" "$(conf)/ghostty/karma-theme"
-  run karma undo --json
+  mujo undo
+  grep -q "# old" "$(conf)/ghostty/mujo-theme"
+  run mujo undo --json
   [ "$status" -eq 0 ]
   [ "$(jq -r '.command' <<<"$output")" = "theme restore" ]
-  [ ! -f "$(conf)/ghostty/karma-theme" ]
+  [ ! -f "$(conf)/ghostty/mujo-theme" ]
 }
 
 @test "undo of a first build removes the files it created" {
-  karma theme build
-  karma undo
-  [ ! -f "$(conf)/ghostty/karma-theme" ]
+  mujo theme build
+  mujo undo
+  [ ! -f "$(conf)/ghostty/mujo-theme" ]
 }
 
 @test "undo refuses irreversible and already undone entries" {
-  karma theme build
-  karma theme build
+  mujo theme build
+  mujo theme build
   id=$(jq -r 'select(.reversible == false) | .id' "$(state)/journal.jsonl")
-  run karma undo "$id"
+  run mujo undo "$id"
   [ "$status" -eq 1 ]
   [[ $output == *"cannot be undone"* ]]
-  karma theme accent blue
+  mujo theme accent blue
   acc=$(jq -r 'select(.summary | startswith("theme accent")) | .id' "$(state)/journal.jsonl")
-  karma undo "$acc"
-  run karma undo "$acc"
+  mujo undo "$acc"
+  run mujo undo "$acc"
   [ "$status" -eq 1 ]
   [[ $output == *"already undone"* ]]
 }
@@ -168,7 +168,7 @@ qc={{ motion.ease.enter | qml_curve }} lp={{ motion.ease.standard | lua_points }
 list={{ console.ansi | r }}
 lua={{0.2, 0}}
 EOF
-  run karma theme render "$tpl"
+  run mujo theme render "$tpl"
   [ "$status" -eq 0 ]
   [[ $output == *"hex=#cba6f7 bare=cba6f7 rgb=203, 166, 247"* ]]
   [[ $output == *"r=203 hexa=#cba6f7cc qml=#cccba6f7"* ]]
@@ -183,35 +183,35 @@ EOF
 @test "render fails on unknown tokens, filters and malformed placeholders" {
   tpl=$BATS_TEST_TMPDIR/t.tmpl
   echo '{{ color.nope }}' >"$tpl"
-  run karma theme render "$tpl"
+  run mujo theme render "$tpl"
   [ "$status" -eq 1 ]
   [[ $output == *"unknown token 'color.nope'"* ]]
   echo '{{ color.accent | sparkle }}' >"$tpl"
-  run karma theme render "$tpl"
+  run mujo theme render "$tpl"
   [ "$status" -eq 1 ]
   [[ $output == *"unknown filter 'sparkle'"* ]]
   echo '{{color.accent}}' >"$tpl"
-  run karma theme render "$tpl"
+  run mujo theme render "$tpl"
   [ "$status" -eq 1 ]
   [[ $output == *"malformed placeholder"* ]]
 }
 
 @test "an invalid accent in config.json is reported" {
-  mkdir -p "$(conf)/karma"
-  echo '{"accent": "chartreuse"}' >"$(conf)/karma/config.json"
-  run karma theme build
+  mkdir -p "$(conf)/mujo"
+  echo '{"accent": "chartreuse"}' >"$(conf)/mujo/config.json"
+  run mujo theme build
   [ "$status" -eq 1 ]
   [[ $output == *"unknown accent 'chartreuse'"* ]]
 }
 
 @test "show returns a resolved subtree" {
-  run karma theme show color.bg --json
+  run mujo theme show color.bg --json
   [ "$status" -eq 0 ]
   [ "$(jq -r .data.value.frame <<<"$output")" = "#11111b" ]
 }
 
 @test "accent references resolve everywhere" {
-  run karma theme show --json
+  run mujo theme show --json
   [ "$(jq -r '.data.value.color.accent' <<<"$output")" = "#cba6f7" ]
   [ "$(jq -r '.data.value.term.cursor' <<<"$output")" = "#cba6f7" ]
   [ "$(jq -r '.data.value.console.ansi[5]' <<<"$output")" = "#cba6f7" ]

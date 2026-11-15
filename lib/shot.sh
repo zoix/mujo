@@ -1,14 +1,14 @@
 # shellcheck shell=bash
-# karma shot: screenshots with grim and slurp, saved to a file and copied to
+# mujo shot: screenshots with grim and slurp, saved to a file and copied to
 # the clipboard.
 
-karma_register shot "Region, window or screen screenshot"
+mujo_register shot "Region, window or screen screenshot"
 
 help_shot() {
   cat <<EOF
-Usage: $KARMA_NAME shot [region | window | screen] [--no-save] [--no-copy] [--dir DIRECTORY]
-       $KARMA_NAME shot region [--geometry "X,Y WxH" | --slurp]
-       $KARMA_NAME shot text [--geometry "X,Y WxH"] [--lang LANGUAGE]
+Usage: $MUJO_NAME shot [region | window | screen] [--no-save] [--no-copy] [--dir DIRECTORY]
+       $MUJO_NAME shot region [--geometry "X,Y WxH" | --slurp]
+       $MUJO_NAME shot text [--geometry "X,Y WxH"] [--lang LANGUAGE]
 
 region  Choose an area (the default). With the interface running, the screen
         freezes: click a window or drag a rectangle, Escape cancels. Without
@@ -20,7 +20,7 @@ text    Drag an area; the text in it is read (tesseract) and copied to the
         clipboard. No image is kept. --lang names the language data to use
         (default eng; e.g. spa needs the package tesseract-data-spa).
 
-The image is saved as karma-<date>-<time>.png in ~/Pictures/Screenshots (or
+The image is saved as mujo-<date>-<time>.png in ~/Pictures/Screenshots (or
 --dir, or "screenshot_dir" in config.json) and copied to the clipboard.
 --no-save copies only; --no-copy saves only. Needs a Wayland session
 (exit 3 otherwise). Screenshots are not journaled: they change no setting.
@@ -45,7 +45,7 @@ shot_text() {
     need slurp
     geometry=$(slurp 2>/dev/null) || die "$EXIT_FAIL" "selection cancelled"
   fi
-  karma_tmpdir tmp
+  mujo_tmpdir tmp
   grim -g "$geometry" "$tmp/text.png" 2>/dev/null || die "$EXIT_FAIL" "grim could not capture the screen"
   text=$(tesseract "$tmp/text.png" - -l "$lang" 2>/dev/null) \
     || die "$EXIT_FAIL" "tesseract could not read the image (is tesseract-data-$lang installed?)"
@@ -58,7 +58,7 @@ shot_text() {
   printf '%s' "$text" | wl-copy >/dev/null 2>&1 3>&- 9>&- || die "$EXIT_FAIL" "could not copy the text"
   say "Copied $(wc -w <<<"$text") word(s) to the clipboard"
   if command -v notify-send >/dev/null 2>&1; then
-    timeout 2 notify-send -a "$KARMA_NAME" -t 4000 "Text copied" "${text:0:120}" >/dev/null 2>&1 3>&- || true
+    timeout 2 notify-send -a "$MUJO_NAME" -t 4000 "Text copied" "${text:0:120}" >/dev/null 2>&1 3>&- || true
   fi
   jq -n --arg t "$text" '{mode: "text", text: $t, copied: true}' | emit
 }
@@ -86,7 +86,7 @@ cmd_shot() {
     esac
   done
   mode=${mode:-region}
-  karma_set_cmd "shot $mode"
+  mujo_set_cmd "shot $mode"
   if [[ $mode == text ]]; then
     shot_text "$given" "$lang"
     return 0
@@ -98,10 +98,10 @@ cmd_shot() {
     # Two shots in the same second must not overwrite each other.
     local stamp n=1
     stamp=$(date +%Y%m%d-%H%M%S)
-    path=$dir/$KARMA_NAME-$stamp.png
+    path=$dir/$MUJO_NAME-$stamp.png
     while [[ -e $path ]]; do
       n=$(( n + 1 ))
-      path=$dir/$KARMA_NAME-$stamp-$n.png
+      path=$dir/$MUJO_NAME-$stamp-$n.png
     done
   fi
 
@@ -124,7 +124,7 @@ cmd_shot() {
       if [[ -n $given ]]; then
         geometry=$given
       elif (( ! use_slurp )) && command -v qs >/dev/null 2>&1 \
-           && timeout 2 qs -c "$KARMA_NAME" ipc call picker open >/dev/null 2>&1; then
+           && timeout 2 qs -c "$MUJO_NAME" ipc call picker open >/dev/null 2>&1; then
         # The interface's picker takes over; it runs this command again
         # with --geometry once an area is chosen.
         say "Choose the area on screen."
@@ -156,7 +156,7 @@ cmd_shot() {
     mkdir -p -- "$dir" || die "$EXIT_FAIL" "cannot create $dir"
   else
     local tmp
-    karma_tmpdir tmp
+    mujo_tmpdir tmp
     file=$tmp/shot.png
   fi
   grim "${grim_args[@]}" "$file" 2>/dev/null || die "$EXIT_FAIL" "grim could not capture the screen"
@@ -169,7 +169,7 @@ cmd_shot() {
   if (( save )); then say "Saved $path$( (( copy )) && echo " and copied it to the clipboard" || true)"
   else say "Copied the screenshot to the clipboard"; fi
   if command -v notify-send >/dev/null 2>&1; then
-    timeout 2 notify-send -a "$KARMA_NAME" -t 3000 "Screenshot" \
+    timeout 2 notify-send -a "$MUJO_NAME" -t 3000 "Screenshot" \
       "$( (( save )) && echo "$path" || echo "Copied to the clipboard")" >/dev/null 2>&1 3>&- || true
   fi
   jq -n --arg m "$mode" --arg p "$path" --argjson c "$copy" --arg g "$geometry" \

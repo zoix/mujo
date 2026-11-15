@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# Core of the karma CLI: name, paths, global flags, the output contract and errors.
+# Core of the mujo CLI: name, paths, global flags, the output contract and errors.
 #
 # Output contract (docs/cli.md):
 #   - Human text by default. With --json, exactly one JSON object on stdout:
@@ -9,57 +9,57 @@
 #   - Final output goes to fd 3 (a copy of the real stdout) so `die` and `emit`
 #     still reach the user when called inside a command substitution.
 
-KARMA_NAME=karma
-KARMA_VERSION=0.1.0
-KARMA_SCHEMA_VERSION=1
+MUJO_NAME=mujo
+MUJO_VERSION=0.1.0
+MUJO_SCHEMA_VERSION=1
 
 EXIT_OK=0
 EXIT_FAIL=1
 EXIT_USAGE=2
 EXIT_ENV=3
 
-KARMA_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
-KARMA_STATE_HOME=${XDG_STATE_HOME:-$HOME/.local/state}
-KARMA_CONFIG_DIR=$KARMA_CONFIG_HOME/$KARMA_NAME
-KARMA_STATE_DIR=$KARMA_STATE_HOME/$KARMA_NAME
+MUJO_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
+MUJO_STATE_HOME=${XDG_STATE_HOME:-$HOME/.local/state}
+MUJO_CONFIG_DIR=$MUJO_CONFIG_HOME/$MUJO_NAME
+MUJO_STATE_DIR=$MUJO_STATE_HOME/$MUJO_NAME
 # Answers fetched from elsewhere that may be thrown away (weather, pending updates).
 # shellcheck disable=SC2034  # used by the files that keep such answers
-KARMA_CACHE_DIR=${XDG_CACHE_HOME:-$HOME/.cache}/$KARMA_NAME
+MUJO_CACHE_DIR=${XDG_CACHE_HOME:-$HOME/.cache}/$MUJO_NAME
 # shellcheck disable=SC2034  # used by config.sh and theme.sh
-KARMA_CONFIG_FILE=$KARMA_CONFIG_DIR/config.json
+MUJO_CONFIG_FILE=$MUJO_CONFIG_DIR/config.json
 # shellcheck disable=SC2034  # used by journal.sh
-KARMA_JOURNAL=$KARMA_STATE_DIR/journal.jsonl
+MUJO_JOURNAL=$MUJO_STATE_DIR/journal.jsonl
 
 OPT_JSON=0
 OPT_DRY_RUN=0
 OPT_YES=0
 OPT_HELP=0
 OPT_WINDOW=0
-KARMA_ARGS=()   # arguments left after the global flags are removed
-KARMA_ARGV=()   # the same, kept intact for the journal
-KARMA_CMD=""    # command being run, e.g. "theme accent"
-KARMA_CLEANUP=()
+MUJO_ARGS=()   # arguments left after the global flags are removed
+MUJO_ARGV=()   # the same, kept intact for the journal
+MUJO_CMD=""    # command being run, e.g. "theme accent"
+MUJO_CLEANUP=()
 
-declare -A KARMA_CMD_SUMMARY=()
-KARMA_CMD_ORDER=()
+declare -A MUJO_CMD_SUMMARY=()
+MUJO_CMD_ORDER=()
 
-# karma_register NAME SUMMARY: make cmd_NAME / help_NAME reachable from the dispatcher.
-karma_register() {
-  KARMA_CMD_ORDER+=("$1")
-  KARMA_CMD_SUMMARY[$1]=$2
+# mujo_register NAME SUMMARY: make cmd_NAME / help_NAME reachable from the dispatcher.
+mujo_register() {
+  MUJO_CMD_ORDER+=("$1")
+  MUJO_CMD_SUMMARY[$1]=$2
 }
 
-# karma_set_cmd "NAME SUB": the command name used in JSON output and errors.
-karma_set_cmd() {
-  KARMA_CMD=$1
+# mujo_set_cmd "NAME SUB": the command name used in JSON output and errors.
+mujo_set_cmd() {
+  MUJO_CMD=$1
 }
 
 # Remove global flags from anywhere in the argument list. `--` stops flag parsing.
-karma_parse_globals() {
-  KARMA_ARGS=()
+mujo_parse_globals() {
+  MUJO_ARGS=()
   local passthrough=0 a
   for a in "$@"; do
-    if (( passthrough )); then KARMA_ARGS+=("$a"); continue; fi
+    if (( passthrough )); then MUJO_ARGS+=("$a"); continue; fi
     # shellcheck disable=SC2034  # OPT_YES is read by commands that cannot be undone (phase 2)
     case $a in
       --json) OPT_JSON=1 ;;
@@ -68,28 +68,28 @@ karma_parse_globals() {
       --help|-h) OPT_HELP=1 ;;
       --window) OPT_WINDOW=1 ;;
       --) passthrough=1 ;;
-      *) KARMA_ARGS+=("$a") ;;
+      *) MUJO_ARGS+=("$a") ;;
     esac
   done
   # shellcheck disable=SC2034  # used by journal.sh
-  KARMA_ARGV=("${KARMA_ARGS[@]}")
+  MUJO_ARGV=("${MUJO_ARGS[@]}")
 }
 
-# Make sure fd 3 exists (bin/karma opens it; this covers sourcing from tests).
-karma_init_fds() {
+# Make sure fd 3 exists (bin/mujo opens it; this covers sourcing from tests).
+mujo_init_fds() {
   { true >&3; } 2>/dev/null || exec 3>&1
 }
 
-karma_cleanup() {
+mujo_cleanup() {
   local p
-  for p in "${KARMA_CLEANUP[@]}"; do rm -rf -- "$p"; done
+  for p in "${MUJO_CLEANUP[@]}"; do rm -rf -- "$p"; done
 }
 
-# karma_tmpdir VAR: create a temporary directory removed on exit.
-karma_tmpdir() {
+# mujo_tmpdir VAR: create a temporary directory removed on exit.
+mujo_tmpdir() {
   local d
-  d=$(mktemp -d "${TMPDIR:-/tmp}/$KARMA_NAME.XXXXXX")
-  KARMA_CLEANUP+=("$d")
+  d=$(mktemp -d "${TMPDIR:-/tmp}/$MUJO_NAME.XXXXXX")
+  MUJO_CLEANUP+=("$d")
   printf -v "$1" '%s' "$d"
 }
 
@@ -104,7 +104,7 @@ say_stream() {
 }
 
 warn() {
-  printf '%s: warning: %s\n' "$KARMA_NAME" "$*" >&2
+  printf '%s: warning: %s\n' "$MUJO_NAME" "$*" >&2
 }
 
 # die CODE MESSAGE: report an error in the right format and exit.
@@ -112,23 +112,23 @@ die() {
   local code=$1
   shift
   if (( OPT_JSON )); then
-    jq -cn --argjson v "$KARMA_SCHEMA_VERSION" --arg cmd "$KARMA_CMD" \
+    jq -cn --argjson v "$MUJO_SCHEMA_VERSION" --arg cmd "$MUJO_CMD" \
       --argjson code "$code" --arg msg "$*" \
       '{schema_version: $v, ok: false, command: $cmd, error: {code: $code, message: $msg}}' >&3
   else
-    printf '%s: %s\n' "$KARMA_NAME" "$*" >&2
+    printf '%s: %s\n' "$MUJO_NAME" "$*" >&2
   fi
   exit "$code"
 }
 
 usage_error() {
-  die "$EXIT_USAGE" "$* (see '$KARMA_NAME ${KARMA_CMD:+$KARMA_CMD }--help')"
+  die "$EXIT_USAGE" "$* (see '$MUJO_NAME ${MUJO_CMD:+$MUJO_CMD }--help')"
 }
 
 # emit: wrap the JSON on stdin in the success envelope (JSON mode only).
 emit() {
   if (( OPT_JSON )); then
-    jq -c --argjson v "$KARMA_SCHEMA_VERSION" --arg cmd "$KARMA_CMD" \
+    jq -c --argjson v "$MUJO_SCHEMA_VERSION" --arg cmd "$MUJO_CMD" \
       --argjson dry "$( (( OPT_DRY_RUN )) && echo true || echo false)" \
       '{schema_version: $v, ok: true, command: $cmd, dry_run: $dry, data: .}' >&3
   else
@@ -147,13 +147,13 @@ need() {
 # Commands that only make sense inside a graphical session call this first.
 require_wayland() {
   [[ -n ${WAYLAND_DISPLAY:-} ]] \
-    || die "$EXIT_ENV" "'$KARMA_NAME $KARMA_CMD' needs a Wayland session (WAYLAND_DISPLAY is not set)"
+    || die "$EXIT_ENV" "'$MUJO_NAME $MUJO_CMD' needs a Wayland session (WAYLAND_DISPLAY is not set)"
 }
 
 # Commands that talk to the compositor call this first.
 require_hyprland() {
   [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]] \
-    || die "$EXIT_ENV" "'$KARMA_NAME $KARMA_CMD' needs a running Hyprland session"
+    || die "$EXIT_ENV" "'$MUJO_NAME $MUJO_CMD' needs a running Hyprland session"
   need hyprctl
 }
 
@@ -162,17 +162,17 @@ atomic_write() {
   local dest=$1 dir tmp
   dir=$(dirname -- "$dest")
   mkdir -p -- "$dir"
-  tmp=$(mktemp "$dir/.$KARMA_NAME.XXXXXX")
+  tmp=$(mktemp "$dir/.$MUJO_NAME.XXXXXX")
   if ! cat >"$tmp"; then rm -f -- "$tmp"; return 1; fi
   chmod 644 -- "$tmp"
   mv -f -- "$tmp" "$dest"
 }
 
 # Serialise mutating commands. The lock is released when the process exits.
-karma_lock() {
-  mkdir -p -- "$KARMA_STATE_DIR"
-  exec 9>"$KARMA_STATE_DIR/.lock"
-  flock -w 10 9 || die "$EXIT_FAIL" "another $KARMA_NAME action is still running"
+mujo_lock() {
+  mkdir -p -- "$MUJO_STATE_DIR"
+  exec 9>"$MUJO_STATE_DIR/.lock"
+  flock -w 10 9 || die "$EXIT_FAIL" "another $MUJO_NAME action is still running"
 }
 
 # ---- mutating commands: plan, apply, record --------------------------------
@@ -182,7 +182,7 @@ karma_lock() {
 #   <apply the change>
 #   change_end SUMMARY BEFORE AFTER UNDO                # journal, report
 # BEFORE, PLANNED and AFTER are JSON objects describing the state; UNDO is a
-# JSON argv array for `karma undo`, or null if the change cannot be reverted.
+# JSON argv array for `mujo undo`, or null if the change cannot be reverted.
 # `data` in --json mode is always {journal_id, changed, before, after}.
 
 change_begin() {
@@ -211,7 +211,7 @@ change_end() {
   if [[ $undo == null ]]; then
     say "Journal: $jid (cannot be undone)"
   else
-    say "Journal: $jid (undo: $KARMA_NAME undo $jid)"
+    say "Journal: $jid (undo: $MUJO_NAME undo $jid)"
   fi
   jq -n --arg j "$jid" --argjson b "$before" --argjson a "$after" \
     '{journal_id: $j, changed: true, before: $b, after: $a}' | emit
@@ -255,17 +255,17 @@ json_array() {
   jq -cn '$ARGS.positional' --args -- "$@"
 }
 
-karma_help() {
+mujo_help() {
   local name
   cat <<EOF
-$KARMA_NAME $KARMA_VERSION: control plane for the $KARMA_NAME desktop
+$MUJO_NAME $MUJO_VERSION: control plane for the $MUJO_NAME desktop
 
-Usage: $KARMA_NAME [global flags] <command> [arguments]
+Usage: $MUJO_NAME [global flags] <command> [arguments]
 
 Commands:
 EOF
-  for name in "${KARMA_CMD_ORDER[@]}"; do
-    printf '  %-10s %s\n' "$name" "${KARMA_CMD_SUMMARY[$name]}"
+  for name in "${MUJO_CMD_ORDER[@]}"; do
+    printf '  %-10s %s\n' "$name" "${MUJO_CMD_SUMMARY[$name]}"
   done
   cat <<EOF
   version    Print the version
@@ -282,39 +282,39 @@ Exit codes: 0 ok, 1 failure, 2 usage error, 3 unsupported environment.
 EOF
 }
 
-karma_main() {
-  karma_init_fds
-  trap karma_cleanup EXIT
-  karma_parse_globals "$@"
+mujo_main() {
+  mujo_init_fds
+  trap mujo_cleanup EXIT
+  mujo_parse_globals "$@"
   need jq flock
-  set -- "${KARMA_ARGS[@]}"
+  set -- "${MUJO_ARGS[@]}"
 
   local cmd=${1:-}
   case $cmd in
     "")
-      if (( OPT_HELP )); then karma_help >&3; exit "$EXIT_OK"; fi
-      karma_help >&2
+      if (( OPT_HELP )); then mujo_help >&3; exit "$EXIT_OK"; fi
+      mujo_help >&2
       exit "$EXIT_USAGE"
       ;;
     help)
       shift
-      if (( $# == 0 )); then karma_help >&3; exit "$EXIT_OK"; fi
+      if (( $# == 0 )); then mujo_help >&3; exit "$EXIT_OK"; fi
       OPT_HELP=1
       cmd=$1
       ;;
     version)
-      KARMA_CMD=version
-      say "$KARMA_NAME $KARMA_VERSION"
-      jq -n --arg v "$KARMA_VERSION" '{version: $v}' | emit
+      MUJO_CMD=version
+      say "$MUJO_NAME $MUJO_VERSION"
+      jq -n --arg v "$MUJO_VERSION" '{version: $v}' | emit
       exit "$EXIT_OK"
       ;;
   esac
   [[ $cmd == help ]] || shift
 
-  if [[ -z ${KARMA_CMD_SUMMARY[$cmd]+x} ]]; then
-    die "$EXIT_USAGE" "unknown command '$cmd' (see '$KARMA_NAME --help')"
+  if [[ -z ${MUJO_CMD_SUMMARY[$cmd]+x} ]]; then
+    die "$EXIT_USAGE" "unknown command '$cmd' (see '$MUJO_NAME --help')"
   fi
-  KARMA_CMD=$cmd
+  MUJO_CMD=$cmd
   if (( OPT_HELP )); then
     "help_${cmd//-/_}" "$@" >&3
     exit "$EXIT_OK"

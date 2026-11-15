@@ -5,7 +5,7 @@
       "id": "quickshell",
       "description": "Quickshell token values (read live by theme/Tokens.qml)",
       "template": "quickshell/tokens.json.tmpl",
-      "target": "@config/quickshell/karma/theme/tokens.json",
+      "target": "@config/quickshell/mujo/theme/tokens.json",
       "scope": "user",
       "comment": "",
       "reload": "quickshell",
@@ -15,9 +15,9 @@
     },
     {
       "id": "hypr",
-      "description": "Hyprland token table (require \"karma_tokens\")",
-      "template": "hypr/karma_tokens.lua.tmpl",
-      "target": "@config/hypr/karma_tokens.lua",
+      "description": "Hyprland token table (require \"mujo_tokens\")",
+      "template": "hypr/mujo_tokens.lua.tmpl",
+      "target": "@config/hypr/mujo_tokens.lua",
       "scope": "user",
       "comment": "--",
       "reload": "hyprland",
@@ -28,8 +28,8 @@
     {
       "id": "ghostty",
       "description": "Ghostty colours, font and padding",
-      "template": "ghostty/karma-theme.tmpl",
-      "target": "@config/ghostty/karma-theme",
+      "template": "ghostty/mujo-theme.tmpl",
+      "target": "@config/ghostty/mujo-theme",
       "scope": "user",
       "comment": "#",
       "reload": "ghostty",
@@ -40,8 +40,8 @@
     {
       "id": "tmux",
       "description": "tmux colours: status line, panes, messages, copy mode, pop-ups",
-      "template": "tmux/karma-theme.conf.tmpl",
-      "target": "@config/tmux/karma-theme.conf",
+      "template": "tmux/mujo-theme.conf.tmpl",
+      "target": "@config/tmux/mujo-theme.conf",
       "scope": "user",
       "comment": "#",
       "reload": "tmux",
@@ -51,9 +51,9 @@
     },
     {
       "id": "btop",
-      "description": "btop theme (color_theme = \"karma\")",
-      "template": "btop/karma.theme.tmpl",
-      "target": "@config/btop/themes/karma.theme",
+      "description": "btop theme (color_theme = \"mujo\")",
+      "template": "btop/mujo.theme.tmpl",
+      "target": "@config/btop/themes/mujo.theme",
       "scope": "user",
       "comment": "#",
       "lint": [
@@ -74,8 +74,8 @@
     {
       "id": "fzf",
       "description": "fzf options file (FZF_DEFAULT_OPTS_FILE)",
-      "template": "fzf/karma.fzfrc.tmpl",
-      "target": "@config/fzf/karma.fzfrc",
+      "template": "fzf/mujo.fzfrc.tmpl",
+      "target": "@config/fzf/mujo.fzfrc",
       "scope": "user",
       "comment": "#",
       "lint": [
@@ -85,8 +85,8 @@
     {
       "id": "zsh",
       "description": "zsh prompt, autosuggestion and highlighting colours",
-      "template": "zsh/karma-theme.zsh.tmpl",
-      "target": "@config/zsh/karma-theme.zsh",
+      "template": "zsh/mujo-theme.zsh.tmpl",
+      "target": "@config/zsh/mujo-theme.zsh",
       "scope": "user",
       "comment": "#",
       "lint": [
@@ -157,7 +157,7 @@
       "id": "vtrgb",
       "description": "Linux console palette for setvtrgb",
       "template": "tty/palette.vtrgb.tmpl",
-      "target": "/etc/karma/palette.vtrgb",
+      "target": "/etc/mujo/palette.vtrgb",
       "scope": "system",
       "comment": "",
       "lint": [

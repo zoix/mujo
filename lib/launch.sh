@@ -1,16 +1,16 @@
 # shellcheck shell=bash
-# karma launch: application launcher over the XDG desktop entries, with an
+# mujo launch: application launcher over the XDG desktop entries, with an
 # fzf TUI. Apps launched more often sort first.
 
-karma_register launch "Application launcher TUI"
+mujo_register launch "Application launcher TUI"
 
-LAUNCH_HISTORY=$KARMA_STATE_DIR/launch-history.tsv
+LAUNCH_HISTORY=$MUJO_STATE_DIR/launch-history.tsv
 
 help_launch() {
   cat <<EOF
-Usage: $KARMA_NAME launch [pick] [--window]
-       $KARMA_NAME launch list
-       $KARMA_NAME launch run ID
+Usage: $MUJO_NAME launch [pick] [--window]
+       $MUJO_NAME launch list
+       $MUJO_NAME launch run ID
 
 pick  Choose an application with fzf (the default); the preview shows its
       description and command. Enter starts it.
@@ -87,7 +87,7 @@ launch_row_json() {
 
 launch_count() {
   local id=$1
-  mkdir -p -- "$KARMA_STATE_DIR"
+  mkdir -p -- "$MUJO_STATE_DIR"
   [[ -f $LAUNCH_HISTORY ]] || : >"$LAUNCH_HISTORY"
   gawk -F'\t' -v id="$id" 'BEGIN { OFS = "\t" }
     $1 == id { print $1, $2 + 1; found = 1; next } { print }
@@ -122,7 +122,7 @@ launch_start() {
 cmd_launch() {
   local sub=${1:-pick}
   (( $# )) && shift
-  karma_set_cmd "launch $sub"
+  mujo_set_cmd "launch $sub"
   need gawk
   case $sub in
     list)
@@ -133,7 +133,7 @@ cmd_launch() {
       jq -n --argjson a "$apps" '{apps: $a}' | emit
       ;;
     run)
-      (( $# == 1 )) || usage_error "run needs exactly one desktop id (see '$KARMA_NAME launch list')"
+      (( $# == 1 )) || usage_error "run needs exactly one desktop id (see '$MUJO_NAME launch list')"
       local row
       row=$(launch_entries | gawk -F'\t' -v id="$1" '$1 == id && !found { print; found = 1 }')
       [[ -n $row ]] || die "$EXIT_FAIL" "no application with the id '$1'"

@@ -1,19 +1,19 @@
 # shellcheck shell=bash
-# karma power: lock, suspend, logout, reboot, shutdown.
+# mujo power: lock, suspend, logout, reboot, shutdown.
 
-karma_register power "Lock, suspend, logout, reboot, shutdown"
+mujo_register power "Lock, suspend, logout, reboot, shutdown"
 
 POWER_ACTIONS=(lock suspend logout reboot shutdown)
 
 help_power() {
   cat <<EOF
-Usage: $KARMA_NAME power [list]
-       $KARMA_NAME power lock | suspend
-       $KARMA_NAME power logout | reboot | shutdown --yes
-       $KARMA_NAME power profile [power-saver | balanced | performance]
-       $KARMA_NAME power awake [on | off | toggle]
-       $KARMA_NAME power limit [PERCENT | off]
-       $KARMA_NAME power auto [on | off | toggle]
+Usage: $MUJO_NAME power [list]
+       $MUJO_NAME power lock | suspend
+       $MUJO_NAME power logout | reboot | shutdown --yes
+       $MUJO_NAME power profile [power-saver | balanced | performance]
+       $MUJO_NAME power awake [on | off | toggle]
+       $MUJO_NAME power limit [PERCENT | off]
+       $MUJO_NAME power auto [on | off | toggle]
 
 lock      Lock the screen. The lock screen is part of the Quickshell UI, so
           this needs the graphical session (exit 3 otherwise).
@@ -35,7 +35,7 @@ limit     Stop charging at PERCENT (50 to 100) to spare the battery; off
           laptop's firmware remembers the limit. Journaled; can be undone.
 auto      Follow the charger: power-saver on battery, balanced when plugged
           in. The interface makes the switch when the charger is plugged in
-          or pulled ('$KARMA_NAME power sync' does it by hand). Journaled;
+          or pulled ('$MUJO_NAME power sync' does it by hand). Journaled;
           can be undone.
 
 logout, reboot and shutdown cannot be undone and need --yes. --dry-run shows
@@ -46,7 +46,7 @@ EOF
 # power_command ACTION: print the command that performs it, one word per line.
 power_command() {
   case $1 in
-    lock) printf '%s\n' qs -c "$KARMA_NAME" ipc call lock lock ;;
+    lock) printf '%s\n' qs -c "$MUJO_NAME" ipc call lock lock ;;
     suspend) printf '%s\n' systemctl suspend ;;
     reboot) printf '%s\n' systemctl reboot ;;
     shutdown) printf '%s\n' systemctl poweroff ;;
@@ -130,7 +130,7 @@ power_cmd_awake() {
   else
     tui_detach hypridle
   fi
-  karma_lock
+  mujo_lock
   config_set awake "$new"
   change_end "power awake: $word_cur -> $word_new" "$before" "$after" "$(json_array power awake "$word_cur")"
 }
@@ -138,14 +138,14 @@ power_cmd_awake() {
 # The battery's charge threshold file, if the kernel offers one.
 power_limit_file() {
   local f
-  for f in "${KARMA_SYSROOT:-}"/sys/class/power_supply/BAT*/charge_control_end_threshold; do
+  for f in "${MUJO_SYSROOT:-}"/sys/class/power_supply/BAT*/charge_control_end_threshold; do
     [[ -e $f ]] && { echo "$f"; return 0; }
   done
   return 1
 }
 
 # The limit in force: read from the kernel if it can be, otherwise the one
-# karma set last (asking the firmware needs root).
+# mujo set last (asking the firmware needs root).
 power_limit_get() {
   local f
   if f=$(power_limit_file); then
@@ -165,7 +165,7 @@ power_cmd_limit() {
   if (( $# == 0 )); then
     if (( cur >= 100 )); then say "Charge limit: off (charges to 100%)"; else say "Charge limit: $cur%"; fi
     [[ $how == none ]] && say "No way to set one here: the battery has no charge threshold and framework_tool is not installed (package framework-system)."
-    [[ $how == framework_tool ]] && say "(The value $KARMA_NAME set last; the firmware is not asked, that needs root.)"
+    [[ $how == framework_tool ]] && say "(The value $MUJO_NAME set last; the firmware is not asked, that needs root.)"
     jq -n --argjson l "$cur" --arg h "$how" '{limit: $l, method: $h}' | emit
     return 0
   fi
@@ -187,7 +187,7 @@ power_cmd_limit() {
     say "Running: sudo framework_tool --charge-limit $new"
     "${sudo[@]}" framework_tool --charge-limit "$new" >/dev/null || die "$EXIT_FAIL" "framework_tool could not set the charge limit (sudo needs a terminal)"
   fi
-  karma_lock
+  mujo_lock
   config_set charge_limit "$new"
   change_end "power limit: $cur% -> $new%" "$before" "$after" "$(json_array power limit "$cur")"
 }
@@ -195,7 +195,7 @@ power_cmd_limit() {
 # True if a charger is connected (no mains supply at all counts as plugged in).
 power_on_ac() {
   local f seen=0
-  for f in "${KARMA_SYSROOT:-}"/sys/class/power_supply/*/online; do
+  for f in "${MUJO_SYSROOT:-}"/sys/class/power_supply/*/online; do
     [[ -e $f && $(cat -- "${f%/online}/type" 2>/dev/null) == Mains ]] || continue
     seen=1
     [[ $(cat -- "$f") == 1 ]] && return 0
@@ -244,19 +244,19 @@ power_cmd_auto() {
   before=$(jq -cn --argjson a "$cur" '{auto: $a}')
   after=$(jq -cn --argjson a "$new" '{auto: $a}')
   change_begin "power auto: $wc -> $wn" "$before" "$after" || return 0
-  karma_lock
+  mujo_lock
   config_set power_auto "$new"
   change_end "power auto: $wc -> $wn" "$before" "$after" "$(json_array power auto "$wc")"
   if [[ $new == true ]]; then
     flock -u 9 2>/dev/null || true
-    "$KARMA_BIN" power sync >/dev/null 2>&1 3>&1 || true
+    "$MUJO_BIN" power sync >/dev/null 2>&1 3>&1 || true
   fi
 }
 
 cmd_power() {
   local action=${1:-list}
   (( $# )) && shift
-  karma_set_cmd "power $action"
+  mujo_set_cmd "power $action"
   case $action in
     profile) power_cmd_profile "$@"; return 0 ;;
     awake) power_cmd_awake "$@"; return 0 ;;

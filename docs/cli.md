@@ -5,27 +5,27 @@ has `--dry-run`.
 
 | Command | Does | Needs |
 | --- | --- | --- |
-| `karma status` | One snapshot of everything below | nothing (missing parts are `null`) |
-| `karma audio` | Volume, mute, default output and input | PipeWire (`wpctl`, `pw-dump`) |
-| `karma net` | Wi-Fi status, scan, connect, forget, radio; `net tui` | NetworkManager (`nmcli`) |
-| `karma bt` | Bluetooth status and power; `bt tui` opens bluetui | `bluetoothctl` |
-| `karma display` | Brightness; night light | `brightnessctl`; Hyprland + `hyprsunset` |
-| `karma theme` | Build, check, accent, reduce-motion | nothing |
-| `karma wall` | Set or cycle the wallpaper | nothing |
-| `karma dnd` | Do not disturb for notifications | nothing |
-| `karma notify` | `open`: go to the app of the newest notification; `clear`: dismiss all | the interface |
-| `karma power` | lock, suspend, logout, reboot, shutdown | `systemctl`; lock needs the UI |
-| `karma shot` | Region, window or screen screenshot | Wayland (`grim`, `slurp`, `wl-copy`) |
-| `karma clip` | Clipboard history picker; `clip list`, `clip clear` | `cliphist`; picking needs Wayland |
-| `karma launch` | Application launcher; `launch list`, `launch run` | `fzf`; starting needs Wayland |
-| `karma menu` | System menu over every command | `fzf` |
-| `karma keys` | Keybinding cheat sheet; `keys tui` | Hyprland |
-| `karma log` / `undo` | Action journal | nothing |
-| `karma pkg` | Search, install and remove packages with fzf | `pacman`, `sudo`; `yay` or `paru` for the AUR |
-| `karma sys` | Processor, memory, temperature, disk, uptime | nothing |
-| `karma doctor` | Check packages, links, theme, services, session | nothing |
-| `karma update` | Update karma (git) and the system (pacman), with a summary | `git`; `pacman` and `sudo` |
-| `karma uninstall` | Remove karma's links and restore the backups | `sudo` for the `/etc` part |
+| `mujo status` | One snapshot of everything below | nothing (missing parts are `null`) |
+| `mujo audio` | Volume, mute, default output and input | PipeWire (`wpctl`, `pw-dump`) |
+| `mujo net` | Wi-Fi status, scan, connect, forget, radio; `net tui` | NetworkManager (`nmcli`) |
+| `mujo bt` | Bluetooth status and power; `bt tui` opens bluetui | `bluetoothctl` |
+| `mujo display` | Brightness; night light | `brightnessctl`; Hyprland + `hyprsunset` |
+| `mujo theme` | Build, check, accent, reduce-motion | nothing |
+| `mujo wall` | Set or cycle the wallpaper | nothing |
+| `mujo dnd` | Do not disturb for notifications | nothing |
+| `mujo notify` | `open`: go to the app of the newest notification; `clear`: dismiss all | the interface |
+| `mujo power` | lock, suspend, logout, reboot, shutdown | `systemctl`; lock needs the UI |
+| `mujo shot` | Region, window or screen screenshot | Wayland (`grim`, `slurp`, `wl-copy`) |
+| `mujo clip` | Clipboard history picker; `clip list`, `clip clear` | `cliphist`; picking needs Wayland |
+| `mujo launch` | Application launcher; `launch list`, `launch run` | `fzf`; starting needs Wayland |
+| `mujo menu` | System menu over every command | `fzf` |
+| `mujo keys` | Keybinding cheat sheet; `keys tui` | Hyprland |
+| `mujo log` / `undo` | Action journal | nothing |
+| `mujo pkg` | Search, install and remove packages with fzf | `pacman`, `sudo`; `yay` or `paru` for the AUR |
+| `mujo sys` | Processor, memory, temperature, disk, uptime | nothing |
+| `mujo doctor` | Check packages, links, theme, services, session | nothing |
+| `mujo update` | Update mujo (git) and the system (pacman), with a summary | `git`; `pacman` and `sudo` |
+| `mujo uninstall` | Remove mujo's links and restore the backups | `sudo` for the `/etc` part |
 
 A command whose "Needs" are missing exits with code 3 and says what is missing.
 
@@ -55,7 +55,7 @@ Warnings go to stderr in both modes. Human error messages go to stderr.
 
 ## Journal entry
 
-One per line in `~/.local/state/karma/journal.jsonl`:
+One per line in `~/.local/state/mujo/journal.jsonl`:
 
 ```json
 {
@@ -84,7 +84,7 @@ wallpaper changes all run the same way and return the same `data`:
 
 - Nothing to change: `changed` is `false`, `journal_id` is `null`, nothing is journaled.
 - `--dry-run`: prints a diff of `before` and `after`, `journal_id` is `null`.
-- Otherwise the change is applied and journaled, and `karma undo` reverts it.
+- Otherwise the change is applied and journaled, and `mujo undo` reverts it.
 
 Without a value the same subcommand only reports the current state.
 
@@ -92,7 +92,7 @@ Without a value the same subcommand only reports the current state.
 
 `launch`, `menu`, `clip`, `wall pick`, `net tui`, `keys tui`, `bt tui` and `audio tui` need a terminal
 (exit 3 without one) and have no `--json` form (exit 2). With `--window` they
-open in a floating Ghostty window with the class `karma.tui.<command>`; running
+open in a floating Ghostty window with the class `mujo.tui.<command>`; running
 the same command again closes that window, so one key toggles it. Four of
 them have a panel in the Quickshell UI, which `--window` uses instead while
 the UI runs: `launch`, `menu`, `wall pick`, `clip`, `keys tui`, `net tui`,
@@ -101,7 +101,7 @@ are full terminal programs (bluetui, wiremix) and stay in a terminal. Each has a
 non-interactive sibling for scripts: `launch list`, `menu list`, `clip list`,
 `net scan`, `keys`, `bt`.
 
-## karma status
+## mujo status
 
 `data`: `{audio, network, bluetooth, display, theme, wallpaper, battery, session}`.
 Each of the first four has the shape of its own command's status below, or is
@@ -109,7 +109,7 @@ Each of the first four has the shape of its own command's status below, or is
 `wallpaper` a path or `null`, `battery` `{name, percent, status}` or `null`,
 `session` `{wayland, hyprland, type}`.
 
-## karma audio
+## mujo audio
 
 | Subcommand | Mutates | Notes |
 | --- | --- | --- |
@@ -133,7 +133,7 @@ Each of the first four has the shape of its own command's status below, or is
 `before`/`after`: `volume` and `muted` (both, for a volume change), `device` (node name). Undo of a device
 change uses the node name, which survives a restart; ids do not.
 
-## karma display
+## mujo display
 
 | Subcommand | Mutates | Notes |
 | --- | --- | --- |
@@ -145,7 +145,7 @@ The night light is hyprsunset, started on first use. The temperature is kept
 in `config.json` (`night_temperature`); whether it is on is not restored at
 the next login.
 
-## karma net
+## mujo net
 
 | Subcommand | Mutates | Notes |
 | --- | --- | --- |
@@ -170,19 +170,19 @@ From the interface the result of `connect` is shown as a notification.
 Passwords are never written to the journal. On a terminal `connect` lets
 nmcli ask for the password; `--password-stdin` reads one line instead.
 
-## karma bt
+## mujo bt
 
 `status` (default): `{powered, adapter, name, devices: [{address, name, connected}]}`
 (paired devices). `power [on|off|toggle]` mutates; without a word it returns
 `{powered}`. `tui` opens bluetui.
 
-## karma wall
+## mujo wall
 
 | Subcommand | Mutates | Notes |
 | --- | --- | --- |
 | `status` (default) | no | `{wallpaper, directory, available}` |
 | `list` | no | `{directory, current, images: [{path, name, thumb}]}`; `thumb` is `null` until indexed |
-| `index` | no | Cache a thumbnail and the brightness and main colour of each image (`~/.cache/karma/wallpapers`) |
+| `index` | no | Cache a thumbnail and the brightness and main colour of each image (`~/.cache/mujo/wallpapers`) |
 | `pick` | - | With `--window` in the desktop: the thumbnail strip of the UI, which applies as you move. In a terminal: an fzf list with a preview of each image (drawn with the kitty graphics protocol, which Ghostty supports) |
 | `set FILE` | yes | png, jpg, jpeg or webp |
 | `next`, `prev` | yes | Cycle through the directory by name |
@@ -195,15 +195,15 @@ to the UI (`wallpaper set PATH`), which draws it on every screen.
 
 While `theme mode` is `auto`, a wallpaper change also sets the mode from the
 image's mean brightness (ImageMagick; 55% or more is light). That step has
-its own journal entry, marked not reversible, so `karma undo` reverts the
+its own journal entry, marked not reversible, so `mujo undo` reverts the
 wallpaper, and the mode follows it back.
 
-## karma dnd
+## mujo dnd
 
 `dnd [on|off|toggle]` mutates `dnd` in `config.json`; without a word it
 returns `{dnd}`. While it is on the UI shows only critical notifications.
 
-## karma power
+## mujo power
 
 `power profile [NAME]` shows or sets the power profile (`power-saver`,
 `balanced`, `performance`; needs power-profiles-daemon); `power awake
@@ -230,7 +230,7 @@ nothing runs and `journal_id` is `null`. `logout`, `reboot` and `shutdown`
 need `--yes` (exit 2 without it). Entries are journaled as not reversible.
 `lock` calls the Quickshell lock screen and exits 3 while the UI is not running.
 
-## karma shot
+## mujo shot
 
 `shot [region|window|screen] [--no-save] [--no-copy] [--dir DIR]`, and for
 `region` also `--geometry "X,Y WxH"` (take exactly that area) or `--slurp`.
@@ -244,76 +244,76 @@ once with `picking: true`; the picker then runs the command again with
 with tesseract and copies it: `{mode: "text", text, copied}`. No image is
 kept; exit 1 if the area holds no text.
 
-## karma record
+## mujo record
 
 `record [toggle|start|stop|status] [region|screen] [--audio] [--dir DIR]`
-records with wf-recorder to `~/Videos/Recordings/karma-<date>-<time>.mp4`
+records with wf-recorder to `~/Videos/Recordings/mujo-<date>-<time>.mp4`
 (`record_dir` in `config.json`). `toggle` (the default) starts, or stops
 the recording that is running. `data`: `{recording, mode, path}`. The
-recorder's process id and file are in `$XDG_RUNTIME_DIR/karma-record.pid`;
+recorder's process id and file are in `$XDG_RUNTIME_DIR/mujo-record.pid`;
 stopping interrupts it, copies the path to the clipboard and tells the
 interface (IPC `record state`), which shows a red dot in the bar meanwhile.
 Not journaled.
 
-## karma calc
+## mujo calc
 
 `calc EXPRESSION... [--copy]` works the expression out with `qalc -t`:
 `{expression, result, copied}`; exit 1 if qalc has no answer.
 
-## karma emoji
+## mujo emoji
 
 `emoji [pick]` (fzf), `emoji list`: `{emoji: [{emoji, name}]}` from
 `/usr/share/unicode/emoji/emoji-test.txt` without the skin-tone variants,
 `emoji copy EMOJI`: `{emoji, copied}`. Exit 3 if the list is not installed.
 
-## karma term
+## mujo term
 
 `term` shows or hides the drop-down terminal: a Ghostty window of class
-`karma.drop` that a window rule keeps on the special workspace `term`. The
+`mujo.drop` that a window rule keeps on the special workspace `term`. The
 first call starts it. `data`: `{started, toggled}`. Needs Hyprland.
 
-## karma focus
+## mujo focus
 
 `focus start [MINUTES]` (default 25, at most 480) writes
 `focus: {until, dnd_before}` to `config.json`, turns do-not-disturb on and
-schedules `karma focus finish` with a one-off systemd user timer
-(`karma-focus`). `focus stop` ends it early; either way do-not-disturb goes
+schedules `mujo focus finish` with a one-off systemd user timer
+(`mujo-focus`). `focus stop` ends it early; either way do-not-disturb goes
 back to `dnd_before`. `focus` or `focus status`:
 `{running, until, minutes_left}`. Start and stop are journaled; undoing a
 start stops the session.
 
-## karma weather
+## mujo weather
 
 `weather set PLACE` looks the name up at open-meteo.com ("Name, Region"
 picks among namesakes) and stores `weather: {name, region, lat, lon}` in
 `config.json`, the coordinates rounded to two decimals. `weather` then
 returns `{set, place, region, unit, temperature, code, description, day,
-high, low, fetched}`, kept for 30 minutes in `~/.cache/karma/weather.json`
+high, low, fetched}`, kept for 30 minutes in `~/.cache/mujo/weather.json`
 (`--refresh` asks again). Without a place it returns `{set: false}` and
 makes no request. `weather units [c|f]` mutates `weather_units`;
 `weather clear` forgets the place. All three changes are journaled.
 
-## karma clip
+## mujo clip
 
 `pick` (default, interactive), `list [--limit N]`: `{entries: [{id, preview}]}`,
 `copy ID`: put that entry back on the clipboard (`{id, copied}`; needs Wayland),
 `clear` (needs `--yes`, not reversible).
 
-## karma launch
+## mujo launch
 
 `pick` (default, interactive), `list`:
 `{apps: [{id, name, comment, exec, terminal, file, launches}]}`, most used
 first. `run ID`: `{id, name, exec, terminal, started}`; `--dry-run` prints the
-command. Launch counts live in `~/.local/state/karma/launch-history.tsv`.
+command. Launch counts live in `~/.local/state/mujo/launch-history.tsv`.
 
-## karma menu
+## mujo menu
 
 `pick` (default, interactive), `list`: `{entries: [{label, kind, command}]}`,
 `run LABEL`: do what that entry does without a terminal (`{label, kind, command, done}`);
 a setting's result is shown as a notification. The UI's launcher uses it.
 `kind` is `run`, `tui`, `app`, `shot`, `accent` or `confirm`.
 
-## karma keys
+## mujo keys
 
 `list` (default): `{binds: [{keys, description, mods, key, locked, repeat, mouse, action}]}`;
 `action` is the Lua expression Hyprland runs for the binding, or `null` for
@@ -321,7 +321,7 @@ ones that only make sense on their key. `tui`: search with fzf, Enter runs
 the chosen one. `run DESCRIPTION`: do what that binding does
 (`{description, action}`; `--dry-run` only shows the expression).
 
-## karma pkg
+## mujo pkg
 
 | Subcommand | Mutates | Notes |
 | --- | --- | --- |
@@ -332,7 +332,7 @@ the chosen one. `run DESCRIPTION`: do what that binding does
 The pickers need a terminal (`--window` opens one) and have no `--json`.
 Installs and removals are journaled as not reversible.
 
-## karma sys
+## mujo sys
 
 Read-only. `data`:
 
@@ -348,7 +348,7 @@ readings is `1 - Δidle / Δtotal`. `sys workspaces` lists the Hyprland
 workspaces with their windows (`{workspaces: [{id, name, monitor, windows}]}`). The human output takes two readings itself.
 `temperature_c` is `null` without a sensor. `sys --window` opens the dashboard.
 
-## karma doctor
+## mujo doctor
 
 Read-only. `data`:
 
@@ -356,16 +356,16 @@ Read-only. `data`:
 {"ok": false, "failed": 1, "warnings": 1,
  "checks": [{"group": "links", "status": "fail",
              "message": "3 of 43 config file(s) are not linked: ...",
-             "fix": "~/karma/install.sh --skip-system"}]}
+             "fix": "~/mujo/install.sh --skip-system"}]}
 ```
 
 `group` is `packages`, `links`, `theme`, `settings`, `services` or `session`;
 `status` is `ok`, `warn`, `fail` or `skip` (session checks outside the
 graphical session). Exit code 1 if any check failed; warnings do not fail.
 
-## karma update
+## mujo update
 
-`update [--karma-only | --system-only]`. Pulls the checkout
+`update [--mujo-only | --system-only]`. Pulls the checkout
 (`git pull --ff-only`; skipped without an upstream branch), relinks the config
 and rebuilds the theme if commits arrived, then runs `sudo pacman -Syu` and,
 if `yay` or `paru` is installed, `yay -Sua` for AUR packages. In a
@@ -374,24 +374,24 @@ required without a terminal (exit 2 otherwise). `--dry-run` lists pending
 packages and unmerged commits; only the AUR is asked over the network. `data`:
 
 ```json
-{"journal_id": "...", "karma": {"state": "updated", "commits": 3},
+{"journal_id": "...", "mujo": {"state": "updated", "commits": 3},
  "system": {"packages": ["linux", "jq"]}, "reboot_recommended": true}
 ```
 
-`karma.state` is `updated`, `current`, `no-upstream`, `failed`, `skipped`, or
+`mujo.state` is `updated`, `current`, `no-upstream`, `failed`, `skipped`, or
 `pending` (dry run). In `--json` mode pacman's own output goes to stderr.
 Journaled as not reversible.
 
 `update check [--refresh]` changes nothing: `{repo, aur, count, checked}`,
 the names of the packages that can be upgraded, kept for an hour in
-`~/.cache/karma/updates.json` (a finished update removes it). The bar shows
+`~/.cache/mujo/updates.json` (a finished update removes it). The bar shows
 `count` while it is above zero.
 
-## karma uninstall
+## mujo uninstall
 
 `uninstall [--skip-system]`, needs `--yes`; `--dry-run` prints the plan.
-Removes the links from `config/`, moves what karma generated or wrote to
-`~/.local/state/karma/uninstalled/<time>/`, restores the backups (files,
+Removes the links from `config/`, moves what mujo generated or wrote to
+`~/.local/state/mujo/uninstalled/<time>/`, restores the backups (files,
 restowed and refolded dotfile packages) and, with sudo, the `/etc` files, the
 previous login screen and locale. Packages are not removed. `data`:
 `{journal_id, moved_to, steps: [...], notes: [...]}`; `notes` lists what could
@@ -399,25 +399,25 @@ not be restored. See [install.md](install.md).
 
 ## UI notifications
 
-After a change karma calls the Quickshell IPC (`qs -c karma ipc call ...`),
-best effort and never fatal. `qs -c karma ipc show` lists the targets:
+After a change mujo calls the Quickshell IPC (`qs -c mujo ipc call ...`),
+best effort and never fatal. `qs -c mujo ipc show` lists the targets:
 
 | Target | Function | Called by |
 | --- | --- | --- |
-| `osd` | `volume PERCENT MUTED`, `microphone PERCENT MUTED`, `brightness PERCENT` | `karma audio`, `karma display` |
-| `wallpaper` | `set PATH` | `karma wall` |
-| `notify` | `reload` (re-read `config.json`), `clear` (dismiss all cards), `open` (go to the newest one's app) | `karma dnd`, `karma notify` |
-| `theme` | `reload` (re-read the colours; the UI is not restarted) | `karma theme` |
-| `lock` | `lock` | `karma power lock` |
+| `osd` | `volume PERCENT MUTED`, `microphone PERCENT MUTED`, `brightness PERCENT` | `mujo audio`, `mujo display` |
+| `wallpaper` | `set PATH` | `mujo wall` |
+| `notify` | `reload` (re-read `config.json`), `clear` (dismiss all cards), `open` (go to the newest one's app) | `mujo dnd`, `mujo notify` |
+| `theme` | `reload` (re-read the colours; the UI is not restarted) | `mujo theme` |
+| `lock` | `lock` | `mujo power lock` |
 | `launcher` | `apps`, `actions`, `wallpapers`, `clipboard`, `keys`, `wifi`, `calc`, `emoji` (each toggles that mode), `close` | `--window` on `launch`, `menu`, `wall pick`, `calc`, `emoji` |
-| `session` | `toggle` (the power menu) | `karma power --window` |
-| `dashboard` | `toggle`, `workspaces` (the page of workspace miniatures) | `karma sys --window`, `karma sys workspaces --window` |
-| `sidebar` | `toggle` (quick settings) | `karma status --window` |
-| `picker` | `open`, `close` (the screenshot area picker) | `karma shot region` |
-| `record` | `state BOOL` (show or hide the recording dot) | `karma record` |
+| `session` | `toggle` (the power menu) | `mujo power --window` |
+| `dashboard` | `toggle`, `workspaces` (the page of workspace miniatures) | `mujo sys --window`, `mujo sys workspaces --window` |
+| `sidebar` | `toggle` (quick settings) | `mujo status --window` |
+| `picker` | `open`, `close` (the screenshot area picker) | `mujo shot region` |
+| `record` | `state BOOL` (show or hide the recording dot) | `mujo record` |
 | `bar` | `toggle` (hide or show the frame and bar) | by hand |
 
-## karma theme
+## mujo theme
 
 | Subcommand | Mutates | Notes |
 | --- | --- | --- |
@@ -441,7 +441,7 @@ best effort and never fatal. `qs -c karma ipc show` lists the targets:
   "journal_id": "20261114T094622Z-3df5",
   "settings": {"accent": "blue", "reduce_motion": false},
   "files": [
-    {"id": "ghostty", "scope": "user", "path": "/home/u/.config/ghostty/karma-theme",
+    {"id": "ghostty", "scope": "user", "path": "/home/u/.config/ghostty/mujo-theme",
      "status": "changed", "diff": "--- ... (only with --dry-run)"}
   ]
 }
@@ -469,18 +469,18 @@ without an argument return `{"accent": "mauve", "available": [...]}` and
 `data` for `show`: `{"path": "color.bg", "value": {...}}`.
 `data` for `render`: `{"output": "..."}`.
 
-## karma log
+## mujo log
 
-`karma log [--limit N]`, newest first (default 20).
+`mujo log [--limit N]`, newest first (default 20).
 `data`: `{"entries": [<journal entry> + {"undone_by": id | null}]}`.
 
-## karma undo
+## mujo undo
 
-`karma undo [ID]` with `--dry-run` and `--json` passed through. ID may be a
+`mujo undo [ID]` with `--dry-run` and `--json` passed through. ID may be a
 unique prefix. Output is the output of the undo command it runs (for example
 `theme accent`). Errors: no matching entry, ambiguous prefix (exit 2), entry
 not reversible, entry already undone (exit 1).
 
-## karma version
+## mujo version
 
 `data`: `{"version": "0.1.0"}`.

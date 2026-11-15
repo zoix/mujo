@@ -1,12 +1,12 @@
 -- Gaps, borders, rounding and colours. Every value comes from
--- karma_tokens.lua, which `karma theme build` generates from design/tokens.json.
+-- mujo_tokens.lua, which `mujo theme build` generates from design/tokens.json.
 -- Depth comes from background steps only: no shadows, and no blur unless
--- "glass" is on (`karma theme glass on`), which blurs what lies behind the
+-- "glass" is on (`mujo theme glass on`), which blurs what lies behind the
 -- frame and its panels. Windows are never see-through.
 
 -- Absolute path: this file is a link into the checkout (see hyprland.lua).
 local cfg = (os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")) .. "/hypr/"
-local t = require(cfg .. "karma_tokens")
+local t = require(cfg .. "mujo_tokens")
 
 hl.config({
     general = {

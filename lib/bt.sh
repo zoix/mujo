@@ -1,14 +1,14 @@
 # shellcheck shell=bash
-# karma bt: Bluetooth status and power through bluetoothctl; pairing and
+# mujo bt: Bluetooth status and power through bluetoothctl; pairing and
 # device management happen in bluetui.
 
-karma_register bt "Bluetooth status and power (TUI: bt tui)"
+mujo_register bt "Bluetooth status and power (TUI: bt tui)"
 
 help_bt() {
   cat <<EOF
-Usage: $KARMA_NAME bt [status]
-       $KARMA_NAME bt power [on | off | toggle]
-       $KARMA_NAME bt tui [--window]
+Usage: $MUJO_NAME bt [status]
+       $MUJO_NAME bt power [on | off | toggle]
+       $MUJO_NAME bt tui [--window]
 
 status  The adapter and the paired devices.
 power   Show or switch the adapter. Journaled; can be undone.
@@ -46,7 +46,7 @@ bt_need() {
 cmd_bt() {
   local sub=${1:-status}
   (( $# )) && shift
-  karma_set_cmd "bt $sub"
+  mujo_set_cmd "bt $sub"
   case $sub in
     status) bt_cmd_status "$@" ;;
     power) bt_cmd_power "$@" ;;
@@ -88,9 +88,9 @@ bt_cmd_power() {
 
 bt_cmd_tui() {
   (( $# == 0 )) || usage_error "unexpected argument '$1'"
-  (( OPT_JSON )) && usage_error "'$KARMA_CMD' is interactive and has no --json output"
+  (( OPT_JSON )) && usage_error "'$MUJO_CMD' is interactive and has no --json output"
   need bluetui
   [[ -t 0 && -t 2 ]] \
-    || die "$EXIT_ENV" "'$KARMA_NAME $KARMA_CMD' needs a terminal (inside the desktop, add --window)"
+    || die "$EXIT_ENV" "'$MUJO_NAME $MUJO_CMD' needs a terminal (inside the desktop, add --window)"
   exec bluetui
 }

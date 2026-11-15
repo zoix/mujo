@@ -5,17 +5,17 @@ hl.env("TERMINAL", "ghostty")
 hl.on("hyprland.start", function()
     -- Lets GUI apps ask for elevated privileges.
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
-    -- The karma interface: frame, bar, notifications, OSD, wallpaper, lock
+    -- The mujo interface: frame, bar, notifications, OSD, wallpaper, lock
     -- screen. It owns the notification service, so it starts first.
     -- Run as a user service so that it is restarted if it ever crashes.
     -- The service, and every app started from its launcher, must see the
     -- same environment as apps started by a key (the Wayland hints for
     -- Electron apps in compat.lua, the cursor size, ...), so the session's
     -- environment is handed to systemd first.
-    hl.exec_cmd("dbus-update-activation-environment --systemd --all; systemctl --user restart karma-ui.service")
+    hl.exec_cmd("dbus-update-activation-environment --systemd --all; systemctl --user restart mujo-ui.service")
     -- Locks after a while without input, and before sleep (hypridle.conf).
     hl.exec_cmd("hypridle")
-    -- Clipboard history for `karma clip`.
+    -- Clipboard history for `mujo clip`.
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
 end)

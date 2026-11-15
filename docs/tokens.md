@@ -8,12 +8,12 @@ written. Everything else reads roles from it through generated files.
 | Key | Contents |
 | --- | --- |
 | `schema_version` | `1` |
-| `defaults` | `accent` (one of `accents`), `reduce_motion` (bool). Overridden by `~/.config/karma/config.json` |
+| `defaults` | `accent` (one of `accents`), `reduce_motion` (bool). Overridden by `~/.config/mujo/config.json` |
 | `palette` | The 26 Catppuccin Mocha colours, lowercase `#rrggbb`. The only place raw names appear |
-| `light` | Overrides merged over everything else in light mode (`karma theme mode`): the Catppuccin Latte `palette`, the terminal `ansi` order and the `gtk` settings. The `console` colours (TTY, login screen) always resolve from the dark palette, so a mode change never touches `/etc` |
+| `light` | Overrides merged over everything else in light mode (`mujo theme mode`): the Catppuccin Latte `palette`, the terminal `ansi` order and the `gtk` settings. The `console` colours (TTY, login screen) always resolve from the dark palette, so a mode change never touches `/etc` |
 | `gtk` | GTK theme name and dark preference for the current mode |
 
-With `karma theme palette wallpaper` the neutral palette entries (`base`,
+With `mujo theme palette wallpaper` the neutral palette entries (`base`,
 `mantle`, `crust`, `surface*`, `overlay*`, `subtext*`, `text`) are replaced at
 build time by colours of the wallpaper's hue, and a palette entry `wallpaper`
 is added for the accent (`_wallpaper_palette` in `lib/theme.jq`). Templates and
@@ -42,7 +42,7 @@ A string value of the form `"{path}"` refers to another token, e.g.
 Resolution (`lib/theme.jq`, `resolve`) runs up to 8 passes and fails on an
 unresolved reference, a cycle, an unknown accent or a palette value that is
 not lowercase `#rrggbb`. With `reduce_motion` on, every `motion.duration` is 0.
-The result, plus a `settings` object, is what templates see; `karma theme show`
+The result, plus a `settings` object, is what templates see; `mujo theme show`
 prints it.
 
 ## Templates
@@ -83,7 +83,7 @@ joined with `,`.
 A colour or number filter applied to a list maps over it and joins with `,`;
 `{{ console.ansi | r }}` gives the 16 values one `setvtrgb` line needs.
 
-`karma theme render FILE` renders any template with the current tokens, for
+`mujo theme render FILE` renders any template with the current tokens, for
 trying things out.
 
 ## Consumers
@@ -92,26 +92,26 @@ trying things out.
 
 | Field | Meaning |
 | --- | --- |
-| `id` | Name used by `karma theme build ID` / `check ID` |
+| `id` | Name used by `mujo theme build ID` / `check ID` |
 | `template` | Path under `design/templates/` |
 | `target` | `@config/...` (XDG config), `@state/...`, or `/etc/...` |
-| `scope` | `user` (written directly) or `system` (staged in `~/.local/state/karma/theme/system/`, installed by the installer) |
+| `scope` | `user` (written directly) or `system` (staged in `~/.local/state/mujo/theme/system/`, installed by the installer) |
 | `comment`, `comment_end` | Comment syntax for the "do not edit" header; empty for formats without comments |
 | `reload` | Optional hook run after a change: `quickshell`, `hyprland`, `ghostty`, `tmux`, `gtk` |
 | `lint` | Repo paths of hand-written config that belongs with this consumer |
 
 Current consumers (14): `quickshell` (tokens.json, read live by Tokens.qml),
-`hypr` (karma_tokens.lua), `ghostty`, `tmux`, `btop`, `yazi`, `fzf` (FZF_DEFAULT_OPTS_FILE), `zsh`, `gtk3` and `gtk4`
+`hypr` (mujo_tokens.lua), `ghostty`, `tmux`, `btop`, `yazi`, `fzf` (FZF_DEFAULT_OPTS_FILE), `zsh`, `gtk3` and `gtk4`
 (gtk.css colour overrides), `gtk3-settings` and `gtk4-settings` (settings.ini:
 theme, dark preference, UI font), `greetd` (tuigreet theme), `vtrgb` (console
 palette).
 
-To add one: write the template, add an entry, run `karma theme build ID` and
-`karma theme check ID`.
+To add one: write the template, add an entry, run `mujo theme build ID` and
+`mujo theme check ID`.
 
 ## Check
 
-`karma theme check [ID...]` fails (exit 1) when:
+`mujo theme check [ID...]` fails (exit 1) when:
 
 1. A generated file is missing, edited by hand, or out of date (it differs from
    a fresh render). The diff is in the `--json` output.

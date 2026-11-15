@@ -2,13 +2,13 @@
 # Shared pieces of the interactive commands (launcher, menu, Wi-Fi, keys,
 # clipboard): the floating window, the terminal check and the fzf wrapper.
 
-# tui_window NAME [ARGS...]: run `karma NAME ARGS` in a floating terminal
-# with the class karma.tui.NAME (Hyprland floats and centres that class).
+# tui_window NAME [ARGS...]: run `mujo NAME ARGS` in a floating terminal
+# with the class mujo.tui.NAME (Hyprland floats and centres that class).
 # Running it again while the window is open closes it, so one key toggles.
 tui_window() {
   local name=$1 class
   shift
-  class=$KARMA_NAME.tui.$name
+  class=$MUJO_NAME.tui.$name
   require_wayland
   # The launcher, the system menu, the wallpaper picker, the power menu and
   # the dashboard have a panel in the Quickshell UI. Use it when the UI is running;
@@ -30,7 +30,7 @@ tui_window() {
   esac
   if [[ -n $panel ]] && command -v qs >/dev/null 2>&1; then
     # shellcheck disable=SC2086  # target and function are two words
-    if timeout 2 qs -c "$KARMA_NAME" ipc call $panel >/dev/null 2>&1; then
+    if timeout 2 qs -c "$MUJO_NAME" ipc call $panel >/dev/null 2>&1; then
       exit "$EXIT_OK"
     fi
   fi
@@ -41,7 +41,7 @@ tui_window() {
   if pkill -f -- "^(/usr/bin/)?ghostty --class=${class//./\\.} " 2>/dev/null; then
     exit "$EXIT_OK"
   fi
-  tui_term "$class" "$KARMA_NAME $name" env KARMA_WINDOW=1 "$KARMA_BIN" "$name" "$@"
+  tui_term "$class" "$MUJO_NAME $name" env MUJO_WINDOW=1 "$MUJO_BIN" "$name" "$@"
   exit "$EXIT_OK"
 }
 
@@ -61,13 +61,13 @@ tui_term() {
 
 # Interactive commands need a terminal and fzf, and have no JSON form.
 tui_require() {
-  (( OPT_JSON )) && usage_error "'$KARMA_CMD' is interactive and has no --json output"
+  (( OPT_JSON )) && usage_error "'$MUJO_CMD' is interactive and has no --json output"
   need fzf
   [[ -t 0 && -t 2 ]] \
-    || die "$EXIT_ENV" "'$KARMA_NAME $KARMA_CMD' needs a terminal (inside the desktop, add --window)"
+    || die "$EXIT_ENV" "'$MUJO_NAME $MUJO_CMD' needs a terminal (inside the desktop, add --window)"
   # The generated fzf theme; zsh exports this, a keybinding's environment does not.
-  if [[ -z ${FZF_DEFAULT_OPTS_FILE:-} && -f $KARMA_CONFIG_HOME/fzf/karma.fzfrc ]]; then
-    export FZF_DEFAULT_OPTS_FILE=$KARMA_CONFIG_HOME/fzf/karma.fzfrc
+  if [[ -z ${FZF_DEFAULT_OPTS_FILE:-} && -f $MUJO_CONFIG_HOME/fzf/mujo.fzfrc ]]; then
+    export FZF_DEFAULT_OPTS_FILE=$MUJO_CONFIG_HOME/fzf/mujo.fzfrc
   fi
 }
 
@@ -77,10 +77,10 @@ tui_pick() {
 }
 
 # tui_detach CMD...: start a program that outlives this terminal.
-# It must not inherit karma's output (fd 1-3) or its lock (fd 9): a pipe such
-# as `karma ... --json | jq` would otherwise wait for that program to exit.
+# It must not inherit mujo's output (fd 1-3) or its lock (fd 9): a pipe such
+# as `mujo ... --json | jq` would otherwise wait for that program to exit.
 #
-# With systemd, it also gets its own scope. karma is often run by the
+# With systemd, it also gets its own scope. mujo is often run by the
 # interface, which is a service; without a scope every app it launched would
 # belong to that service and be killed whenever the service restarts.
 tui_detach() {

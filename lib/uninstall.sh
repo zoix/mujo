@@ -1,18 +1,18 @@
 # shellcheck shell=bash
-# karma uninstall: put the system back the way install.sh found it, from
-# the manifests in ~/.local/state/karma/backups/<time>/manifest.json.
+# mujo uninstall: put the system back the way install.sh found it, from
+# the manifests in ~/.local/state/mujo/backups/<time>/manifest.json.
 
-karma_register uninstall "Remove karma's links and restore the backups"
+mujo_register uninstall "Remove mujo's links and restore the backups"
 
 help_uninstall() {
   cat <<EOF
-Usage: $KARMA_NAME uninstall [--skip-system] --yes
+Usage: $MUJO_NAME uninstall [--skip-system] --yes
 
 Reverses install.sh:
   1. removes the links from config/ in your home directory
-  2. moves what karma generated or wrote there (theme files, host.lua,
-     local.zsh, ~/.config/$KARMA_NAME) to
-     ~/.local/state/$KARMA_NAME/uninstalled/<time>/  (nothing is deleted)
+  2. moves what mujo generated or wrote there (theme files, host.lua,
+     local.zsh, ~/.config/$MUJO_NAME) to
+     ~/.local/state/$MUJO_NAME/uninstalled/<time>/  (nothing is deleted)
   3. puts back every file from the backups, restows the dotfile packages
      that were unstowed and folds directories that were unfolded
   4. with sudo: restores the files in /etc, the previous login screen and
@@ -24,7 +24,7 @@ nothing. Without --yes nothing happens.
 Not reversed: installed packages stay installed, packages you let the
 installer remove are only listed, and the login shell is left alone. The
 checkout, the backups and the journal stay where they are, so running
-install.sh again brings karma back.
+install.sh again brings mujo back.
 EOF
 }
 
@@ -47,7 +47,7 @@ un_note() {
   say "   ! $1"
 }
 
-# un_stash PATH: move a file karma wrote into the attic, keeping its path.
+# un_stash PATH: move a file mujo wrote into the attic, keeping its path.
 un_stash() {
   local path=$1 dest
   dest=$UNINSTALL_ATTIC/${path#"$HOME"/}
@@ -99,7 +99,7 @@ un_restore_path() {
 }
 
 un_home() {
-  local root=$KARMA_ROOT/config file rel dest count=0
+  local root=$MUJO_ROOT/config file rel dest count=0
   say "1. Links from config/"
   local -a links=()
   while IFS= read -r -d '' file; do
@@ -112,18 +112,18 @@ un_home() {
   done < <(find "$root" -mindepth 2 \( -type f -o -type l \) -print0 2>/dev/null)
   count=${#links[@]}
   if (( count )); then
-    UNINSTALL_STEPS+=("remove $count link(s) into $(tilde "$KARMA_ROOT")/config")
-    say "   + remove $count link(s) into $(tilde "$KARMA_ROOT")/config"
+    UNINSTALL_STEPS+=("remove $count link(s) into $(tilde "$MUJO_ROOT")/config")
+    say "   + remove $count link(s) into $(tilde "$MUJO_ROOT")/config"
     if (( ! OPT_DRY_RUN )); then
       for dest in "${links[@]}"; do un_remove_link "$dest"; done
     fi
   else
     say "   = none found"
   fi
-  local checkout=${XDG_DATA_HOME:-$HOME/.local/share}/$KARMA_NAME
+  local checkout=${XDG_DATA_HOME:-$HOME/.local/share}/$MUJO_NAME
   [[ -L $checkout ]] && un_act "remove the link $(tilde "$checkout")" un_remove_link "$checkout"
 
-  say "2. Files karma generated or wrote (moved to $(tilde "$UNINSTALL_ATTIC"))"
+  say "2. Files mujo generated or wrote (moved to $(tilde "$UNINSTALL_ATTIC"))"
   theme_load_consumers
   local id path
   local -a written=()
@@ -132,7 +132,7 @@ un_home() {
     path=$(theme_dest "$id")
     [[ -e $path ]] && written+=("$path")
   done
-  for path in "$KARMA_CONFIG_HOME/hypr/host.lua" "$KARMA_CONFIG_HOME/zsh/local.zsh" "$KARMA_CONFIG_DIR"; do
+  for path in "$MUJO_CONFIG_HOME/hypr/host.lua" "$MUJO_CONFIG_HOME/zsh/local.zsh" "$MUJO_CONFIG_DIR"; do
     [[ -e $path ]] && written+=("$path")
   done
   if (( ${#written[@]} )); then
@@ -151,13 +151,13 @@ un_home() {
   say "3. Backups"
   local manifest dir entry kind p
   local -a manifests=()
-  mapfile -t manifests < <(find "$KARMA_STATE_DIR/backups" -mindepth 2 -maxdepth 2 -name manifest.json 2>/dev/null | sort -r)
+  mapfile -t manifests < <(find "$MUJO_STATE_DIR/backups" -mindepth 2 -maxdepth 2 -name manifest.json 2>/dev/null | sort -r)
   if (( ${#manifests[@]} == 0 )); then
-    say "   = no backup manifests in $(tilde "$KARMA_STATE_DIR")/backups"
+    say "   = no backup manifests in $(tilde "$MUJO_STATE_DIR")/backups"
     return 0
   fi
   # A backup without a manifest is from an install that stopped half-way.
-  for dir in "$KARMA_STATE_DIR"/backups/*/; do
+  for dir in "$MUJO_STATE_DIR"/backups/*/; do
     [[ -f ${dir}manifest.json ]] \
       || un_note "$(tilde "${dir%/}") has no manifest (an interrupted install); its files are kept there, not restored"
   done
@@ -166,7 +166,7 @@ un_home() {
     while IFS= read -r entry; do
       if p=$(jq -er '.path // empty' <<<"$entry"); then
         if [[ -e $p || -L $p ]] && (( ! OPT_DRY_RUN )); then
-          un_note "$(tilde "$p") exists and is not karma's; the backup in $(tilde "$dir") was not restored"
+          un_note "$(tilde "$p") exists and is not mujo's; the backup in $(tilde "$dir") was not restored"
         else
           un_act "restore $(tilde "$p")" un_restore_path "$dir/home/${p#"$HOME"/}" "$p"
         fi
@@ -197,10 +197,10 @@ un_system() {
   say "4. System (sudo)"
   local manifest dir entry p kind unit locale any=0
   local -a manifests=()
-  mapfile -t manifests < <(find "$KARMA_STATE_DIR/backups" -mindepth 2 -maxdepth 2 -name manifest.json 2>/dev/null | sort -r)
-  if systemctl is-enabled -q "$KARMA_NAME-vtrgb.service" 2>/dev/null; then
+  mapfile -t manifests < <(find "$MUJO_STATE_DIR/backups" -mindepth 2 -maxdepth 2 -name manifest.json 2>/dev/null | sort -r)
+  if systemctl is-enabled -q "$MUJO_NAME-vtrgb.service" 2>/dev/null; then
     any=1
-    un_act "disable $KARMA_NAME-vtrgb.service (the console palette)" sudo systemctl disable "$KARMA_NAME-vtrgb.service"
+    un_act "disable $MUJO_NAME-vtrgb.service (the console palette)" sudo systemctl disable "$MUJO_NAME-vtrgb.service"
   fi
   for manifest in "${manifests[@]}"; do
     dir=$(dirname -- "$manifest")
@@ -237,12 +237,12 @@ cmd_uninstall() {
       *) usage_error "unexpected argument '$1'" ;;
     esac
   done
-  confirm_irreversible "Uninstalling $KARMA_NAME"
-  (( OPT_DRY_RUN )) || karma_lock
+  confirm_irreversible "Uninstalling $MUJO_NAME"
+  (( OPT_DRY_RUN )) || mujo_lock
   UNINSTALL_STEPS=()
   UNINSTALL_NOTES=()
-  UNINSTALL_ATTIC=$KARMA_STATE_DIR/uninstalled/$(date -u +%Y%m%dT%H%M%SZ)
-  (( OPT_DRY_RUN )) && say "$KARMA_NAME uninstall: dry run, nothing will change"
+  UNINSTALL_ATTIC=$MUJO_STATE_DIR/uninstalled/$(date -u +%Y%m%dT%H%M%SZ)
+  (( OPT_DRY_RUN )) && say "$MUJO_NAME uninstall: dry run, nothing will change"
 
   un_home
   if (( skip_system )); then
@@ -261,8 +261,8 @@ cmd_uninstall() {
     journal_record "$jid" "uninstall: ${#UNINSTALL_STEPS[@]} step(s)" '{}' \
       "$(jq -cn --arg a "$UNINSTALL_ATTIC" '{moved_to: $a}')" null
     jid="\"$jid\""
-    say "Done: ${#UNINSTALL_STEPS[@]} step(s). Log out (or reboot) to leave the $KARMA_NAME session."
-    say "To install again: $KARMA_ROOT/install.sh"
+    say "Done: ${#UNINSTALL_STEPS[@]} step(s). Log out (or reboot) to leave the $MUJO_NAME session."
+    say "To install again: $MUJO_ROOT/install.sh"
   else
     say "Dry run: ${#UNINSTALL_STEPS[@]} step(s) planned, none made."
   fi

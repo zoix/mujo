@@ -1,14 +1,14 @@
 # shellcheck shell=bash
-# karma record: screen recording with wf-recorder.
+# mujo record: screen recording with wf-recorder.
 
-karma_register record "Record the screen or a region to a video file"
+mujo_register record "Record the screen or a region to a video file"
 
 help_record() {
   cat <<EOF
-Usage: $KARMA_NAME record [toggle] [region | screen] [--audio] [--dir DIRECTORY]
-       $KARMA_NAME record start [region | screen] [--audio] [--dir DIRECTORY]
-       $KARMA_NAME record stop
-       $KARMA_NAME record status
+Usage: $MUJO_NAME record [toggle] [region | screen] [--audio] [--dir DIRECTORY]
+       $MUJO_NAME record start [region | screen] [--audio] [--dir DIRECTORY]
+       $MUJO_NAME record stop
+       $MUJO_NAME record status
 
 toggle  Start a recording, or stop the one that is running (the default).
 start   region: drag an area first (the default). screen: the focused monitor.
@@ -16,14 +16,14 @@ start   region: drag an area first (the default). screen: the focused monitor.
 stop    Finish the recording; the file's path is copied to the clipboard.
 status  Whether a recording is running, and its file.
 
-The video is saved as karma-<date>-<time>.mp4 in ~/Videos/Recordings (or
+The video is saved as mujo-<date>-<time>.mp4 in ~/Videos/Recordings (or
 --dir, or "record_dir" in config.json). While one is running the bar shows
 a red dot; clicking it stops the recording. Needs wf-recorder and a Wayland
 session. Recordings are not journaled: they change no setting.
 EOF
 }
 
-RECORD_PID=${XDG_RUNTIME_DIR:-/tmp}/$KARMA_NAME-record.pid
+RECORD_PID=${XDG_RUNTIME_DIR:-/tmp}/$MUJO_NAME-record.pid
 
 # Prints "PID<TAB>FILE" if a recording is running.
 record_running() {
@@ -51,7 +51,7 @@ record_stop() {
   fi
   say "Saved $file"
   if command -v notify-send >/dev/null 2>&1; then
-    timeout 2 notify-send -a "$KARMA_NAME" -t 4000 "Recording saved" "$file" >/dev/null 2>&1 3>&- || true
+    timeout 2 notify-send -a "$MUJO_NAME" -t 4000 "Recording saved" "$file" >/dev/null 2>&1 3>&- || true
   fi
   jq -n --arg f "$file" '{recording: false, path: $f}' | emit
 }
@@ -71,7 +71,7 @@ cmd_record() {
       *) usage_error "unexpected argument '$1'" ;;
     esac
   done
-  karma_set_cmd "record $sub"
+  mujo_set_cmd "record $sub"
   local running=""
   running=$(record_running) || running=""
 
@@ -91,14 +91,14 @@ cmd_record() {
       if [[ -n $running ]]; then record_stop "$running"; return 0; fi
       ;;
     start)
-      [[ -z $running ]] || die "$EXIT_FAIL" "a recording is already running ('$KARMA_NAME record stop' ends it)"
+      [[ -z $running ]] || die "$EXIT_FAIL" "a recording is already running ('$MUJO_NAME record stop' ends it)"
       ;;
   esac
 
   mode=${mode:-region}
   dir=${dir:-$(config_read | jq -r --arg d "${XDG_VIDEOS_DIR:-$HOME/Videos}/Recordings" '.record_dir // $d')}
   local path
-  path=$dir/$KARMA_NAME-$(date +%Y%m%d-%H%M%S).mp4
+  path=$dir/$MUJO_NAME-$(date +%Y%m%d-%H%M%S).mp4
   if (( OPT_DRY_RUN )); then
     say "record $mode (dry run, nothing recorded)"
     say "Would save to: $path"
@@ -128,6 +128,6 @@ cmd_record() {
   kill -0 "$pid" 2>/dev/null || die "$EXIT_FAIL" "wf-recorder could not start"
   printf '%s\t%s\n' "$pid" "$path" >"$RECORD_PID"
   ui_ipc record state true
-  say "Recording to $path ('$KARMA_NAME record stop' ends it)"
+  say "Recording to $path ('$MUJO_NAME record stop' ends it)"
   jq -n --arg p "$path" --arg m "$mode" '{recording: true, mode: $m, path: $p}' | emit
 }

@@ -35,9 +35,9 @@ opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 opt.foldlevelstart = 99
 opt.foldtext = ""
 
--- Light or dark as the desktop is: karma keeps the mode in its config file.
-local function karma_mode()
-  local path = (os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")) .. "/karma/config.json"
+-- Light or dark as the desktop is: mujo keeps the mode in its config file.
+local function mujo_mode()
+  local path = (os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")) .. "/mujo/config.json"
   local file = io.open(path, "r")
   if not file then return "dark" end
   local text = file:read("*a")
@@ -45,7 +45,7 @@ local function karma_mode()
   local ok, config = pcall(vim.json.decode, text)
   return ok and type(config) == "table" and config.mode == "light" and "light" or "dark"
 end
-opt.background = karma_mode()
+opt.background = mujo_mode()
 
 -- Briefly highlight what was yanked.
 vim.api.nvim_create_autocmd("TextYankPost", {

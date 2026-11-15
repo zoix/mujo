@@ -1,40 +1,40 @@
-# karma prompt: hand-written, no starship.
+# mujo prompt: hand-written, no starship.
 #
-#   ~/karma  main +1 *2 ?1 ⇡1   4s  ✘ 1
+#   ~/mujo  main +1 *2 ?1 ⇡1   4s  ✘ 1
 #   ❯
 #
 # Line 1: directory, git branch and status, duration of commands that took
 # 3 s or more, exit code if it was not 0. Line 2: the prompt character, in the
 # accent colour, or the error colour after a failure.
-# Colours are the token roles in KARMA_COLOR (karma-theme.zsh). On the Linux
+# Colours are the token roles in MUJO_COLOR (mujo-theme.zsh). On the Linux
 # console, which has no 24-bit colour, the ANSI slots are used instead; the
 # console palette that install.sh sets maps magenta to the accent.
 
 zmodload zsh/datetime
 autoload -Uz add-zsh-hook
 
-typeset -gA _karma_c
-if [[ $TERM == linux || -z ${KARMA_COLOR[accent]:-} ]]; then
-  _karma_c=(accent magenta text white muted 8 success green warning yellow error red info blue)
-  _karma_char='>'
-  _karma_err_glyph='x'
-  _karma_git_glyph=''
+typeset -gA _mujo_c
+if [[ $TERM == linux || -z ${MUJO_COLOR[accent]:-} ]]; then
+  _mujo_c=(accent magenta text white muted 8 success green warning yellow error red info blue)
+  _mujo_char='>'
+  _mujo_err_glyph='x'
+  _mujo_git_glyph=''
 else
-  _karma_c=("${(@kv)KARMA_COLOR}")
-  _karma_char='❯'
-  _karma_err_glyph='✘'
-  _karma_git_glyph=' '
+  _mujo_c=("${(@kv)MUJO_COLOR}")
+  _mujo_char='❯'
+  _mujo_err_glyph='✘'
+  _mujo_git_glyph=' '
 fi
 
-typeset -g _karma_cmd_start=0 _karma_took='' _karma_git=''
+typeset -g _mujo_cmd_start=0 _mujo_took='' _mujo_git=''
 
-_karma_preexec() {
-  _karma_cmd_start=$EPOCHREALTIME
+_mujo_preexec() {
+  _mujo_cmd_start=$EPOCHREALTIME
 }
 
 # Branch and status from one `git status` call.
-_karma_git_status() {
-  _karma_git=''
+_mujo_git_status() {
+  _mujo_git=''
   local line branch='' ahead=0 behind=0 staged=0 unstaged=0 untracked=0
   local -a lines
   lines=("${(@f)$(command git status --porcelain=v2 --branch 2>/dev/null)}") || return
@@ -56,41 +56,41 @@ _karma_git_status() {
     esac
   done
   [[ $branch == '(detached)' ]] && branch='detached'
-  local s="%F{${_karma_c[accent]}}${_karma_git_glyph}${branch}%f"
-  (( staged ))    && s+=" %F{${_karma_c[success]}}+${staged}%f"
-  (( unstaged ))  && s+=" %F{${_karma_c[warning]}}*${unstaged}%f"
-  (( untracked )) && s+=" %F{${_karma_c[muted]}}?${untracked}%f"
-  (( ahead ))     && s+=" %F{${_karma_c[info]}}⇡${ahead}%f"
-  (( behind ))    && s+=" %F{${_karma_c[info]}}⇣${behind}%f"
-  _karma_git=$s
+  local s="%F{${_mujo_c[accent]}}${_mujo_git_glyph}${branch}%f"
+  (( staged ))    && s+=" %F{${_mujo_c[success]}}+${staged}%f"
+  (( unstaged ))  && s+=" %F{${_mujo_c[warning]}}*${unstaged}%f"
+  (( untracked )) && s+=" %F{${_mujo_c[muted]}}?${untracked}%f"
+  (( ahead ))     && s+=" %F{${_mujo_c[info]}}⇡${ahead}%f"
+  (( behind ))    && s+=" %F{${_mujo_c[info]}}⇣${behind}%f"
+  _mujo_git=$s
 }
 
-_karma_precmd() {
+_mujo_precmd() {
   local code=$?
-  _karma_took=''
-  if (( _karma_cmd_start > 0 )); then
-    local secs=$(( EPOCHREALTIME - _karma_cmd_start ))
-    _karma_cmd_start=0
+  _mujo_took=''
+  if (( _mujo_cmd_start > 0 )); then
+    local secs=$(( EPOCHREALTIME - _mujo_cmd_start ))
+    _mujo_cmd_start=0
     if (( secs >= 3 )); then
       local -i s=$secs
       if (( s >= 3600 )); then
-        _karma_took="$(( s / 3600 ))h$(( s % 3600 / 60 ))m"
+        _mujo_took="$(( s / 3600 ))h$(( s % 3600 / 60 ))m"
       elif (( s >= 60 )); then
-        _karma_took="$(( s / 60 ))m$(( s % 60 ))s"
+        _mujo_took="$(( s / 60 ))m$(( s % 60 ))s"
       else
-        _karma_took="${s}s"
+        _mujo_took="${s}s"
       fi
     fi
   fi
-  _karma_git_status
+  _mujo_git_status
 
-  local line1="%F{${_karma_c[info]}}%B%~%b%f"
-  [[ -n $_karma_git ]] && line1+="  ${_karma_git}"
-  [[ -n $_karma_took ]] && line1+="  %F{${_karma_c[muted]}}${_karma_took}%f"
-  (( code )) && line1+="  %F{${_karma_c[error]}}${_karma_err_glyph} ${code}%f"
+  local line1="%F{${_mujo_c[info]}}%B%~%b%f"
+  [[ -n $_mujo_git ]] && line1+="  ${_mujo_git}"
+  [[ -n $_mujo_took ]] && line1+="  %F{${_mujo_c[muted]}}${_mujo_took}%f"
+  (( code )) && line1+="  %F{${_mujo_c[error]}}${_mujo_err_glyph} ${code}%f"
 
-  PROMPT=$'\n'"${line1}"$'\n'"%(?.%F{${_karma_c[accent]}}.%F{${_karma_c[error]}})${_karma_char}%f "
+  PROMPT=$'\n'"${line1}"$'\n'"%(?.%F{${_mujo_c[accent]}}.%F{${_mujo_c[error]}})${_mujo_char}%f "
 }
 
-add-zsh-hook preexec _karma_preexec
-add-zsh-hook precmd _karma_precmd
+add-zsh-hook preexec _mujo_preexec
+add-zsh-hook precmd _mujo_precmd

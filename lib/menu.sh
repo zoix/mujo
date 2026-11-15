@@ -1,13 +1,13 @@
 # shellcheck shell=bash
-# karma menu: the system menu. One fzf list that reaches every other command.
+# mujo menu: the system menu. One fzf list that reaches every other command.
 
-karma_register menu "System menu TUI (every command)"
+mujo_register menu "System menu TUI (every command)"
 
 help_menu() {
   cat <<EOF
-Usage: $KARMA_NAME menu [pick] [--window]
-       $KARMA_NAME menu list
-       $KARMA_NAME menu run LABEL
+Usage: $MUJO_NAME menu [pick] [--window]
+       $MUJO_NAME menu list
+       $MUJO_NAME menu run LABEL
 
 pick  Choose an action with fzf (the default). Settings report their result
       and return to the menu; tools such as the Wi-Fi picker take over the
@@ -21,15 +21,15 @@ EOF
 }
 
 # Entries: label <TAB> kind <TAB> command
-#   run     run `karma <command>`, show the result, return to the menu
+#   run     run `mujo <command>`, show the result, return to the menu
 #   show    the same for commands with long or interactive output: from the
 #           interface they get a floating terminal that stays open
-#   tui     replace the menu with `karma <command>`
+#   tui     replace the menu with `mujo <command>`
 #   app     replace the menu with a program
-#   shot    close the menu, then run `karma <command>` (so it is not in the picture)
-#   accent  pick an accent, then run `karma theme accent <name>`
-#   mode    pick dark, light or auto, then run `karma theme mode <name>`
-#   confirm ask first, then run `karma <command> --yes`
+#   shot    close the menu, then run `mujo <command>` (so it is not in the picture)
+#   accent  pick an accent, then run `mujo theme accent <name>`
+#   mode    pick dark, light or auto, then run `mujo theme mode <name>`
+#   confirm ask first, then run `mujo <command> --yes`
 menu_entries() {
   local t=$'\t'
   cat <<EOF
@@ -89,7 +89,7 @@ Packages: remove${t}tui${t}pkg remove
 System: quick settings${t}tui${t}status
 System: dashboard${t}tui${t}sys
 System: health check (doctor)${t}show${t}doctor
-System: update karma and packages${t}show${t}update
+System: update mujo and packages${t}show${t}update
 System: check for updates now${t}run${t}update check --refresh
 System: show what uninstall would do${t}show${t}uninstall --dry-run
 Power: lock${t}run${t}power lock
@@ -101,7 +101,7 @@ EOF
 }
 
 # The entries for list and run: sub-menus are written out, and the power
-# entries are left to the power panel (or `karma power`).
+# entries are left to the power panel (or `mujo power`).
 menu_entries_flat() {
   local t=$'\t' a
   menu_entries | while IFS=$'\t' read -r label kind command; do
@@ -126,7 +126,7 @@ menu_run() {
   local row label kind command out
   local -a argv
   row=$(menu_entries_flat | gawk -F'\t' -v l="$1" '$1 == l && !found { print; found = 1 }')
-  [[ -n $row ]] || die "$EXIT_FAIL" "no menu entry '$1' (see '$KARMA_NAME menu list')"
+  [[ -n $row ]] || die "$EXIT_FAIL" "no menu entry '$1' (see '$MUJO_NAME menu list')"
   IFS=$'\t' read -r label kind command <<<"$row"
   read -r -a argv <<<"$command"
   if (( OPT_DRY_RUN )); then
@@ -138,28 +138,28 @@ menu_run() {
     run)
       # The whole output is read before the first line is taken: cutting the
       # pipe early would kill the command in the middle of its work.
-      out=$("$KARMA_BIN" "${argv[@]}" 2>&1 3>&1) || true
+      out=$("$MUJO_BIN" "${argv[@]}" 2>&1 3>&1) || true
       out=${out%%$'\n'*}
       if ui_session && command -v notify-send >/dev/null 2>&1; then
-        timeout 2 notify-send -a "$KARMA_NAME" -t 4000 "$label" "$out" >/dev/null 2>&1 3>&- || true
+        timeout 2 notify-send -a "$MUJO_NAME" -t 4000 "$label" "$out" >/dev/null 2>&1 3>&- || true
       fi
       say "$out"
       ;;
-    tui) "$KARMA_BIN" "${argv[@]}" --window ;;
+    tui) "$MUJO_BIN" "${argv[@]}" --window ;;
     show)
       require_wayland
       # A floating terminal that runs the command and waits, so the output
       # can be read (and sudo can ask for the password).
-      tui_term "$KARMA_NAME.tui.show" "$KARMA_NAME ${argv[*]}" \
-        sh -c '"$@"; printf "\nPress Enter to close "; read -r _' sh "$KARMA_BIN" "${argv[@]}"
+      tui_term "$MUJO_NAME.tui.show" "$MUJO_NAME ${argv[*]}" \
+        sh -c '"$@"; printf "\nPress Enter to close "; read -r _' sh "$MUJO_BIN" "${argv[@]}"
       ;;
     app)
       require_wayland
       need "${argv[0]}"
       tui_term "" "" "${argv[@]}"
       ;;
-    shot) tui_detach sh -c 'sleep 0.4; exec "$@"' sh "$KARMA_BIN" "${argv[@]}" ;;
-    confirm) "$KARMA_BIN" power --window ;;
+    shot) tui_detach sh -c 'sleep 0.4; exec "$@"' sh "$MUJO_BIN" "${argv[@]}" ;;
+    confirm) "$MUJO_BIN" power --window ;;
   esac
   jq -n --arg l "$label" --arg k "$kind" --arg c "$command" '{label: $l, kind: $k, command: $c, done: true}' | emit
 }
@@ -167,16 +167,16 @@ menu_run() {
 cmd_menu() {
   local sub=${1:-pick}
   (( $# )) && shift
-  karma_set_cmd "menu $sub"
+  mujo_set_cmd "menu $sub"
   if [[ $sub == run ]]; then
-    (( $# == 1 )) || usage_error "run needs exactly one label (see '$KARMA_NAME menu list')"
+    (( $# == 1 )) || usage_error "run needs exactly one label (see '$MUJO_NAME menu list')"
     menu_run "$1"
     return 0
   fi
   (( $# == 0 )) || usage_error "unexpected argument '$1'"
   case $sub in
     list)
-      menu_entries_flat | gawk -F'\t' '{ printf "%-40s %s\n", $1, ($2 == "app" ? $3 : "'"$KARMA_NAME"' " $3) }' | say_stream
+      menu_entries_flat | gawk -F'\t' '{ printf "%-40s %s\n", $1, ($2 == "app" ? $3 : "'"$MUJO_NAME"' " $3) }' | say_stream
       menu_entries_flat | jq -cRn '{entries: [inputs | split("\t") | {label: .[0], kind: .[1], command: .[2]}]}' | emit
       ;;
     pick) menu_loop ;;
@@ -193,35 +193,35 @@ menu_loop() {
     IFS=$'\t' read -r label kind command <<<"$row"
     read -r -a argv <<<"$command"
     case $kind in
-      tui) exec "$KARMA_BIN" "${argv[@]}" ;;
+      tui) exec "$MUJO_BIN" "${argv[@]}" ;;
       app)
         command -v "${argv[0]}" >/dev/null 2>&1 || { warn "${argv[0]} is not installed"; tui_pause; continue; }
         exec "${argv[@]}"
         ;;
       shot)
         # Give the menu window time to close before the capture starts.
-        tui_detach sh -c 'sleep 0.4; exec "$@"' sh "$KARMA_BIN" "${argv[@]}"
+        tui_detach sh -c 'sleep 0.4; exec "$@"' sh "$MUJO_BIN" "${argv[@]}"
         return 0
         ;;
       accent)
-        accent=$("$KARMA_BIN" theme accent --json | jq -r '.data.available[]' \
+        accent=$("$MUJO_BIN" theme accent --json | jq -r '.data.available[]' \
           | tui_pick --prompt 'Accent > ') || continue
-        "$KARMA_BIN" theme accent "$accent" || true
+        "$MUJO_BIN" theme accent "$accent" || true
         tui_pause
         ;;
       mode)
         accent=$(printf '%s\n' auto dark light | tui_pick --prompt 'Mode > ') || continue
-        "$KARMA_BIN" theme mode "$accent" || true
+        "$MUJO_BIN" theme mode "$accent" || true
         tui_pause
         ;;
       confirm)
         printf '%s? This cannot be undone. [y/N] ' "${label#*: }" >&2
         read -r answer || answer=""
         [[ $answer == [yY]* ]] || continue
-        "$KARMA_BIN" "${argv[@]}" --yes || tui_pause
+        "$MUJO_BIN" "${argv[@]}" --yes || tui_pause
         ;;
       run|show)
-        "$KARMA_BIN" "${argv[@]}" || true
+        "$MUJO_BIN" "${argv[@]}" || true
         tui_pause
         ;;
     esac

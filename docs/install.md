@@ -1,12 +1,12 @@
-# Installing karma
+# Installing mujo
 
-`install.sh` installs karma for the user who runs it. It works on a fresh Arch
+`install.sh` installs mujo for the user who runs it. It works on a fresh Arch
 install and on a machine that already has its own dotfiles. Running it again
 with the same answers changes nothing.
 
 ```sh
-git clone <repo> ~/.local/share/karma     # or run it from any checkout
-cd ~/.local/share/karma
+git clone <repo> ~/.local/share/mujo     # or run it from any checkout
+cd ~/.local/share/mujo
 ./install.sh --dry-run    # the full plan, nothing changes
 ./install.sh              # questions, the plan, one confirmation, then unattended
 ```
@@ -19,7 +19,7 @@ cd ~/.local/share/karma
 | `--retire-old-config` | With `--yes`: also retire `~/.config/hypr/hyprland.conf` |
 
 Without a terminal and without `--yes`, the installer stops instead of
-guessing. Every run is appended to `~/.local/state/karma/install.log`.
+guessing. Every run is appended to `~/.local/state/mujo/install.log`.
 
 ## What it does, in order
 
@@ -28,77 +28,77 @@ guessing. Every run is appended to `~/.local/state/karma/install.log`.
 2. **Questions.** Keyboard layout and variant, time zone, editor, browser
    package. Then the decisions that are expensive to undo: replacing the
    current login screen with greetd, switching the locale to `en_US.UTF-8`,
-   removing packages karma replaces (`packages/replaced.txt`), removing
+   removing packages mujo replaces (`packages/replaced.txt`), removing
    Vicinae, and retiring the old `hyprland.conf`. Defaults come from the last
-   run (`~/.config/karma/config.json`, key `install`), then from the system.
+   run (`~/.config/mujo/config.json`, key `install`), then from the system.
 3. **The plan.** Every link, every file that will be backed up, every stow
    package that will be unfolded or unstowed (with the links it removes).
 4. **Packages** from `packages/pacman.txt` (`pacman -S --needed`).
 5. **Your home directory.**
-   - Folded stow links that karma needs to write into (for example
+   - Folded stow links that mujo needs to write into (for example
      `~/.local/bin` pointing into another stow tree) are unfolded: the
      package is restowed with `--no-folding`, so the same files stay reachable.
    - Everything that is about to be replaced is backed up first.
    - Conflicting stow packages are unstowed; plain files in the way are removed.
    - `stow --no-folding` links `config/*` into `$HOME`.
    - `~/.config/hypr/host.lua` and `~/.config/zsh/local.zsh` are written once.
-   - `karma theme build` generates the theme files.
+   - `mujo theme build` generates the theme files.
    - GSettings: dark colour scheme and adw-gtk3 (when a session bus exists).
 6. **`/etc`.** The greetd config and console palette (generated, staged in
-   `~/.local/state/karma/theme/system/`) and `karma-vtrgb.service`. Each file
+   `~/.local/state/mujo/theme/system/`) and `mujo-vtrgb.service`. Each file
    is shown as a diff or in full before it is written; the previous version is
    backed up.
-7. **Services.** NetworkManager, bluetooth, `karma-vtrgb` (palette loads at
+7. **Services.** NetworkManager, bluetooth, `mujo-vtrgb` (palette loads at
    once), greetd (from the next boot; the old login screen is disabled only if
    you agreed). It warns if iwd and NetworkManager would fight over Wi-Fi.
 8. **Locale, time zone, login shell.** Time zones are compared by content, so
    `Canada/Mountain` and `America/Edmonton` count as the same.
-9. **Removals** you agreed to (`pacman -Rns`). karma cannot undo these.
+9. **Removals** you agreed to (`pacman -Rns`). mujo cannot undo these.
 
 **Fingerprint.** On a machine with a fingerprint reader the installer asks
 whether `sudo` should accept a fingerprint (default: no). If you agree it
 installs `fprintd`, lets you enroll a finger, and puts `pam_fprintd.so` first
 in `/etc/pam.d/sudo`, with the password as the fallback; the old file is
-backed up and `karma uninstall` restores it. The lock screen uses an enrolled
+backed up and `mujo uninstall` restores it. The lock screen uses an enrolled
 finger by itself, without any of this.
 
-Packages on karma's list that were only installed as a dependency of something
+Packages on mujo's list that were only installed as a dependency of something
 else are marked as explicitly installed, so that removing that something does
 not take them along.
 
 ## Backups
 
 Each run that replaces something creates
-`~/.local/state/karma/backups/<time>/`:
+`~/.local/state/mujo/backups/<time>/`:
 
 | Path | Contents |
 | --- | --- |
 | `home/...` | Replaced files and symlinks, at their path under `$HOME` (symlinks stay symlinks) |
 | `etc/...` | Replaced files from `/etc` |
-| `stow-<name>.tar` | The whole stow directory, taken before karma unfolds or unstows any of its packages |
+| `stow-<name>.tar` | The whole stow directory, taken before mujo unfolds or unstows any of its packages |
 | `manifest.json` | Every action: backed-up paths, unfolded and unstowed packages (with their links), `/etc` files and whether they existed, the old login screen, the old locale, removed packages |
 
 ## Uninstalling
 
 ```sh
-karma uninstall --dry-run   # the plan; changes nothing
-karma uninstall --yes       # asks for sudo for the /etc part
+mujo uninstall --dry-run   # the plan; changes nothing
+mujo uninstall --yes       # asks for sudo for the /etc part
 ```
 
-`karma uninstall` reads every manifest, newest first, and reverses it: the
+`mujo uninstall` reads every manifest, newest first, and reverses it: the
 links from `config/` are removed, files are restored from `home/` and `etc/`,
 dotfile packages that were unstowed are stowed again, directories that were
 unfolded become the single link they were, and the previous login screen and
-locale come back. What karma itself generated or wrote (theme files,
-`host.lua`, `local.zsh`, `~/.config/karma`) is moved to
-`~/.local/state/karma/uninstalled/<time>/`, not deleted.
+locale come back. What mujo itself generated or wrote (theme files,
+`host.lua`, `local.zsh`, `~/.config/mujo`) is moved to
+`~/.local/state/mujo/uninstalled/<time>/`, not deleted.
 
 It does not remove packages, does not reinstall packages you let the
 installer remove (it lists them), and leaves the login shell, the checkout,
 the backups and the journal alone. A backup directory without a manifest
 comes from an install that was interrupted; its files stay there and are
 reported, not restored. `--skip-system` leaves `/etc` and services untouched.
-Run `install.sh` again to bring karma back.
+Run `install.sh` again to bring mujo back.
 
 ## Coming from an existing Hyprland setup
 
@@ -123,7 +123,7 @@ Retiring the old file is a question, never a default. If it comes from a stow
 package, the whole package is unstowed (the question lists its links); the
 files stay in your dotfiles directory and in the backup.
 
-Once karma's `~/.zshenv` is linked, zsh reads `~/.config/zsh` and no longer
+Once mujo's `~/.zshenv` is linked, zsh reads `~/.config/zsh` and no longer
 reads `~/.zshrc`; the old file stays where it is. `local.zsh` sources your
 `~/.aliases`, sets `EDITOR`, and hooks zoxide, direnv and mise if they are
 installed. Copy anything else you want from the old file into `local.zsh`.

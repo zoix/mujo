@@ -1,15 +1,15 @@
 # shellcheck shell=bash
-# karma weather: the current weather for one place, from open-meteo.com.
+# mujo weather: the current weather for one place, from open-meteo.com.
 # Nothing is asked of the network until a place has been set.
 
-karma_register weather "Current weather for a place you choose"
+mujo_register weather "Current weather for a place you choose"
 
 help_weather() {
   cat <<EOF
-Usage: $KARMA_NAME weather [show] [--refresh]
-       $KARMA_NAME weather set PLACE
-       $KARMA_NAME weather units [c | f]
-       $KARMA_NAME weather clear
+Usage: $MUJO_NAME weather [show] [--refresh]
+       $MUJO_NAME weather set PLACE
+       $MUJO_NAME weather units [c | f]
+       $MUJO_NAME weather clear
 
 show   The weather now and today's high and low (the default). The answer
        is kept for half an hour; --refresh asks again.
@@ -25,9 +25,9 @@ lock screen show the result.
 EOF
 }
 
-WEATHER_CACHE=$KARMA_CACHE_DIR/weather.json
-WEATHER_API=${KARMA_WEATHER_API:-https://api.open-meteo.com/v1/forecast}
-WEATHER_GEO=${KARMA_WEATHER_GEO:-https://geocoding-api.open-meteo.com/v1/search}
+WEATHER_CACHE=$MUJO_CACHE_DIR/weather.json
+WEATHER_API=${MUJO_WEATHER_API:-https://api.open-meteo.com/v1/forecast}
+WEATHER_GEO=${MUJO_WEATHER_GEO:-https://geocoding-api.open-meteo.com/v1/search}
 
 weather_get() {
   curl -fsS --max-time 10 --get "$@" 2>/dev/null
@@ -60,7 +60,7 @@ weather_cmd_show() {
   place=$(jq -c '.weather // empty' <<<"$cfg")
   units=$(jq -r '.weather_units // "c"' <<<"$cfg")
   if [[ -z $place ]]; then
-    say "No place set. Choose one with: $KARMA_NAME weather set PLACE"
+    say "No place set. Choose one with: $MUJO_NAME weather set PLACE"
     jq -n '{set: false}' | emit
     return 0
   fi
@@ -96,7 +96,7 @@ cmd_weather() {
   case ${1:-} in
     show|set|units|clear) sub=$1; shift ;;
   esac
-  karma_set_cmd "weather $sub"
+  mujo_set_cmd "weather $sub"
   local cfg before after
   cfg=$(config_read)
   case $sub in
@@ -127,7 +127,7 @@ cmd_weather() {
       after=$(jq -c '{place: .name}' <<<"$found")
       local label
       label=$(jq -r '"\(.name) (\(.region))"' <<<"$found")
-      karma_lock
+      mujo_lock
       config_set weather "$found"
       rm -f -- "$WEATHER_CACHE"
       change_end "weather: place set to $label" "$before" "$after" \
@@ -146,7 +146,7 @@ cmd_weather() {
       before=$(jq -cn --arg u "$cur" '{units: $u}')
       after=$(jq -cn --arg u "$1" '{units: $u}')
       change_begin "weather units: $cur -> $1" "$before" "$after" || return 0
-      karma_lock
+      mujo_lock
       config_set weather_units "\"$1\""
       change_end "weather units: $cur -> $1" "$before" "$after" "$(json_array weather units "$cur")"
       ;;
@@ -154,8 +154,8 @@ cmd_weather() {
       (( $# == 0 )) || usage_error "unexpected argument '$1'"
       before=$(jq -c '{place: (.weather.name // null)}' <<<"$cfg")
       change_begin "weather: place forgotten" "$before" '{"place":null}' || return 0
-      karma_lock
-      jq 'del(.weather)' <<<"$cfg" | atomic_write "$KARMA_CONFIG_FILE"
+      mujo_lock
+      jq 'del(.weather)' <<<"$cfg" | atomic_write "$MUJO_CONFIG_FILE"
       rm -f -- "$WEATHER_CACHE"
       ui_ipc notify reload
       change_end "weather: place forgotten" "$before" '{"place":null}' \

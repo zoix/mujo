@@ -1,17 +1,17 @@
 # shellcheck shell=bash
-# karma status: one snapshot of everything the other commands control.
+# mujo status: one snapshot of everything the other commands control.
 # A section that cannot be read here (no PipeWire over this SSH session, no
 # Bluetooth adapter, ...) is null instead of an error.
 
-karma_register status "One snapshot of audio, network, display, theme, battery"
+mujo_register status "One snapshot of audio, network, display, theme, battery"
 
 help_status() {
   cat <<EOF
-Usage: $KARMA_NAME status
+Usage: $MUJO_NAME status
 
 Audio, network, Bluetooth, display, theme, wallpaper, battery and session in
 one view. With --json each section has the same shape as the command that
-owns it ('$KARMA_NAME audio --json', ...), or null when it is not available.
+owns it ('$MUJO_NAME audio --json', ...), or null when it is not available.
 EOF
 }
 

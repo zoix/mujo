@@ -1,4 +1,4 @@
--- Neovim for the karma desktop: a small setup that stays out of the way.
+-- Neovim for the mujo desktop: a small setup that stays out of the way.
 --
 --   lua/options.lua   editor behaviour
 --   lua/keymaps.lua   keys that need no plugin (the leader is Space)

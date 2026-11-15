@@ -1,7 +1,7 @@
-# Ghostty: karma's terminal.
-# Colours, font and padding come from karma-theme, which `karma theme build`
+# Ghostty: mujo's terminal.
+# Colours, font and padding come from mujo-theme, which `mujo theme build`
 # generates from design/tokens.json. Do not put colours here.
-config-file = karma-theme
+config-file = mujo-theme
 
 # The compositor draws the border; no title bar.
 window-decoration = none

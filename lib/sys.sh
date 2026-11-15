@@ -1,13 +1,13 @@
 # shellcheck shell=bash
-# karma sys: processor, memory, temperature, disk and uptime. Read-only; the
+# mujo sys: processor, memory, temperature, disk and uptime. Read-only; the
 # dashboard of the interface shows it.
 
-karma_register sys "Processor, memory, temperature, disk, uptime"
+mujo_register sys "Processor, memory, temperature, disk, uptime"
 
 help_sys() {
   cat <<EOF
-Usage: $KARMA_NAME sys [--window]
-       $KARMA_NAME sys workspaces [--window]
+Usage: $MUJO_NAME sys [--window]
+       $MUJO_NAME sys workspaces [--window]
 
 Shows processor load, memory, temperature, disk space and uptime. With
 --window inside the desktop it opens the dashboard of the interface.
@@ -62,7 +62,7 @@ sys_state() {
 cmd_sys() {
   if [[ ${1:-} == workspaces ]]; then
     (( $# == 1 )) || usage_error "unexpected argument '$2'"
-    karma_set_cmd "sys workspaces"
+    mujo_set_cmd "sys workspaces"
     require_hyprland
     local spaces
     spaces=$(hyprctl clients -j 2>/dev/null | jq -c --argjson ws "$(hyprctl workspaces -j 2>/dev/null)" '

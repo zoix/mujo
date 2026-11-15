@@ -1,20 +1,20 @@
 # shellcheck shell=bash
-# karma wall: the wallpaper setting. karma stores the choice in config.json
+# mujo wall: the wallpaper setting. mujo stores the choice in config.json
 # and tells the Quickshell UI, which draws it (phase 3).
 
-karma_register wall "Set or cycle the wallpaper"
+mujo_register wall "Set or cycle the wallpaper"
 
 help_wall() {
   cat <<EOF
-Usage: $KARMA_NAME wall [status]
-       $KARMA_NAME wall list
-       $KARMA_NAME wall index
-       $KARMA_NAME wall pick [--window]
-       $KARMA_NAME wall set FILE
-       $KARMA_NAME wall next | prev
-       $KARMA_NAME wall clear
-       $KARMA_NAME wall dir [DIRECTORY]
-       $KARMA_NAME wall clock [on | off | toggle]
+Usage: $MUJO_NAME wall [status]
+       $MUJO_NAME wall list
+       $MUJO_NAME wall index
+       $MUJO_NAME wall pick [--window]
+       $MUJO_NAME wall set FILE
+       $MUJO_NAME wall next | prev
+       $MUJO_NAME wall clear
+       $MUJO_NAME wall dir [DIRECTORY]
+       $MUJO_NAME wall clock [on | off | toggle]
 
 status  The current wallpaper and the directory that next/prev cycle through.
 list    The images in the wallpaper directory.
@@ -33,7 +33,7 @@ clock   Show or hide a clock on the desktop (and the bars beside it that
         follow the music). Off unless you switch it on.
 
 Every change is journaled and can be undone. The Quickshell UI draws the
-wallpaper. While '$KARMA_NAME theme mode' is auto (the default), a bright
+wallpaper. While '$MUJO_NAME theme mode' is auto (the default), a bright
 wallpaper switches every app to the light palette and a dark one back.
 EOF
 }
@@ -53,7 +53,7 @@ wall_dir() {
 # and dominant colour are measured on that. The cache key includes the
 # file's size and modification time, so an edited image is measured again.
 
-WALL_CACHE=${XDG_CACHE_HOME:-$HOME/.cache}/$KARMA_NAME/wallpapers
+WALL_CACHE=${XDG_CACHE_HOME:-$HOME/.cache}/$MUJO_NAME/wallpapers
 
 wall_key() {
   printf '%s|%s' "$1" "$(stat -c '%s|%Y' -- "$1" 2>/dev/null)" | sha1sum | cut -c1-20
@@ -226,19 +226,19 @@ wall_apply() {
   after=$(jq -cn --arg w "$new" '{wallpaper: (if $w == "" then null else $w end)}')
   local summary="wall: ${cur:-none} -> ${new:-none}"
   change_begin "$summary" "$before" "$after" || return 0
-  karma_lock
+  mujo_lock
   config_set wallpaper "$(jq -c .wallpaper <<<"$after")"
   if [[ -n $cur ]]; then undo=$(json_array wall set "$cur"); else undo=$(json_array wall clear); fi
   change_end "$summary" "$before" "$after" "$undo"
   ui_ipc wallpaper set "$new"
   # With the mode on auto, a bright wallpaper switches everything to light
   # and a dark one back; with the accent on auto it follows the wallpaper's
-  # dominant colour. A separate karma run, so it gets its own lock,
+  # dominant colour. A separate mujo run, so it gets its own lock,
   # journal entry and reloads; its output is not part of this command's.
   if [[ $(theme_mode_pref) == auto || $(theme_accent_pref) == auto || $(theme_palette_pref) == wallpaper ]]; then
     flock -u 9 2>/dev/null || true
     local out
-    if out=$("$KARMA_BIN" theme sync 2>&1 3>&1); then
+    if out=$("$MUJO_BIN" theme sync 2>&1 3>&1); then
       [[ $out == *"nothing to do"* ]] || say "${out%%$'\n'*}"
     else
       warn "could not match the theme to the wallpaper: ${out%%$'\n'*}"
@@ -249,7 +249,7 @@ wall_apply() {
 cmd_wall() {
   local sub=${1:-status}
   (( $# )) && shift
-  karma_set_cmd "wall $sub"
+  mujo_set_cmd "wall $sub"
   case $sub in
     status)
       (( $# == 0 )) || usage_error "unexpected argument '$1'"
@@ -286,13 +286,13 @@ cmd_wall() {
       (( $# == 0 )) || usage_error "unexpected argument '$1'"
       tui_require
       [[ -n $(wall_images | head -n 1) ]] \
-        || die "$EXIT_FAIL" "no images in $(wall_dir) (put some there, or see '$KARMA_NAME wall dir')"
-      local preview="'$KARMA_BIN' wall preview {1}"
+        || die "$EXIT_FAIL" "no images in $(wall_dir) (put some there, or see '$MUJO_NAME wall dir')"
+      local preview="'$MUJO_BIN' wall preview {1}"
       wall_images | gawk -F/ '{ print $0 "\t" $NF }' \
         | tui_pick --delimiter '\t' --with-nth 2 --prompt 'Wallpaper > ' \
             --header "$(tilde "$(wall_dir)")"$'\n'"Enter: apply"$'\n'"Escape: close" \
             --preview "$preview" --preview-window 'right,65%' \
-            --bind "enter:execute-silent('$KARMA_BIN' wall set {1})" >/dev/null || true
+            --bind "enter:execute-silent('$MUJO_BIN' wall set {1})" >/dev/null || true
       ;;
     preview)
       # What `pick` shows beside the list; not meant to be typed.
@@ -310,7 +310,7 @@ cmd_wall() {
       (( $# == 0 )) || usage_error "unexpected argument '$1'"
       local -a images
       mapfile -t images < <(wall_images)
-      (( ${#images[@]} )) || die "$EXIT_FAIL" "no images in $(wall_dir) (see '$KARMA_NAME wall dir')"
+      (( ${#images[@]} )) || die "$EXIT_FAIL" "no images in $(wall_dir) (see '$MUJO_NAME wall dir')"
       local cur i idx=-1 n=${#images[@]}
       cur=$(wall_current)
       for i in "${!images[@]}"; do
@@ -344,7 +344,7 @@ cmd_wall() {
       before=$(jq -cn --arg d "$cur" '{directory: $d}')
       after=$(jq -cn --arg d "$new" '{directory: $d}')
       change_begin "wall dir: $cur -> $new" "$before" "$after" || return 0
-      karma_lock
+      mujo_lock
       config_set wallpaper_dir "$(jq -c .directory <<<"$after")"
       change_end "wall dir: $cur -> $new" "$before" "$after" "$(json_array wall dir "$cur")"
       ;;
@@ -364,7 +364,7 @@ cmd_wall() {
       before=$(jq -cn --argjson c "$cur" '{desktop_clock: $c}')
       after=$(jq -cn --argjson c "$new" '{desktop_clock: $c}')
       change_begin "wall clock: $wc -> $wn" "$before" "$after" || return 0
-      karma_lock
+      mujo_lock
       config_set desktop_clock "$new"
       change_end "wall clock: $wc -> $wn" "$before" "$after" "$(json_array wall clock "$wc")"
       ;;

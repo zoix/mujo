@@ -1,17 +1,17 @@
 # shellcheck shell=bash
-# karma net: Wi-Fi through NetworkManager (nmcli), with its own fzf TUI.
+# mujo net: Wi-Fi through NetworkManager (nmcli), with its own fzf TUI.
 
-karma_register net "Wi-Fi status, scan, connect, forget (TUI: net tui)"
+mujo_register net "Wi-Fi status, scan, connect, forget (TUI: net tui)"
 
 help_net() {
   cat <<EOF
-Usage: $KARMA_NAME net [status]
-       $KARMA_NAME net scan [--no-rescan]
-       $KARMA_NAME net connect SSID [--password-stdin]
-       $KARMA_NAME net disconnect
-       $KARMA_NAME net forget SSID --yes
-       $KARMA_NAME net wifi [on | off | toggle]
-       $KARMA_NAME net tui [--window]
+Usage: $MUJO_NAME net [status]
+       $MUJO_NAME net scan [--no-rescan]
+       $MUJO_NAME net connect SSID [--password-stdin]
+       $MUJO_NAME net disconnect
+       $MUJO_NAME net forget SSID --yes
+       $MUJO_NAME net wifi [on | off | toggle]
+       $MUJO_NAME net tui [--window]
 
 status      Wi-Fi radio, the current network and every active connection.
 scan        Networks in range, strongest first.
@@ -100,7 +100,7 @@ net_scan_json() {
 cmd_net() {
   local sub=${1:-status}
   (( $# )) && shift
-  karma_set_cmd "net $sub"
+  mujo_set_cmd "net $sub"
   case $sub in
     status) net_cmd_status "$@" ;;
     scan) net_cmd_scan "$@" ;;
@@ -277,18 +277,18 @@ net_cmd_tui() {
     ssid=${row%%$'\t'*}
     case $key in
       ctrl-r) rescan=yes; continue ;;
-      ctrl-w) "$KARMA_BIN" net wifi toggle || true; sleep 1; rescan=yes ;;
-      ctrl-d) "$KARMA_BIN" net disconnect || true ;;
+      ctrl-w) "$MUJO_BIN" net wifi toggle || true; sleep 1; rescan=yes ;;
+      ctrl-d) "$MUJO_BIN" net disconnect || true ;;
       ctrl-x)
         [[ -n $ssid ]] || continue
         printf 'Forget "%s" and its password? This cannot be undone. [y/N] ' "$ssid" >&2
         local answer
         read -r answer || answer=""
-        [[ $answer == [yY]* ]] && { "$KARMA_BIN" net forget "$ssid" --yes || true; }
+        [[ $answer == [yY]* ]] && { "$MUJO_BIN" net forget "$ssid" --yes || true; }
         ;;
       *)
         [[ -n $ssid ]] || continue
-        "$KARMA_BIN" net connect "$ssid" || true
+        "$MUJO_BIN" net connect "$ssid" || true
         ;;
     esac
     tui_pause

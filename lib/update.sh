@@ -1,15 +1,15 @@
 # shellcheck shell=bash
-# karma update: update karma itself (git) and the system (pacman), and say
+# mujo update: update mujo itself (git) and the system (pacman), and say
 # what changed.
 
-karma_register update "System and karma update with a summary"
+mujo_register update "System and mujo update with a summary"
 
 help_update() {
   cat <<EOF
-Usage: $KARMA_NAME update [--karma-only | --system-only] [--yes]
-       $KARMA_NAME update check [--refresh]
+Usage: $MUJO_NAME update [--mujo-only | --system-only] [--yes]
+       $MUJO_NAME update check [--refresh]
 
-karma   'git pull --ff-only' in $(tilde "$KARMA_ROOT"), then the new config files
+mujo   'git pull --ff-only' in $(tilde "$MUJO_ROOT"), then the new config files
         are linked and the theme is rebuilt. Skipped if the checkout has no
         upstream branch.
 system  'sudo pacman -Syu', then the AUR packages with yay or paru if one is
@@ -33,7 +33,7 @@ EOF
 }
 
 update_has_upstream() {
-  git -C "$KARMA_ROOT" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1
+  git -C "$MUJO_ROOT" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1
 }
 
 # The packages pacman would upgrade, one "name old -> new" per line.
@@ -45,7 +45,7 @@ update_pending() {
   fi
 }
 
-UPDATE_CACHE=$KARMA_CACHE_DIR/updates.json
+UPDATE_CACHE=$MUJO_CACHE_DIR/updates.json
 
 update_cmd_check() {
   local refresh=0
@@ -79,34 +79,34 @@ update_cmd_check() {
 cmd_update() {
   if [[ ${1:-} == check ]]; then
     shift
-    karma_set_cmd "update check"
+    mujo_set_cmd "update check"
     update_cmd_check "$@"
     return 0
   fi
-  local do_karma=1 do_system=1
+  local do_mujo=1 do_system=1
   while (( $# )); do
     case $1 in
-      --karma-only) do_system=0; shift ;;
-      --system-only) do_karma=0; shift ;;
+      --mujo-only) do_system=0; shift ;;
+      --system-only) do_mujo=0; shift ;;
       *) usage_error "unexpected argument '$1'" ;;
     esac
   done
-  (( do_karma || do_system )) || usage_error "--karma-only and --system-only together leave nothing to do"
+  (( do_mujo || do_system )) || usage_error "--mujo-only and --system-only together leave nothing to do"
 
-  local karma_state="skipped" commits=0 from="" to=""
+  local mujo_state="skipped" commits=0 from="" to=""
   local -a upgraded=()
   local pending=""
 
   if (( OPT_DRY_RUN )); then
-    say "$KARMA_NAME update (dry run, nothing changed)"
-    if (( do_karma )); then
+    say "$MUJO_NAME update (dry run, nothing changed)"
+    if (( do_mujo )); then
       if command -v git >/dev/null 2>&1 && update_has_upstream; then
-        commits=$(git -C "$KARMA_ROOT" rev-list --count 'HEAD..@{upstream}' 2>/dev/null) || commits=0
-        say "$KARMA_NAME: $commits commit(s) fetched and not yet merged (git fetch was not run)"
-        karma_state="pending"
+        commits=$(git -C "$MUJO_ROOT" rev-list --count 'HEAD..@{upstream}' 2>/dev/null) || commits=0
+        say "$MUJO_NAME: $commits commit(s) fetched and not yet merged (git fetch was not run)"
+        mujo_state="pending"
       else
-        say "$KARMA_NAME: the checkout has no upstream branch; nothing to pull"
-        karma_state="no-upstream"
+        say "$MUJO_NAME: the checkout has no upstream branch; nothing to pull"
+        mujo_state="no-upstream"
       fi
     fi
     if (( do_system )); then
@@ -130,40 +130,40 @@ cmd_update() {
         fi
       fi
     fi
-    jq -n --arg ks "$karma_state" --argjson c "$commits" --arg p "$pending" \
-      '{journal_id: null, karma: {state: $ks, commits: $c},
+    jq -n --arg ks "$mujo_state" --argjson c "$commits" --arg p "$pending" \
+      '{journal_id: null, mujo: {state: $ks, commits: $c},
         system: {packages: ($p | split("\n") | map(select(length > 0)))}, reboot_recommended: false}' | emit
     return 0
   fi
 
   if (( do_system )) && (( ! OPT_YES )) && [[ ! -t 0 ]]; then
-    die "$EXIT_USAGE" "a system update without a terminal needs --yes (or use --karma-only)"
+    die "$EXIT_USAGE" "a system update without a terminal needs --yes (or use --mujo-only)"
   fi
-  karma_lock
+  mujo_lock
 
-  if (( do_karma )); then
+  if (( do_mujo )); then
     if ! command -v git >/dev/null 2>&1 || ! update_has_upstream; then
-      say "$KARMA_NAME: the checkout has no upstream branch; nothing to pull"
-      karma_state="no-upstream"
+      say "$MUJO_NAME: the checkout has no upstream branch; nothing to pull"
+      mujo_state="no-upstream"
     else
-      from=$(git -C "$KARMA_ROOT" rev-parse --short HEAD)
-      say "$KARMA_NAME: git pull --ff-only"
-      if git -C "$KARMA_ROOT" pull --ff-only >&2; then
-        to=$(git -C "$KARMA_ROOT" rev-parse --short HEAD)
-        commits=$(git -C "$KARMA_ROOT" rev-list --count "$from..$to")
-        karma_state="current"
+      from=$(git -C "$MUJO_ROOT" rev-parse --short HEAD)
+      say "$MUJO_NAME: git pull --ff-only"
+      if git -C "$MUJO_ROOT" pull --ff-only >&2; then
+        to=$(git -C "$MUJO_ROOT" rev-parse --short HEAD)
+        commits=$(git -C "$MUJO_ROOT" rev-list --count "$from..$to")
+        mujo_state="current"
         if (( commits > 0 )); then
-          karma_state="updated"
+          mujo_state="updated"
           # New config files need links, and new tokens a rebuild. The
           # installer does both and nothing else when run this way.
           flock -u 9 2>/dev/null || true
-          "$KARMA_ROOT/install.sh" --yes --skip-system >/dev/null 2>&1 \
-            || warn "linking the new config failed; run $KARMA_ROOT/install.sh --skip-system"
-          "$KARMA_BIN" theme build >/dev/null 2>&1 3>&1 || warn "'$KARMA_NAME theme build' failed"
+          "$MUJO_ROOT/install.sh" --yes --skip-system >/dev/null 2>&1 \
+            || warn "linking the new config failed; run $MUJO_ROOT/install.sh --skip-system"
+          "$MUJO_BIN" theme build >/dev/null 2>&1 3>&1 || warn "'$MUJO_NAME theme build' failed"
         fi
       else
-        warn "git pull failed (local changes or a diverged branch?); $KARMA_NAME was not updated"
-        karma_state="failed"
+        warn "git pull failed (local changes or a diverged branch?); $MUJO_NAME was not updated"
+        mujo_state="failed"
       fi
     fi
   fi
@@ -207,21 +207,21 @@ cmd_update() {
   done
 
   local jid summary
-  summary="update: $KARMA_NAME $karma_state"
+  summary="update: $MUJO_NAME $mujo_state"
   (( commits > 0 )) && summary+=" ($commits commit(s), $from..$to)"
   (( do_system )) && summary+=", ${#upgraded[@]} package(s) upgraded"
   jid=$(journal_new_id)
   journal_record "$jid" "$summary" '{}' \
-    "$(jq -cn --arg ks "$karma_state" --argjson c "$commits" --argjson p "$(json_array "${upgraded[@]}")" \
-      '{karma: $ks, commits: $c, packages: $p}')" null
+    "$(jq -cn --arg ks "$mujo_state" --argjson c "$commits" --argjson p "$(json_array "${upgraded[@]}")" \
+      '{mujo: $ks, commits: $c, packages: $p}')" null
 
   say ""
   say "Summary"
-  case $karma_state in
-    updated) say "  $KARMA_NAME: $commits new commit(s), $from -> $to; config linked and theme rebuilt" ;;
-    current) say "  $KARMA_NAME: already up to date" ;;
-    no-upstream) say "  $KARMA_NAME: not updated (no upstream branch)" ;;
-    failed) say "  $KARMA_NAME: update failed" ;;
+  case $mujo_state in
+    updated) say "  $MUJO_NAME: $commits new commit(s), $from -> $to; config linked and theme rebuilt" ;;
+    current) say "  $MUJO_NAME: already up to date" ;;
+    no-upstream) say "  $MUJO_NAME: not updated (no upstream branch)" ;;
+    failed) say "  $MUJO_NAME: update failed" ;;
   esac
   if (( do_system )); then
     if (( ${#upgraded[@]} )); then
@@ -232,8 +232,8 @@ cmd_update() {
     [[ $reboot == true ]] && say "  The kernel, Hyprland or a core library changed: reboot (or at least log out) to use it."
   fi
   say "  Journal: $jid (cannot be undone)"
-  jq -n --arg j "$jid" --arg ks "$karma_state" --argjson c "$commits" --argjson p "$(json_array "${upgraded[@]}")" \
+  jq -n --arg j "$jid" --arg ks "$mujo_state" --argjson c "$commits" --argjson p "$(json_array "${upgraded[@]}")" \
     --argjson r "$reboot" \
-    '{journal_id: $j, karma: {state: $ks, commits: $c}, system: {packages: $p}, reboot_recommended: $r}' | emit
-  [[ $system_ok == true && $karma_state != failed ]] || exit "$EXIT_FAIL"
+    '{journal_id: $j, mujo: {state: $ks, commits: $c}, system: {packages: $p}, reboot_recommended: $r}' | emit
+  [[ $system_ok == true && $mujo_state != failed ]] || exit "$EXIT_FAIL"
 }

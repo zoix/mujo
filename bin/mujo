@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# mujo: command-line control plane for the mujo desktop. See docs/cli.md.
+set -euo pipefail
+
+if (( BASH_VERSINFO[0] < 5 )); then
+  echo "mujo: needs bash 5 or newer" >&2
+  exit 3
+fi
+
+MUJO_BIN=$(readlink -f -- "${BASH_SOURCE[0]}")
+MUJO_ROOT=${MUJO_ROOT:-$(dirname -- "$(dirname -- "$MUJO_BIN")")}
+export MUJO_BIN MUJO_ROOT
+
+exec 3>&1
+
+# shellcheck source=../lib/core.sh
+source "$MUJO_ROOT/lib/core.sh"
+# shellcheck source=../lib/config.sh
+source "$MUJO_ROOT/lib/config.sh"
+# shellcheck source=../lib/ui.sh
+source "$MUJO_ROOT/lib/ui.sh"
+# shellcheck source=../lib/tui.sh
+source "$MUJO_ROOT/lib/tui.sh"
+# shellcheck source=../lib/status.sh
+source "$MUJO_ROOT/lib/status.sh"
+# shellcheck source=../lib/audio.sh
+source "$MUJO_ROOT/lib/audio.sh"
+# shellcheck source=../lib/net.sh
+source "$MUJO_ROOT/lib/net.sh"
+# shellcheck source=../lib/bt.sh
+source "$MUJO_ROOT/lib/bt.sh"
+# shellcheck source=../lib/display.sh
+source "$MUJO_ROOT/lib/display.sh"
+# shellcheck source=../lib/theme.sh
+source "$MUJO_ROOT/lib/theme.sh"
+# shellcheck source=../lib/wall.sh
+source "$MUJO_ROOT/lib/wall.sh"
+# shellcheck source=../lib/dnd.sh
+source "$MUJO_ROOT/lib/dnd.sh"
+# shellcheck source=../lib/power.sh
+source "$MUJO_ROOT/lib/power.sh"
+# shellcheck source=../lib/shot.sh
+source "$MUJO_ROOT/lib/shot.sh"
+# shellcheck source=../lib/clip.sh
+source "$MUJO_ROOT/lib/clip.sh"
+# shellcheck source=../lib/launch.sh
+source "$MUJO_ROOT/lib/launch.sh"
+# shellcheck source=../lib/menu.sh
+source "$MUJO_ROOT/lib/menu.sh"
+# shellcheck source=../lib/keys.sh
+source "$MUJO_ROOT/lib/keys.sh"
+# shellcheck source=../lib/record.sh
+source "$MUJO_ROOT/lib/record.sh"
+# shellcheck source=../lib/calc.sh
+source "$MUJO_ROOT/lib/calc.sh"
+# shellcheck source=../lib/emoji.sh
+source "$MUJO_ROOT/lib/emoji.sh"
+# shellcheck source=../lib/term.sh
+source "$MUJO_ROOT/lib/term.sh"
+# shellcheck source=../lib/focus.sh
+source "$MUJO_ROOT/lib/focus.sh"
+# shellcheck source=../lib/weather.sh
+source "$MUJO_ROOT/lib/weather.sh"
+# shellcheck source=../lib/pkg.sh
+source "$MUJO_ROOT/lib/pkg.sh"
+# shellcheck source=../lib/sys.sh
+source "$MUJO_ROOT/lib/sys.sh"
+# shellcheck source=../lib/doctor.sh
+source "$MUJO_ROOT/lib/doctor.sh"
+# shellcheck source=../lib/update.sh
+source "$MUJO_ROOT/lib/update.sh"
+# shellcheck source=../lib/uninstall.sh
+source "$MUJO_ROOT/lib/uninstall.sh"
+# shellcheck source=../lib/journal.sh
+source "$MUJO_ROOT/lib/journal.sh"
+
+mujo_main "$@"

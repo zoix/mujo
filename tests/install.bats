@@ -7,11 +7,11 @@ load helpers
 
 setup() {
   export HOME=$BATS_TEST_TMPDIR/home
-  unset XDG_CONFIG_HOME XDG_STATE_HOME XDG_DATA_HOME XDG_CACHE_HOME KARMA_SYSROOT KARMA_ROOT
+  unset XDG_CONFIG_HOME XDG_STATE_HOME XDG_DATA_HOME XDG_CACHE_HOME MUJO_SYSROOT MUJO_ROOT
   unset HYPRLAND_INSTANCE_SIGNATURE WAYLAND_DISPLAY DBUS_SESSION_BUS_ADDRESS
   export XDG_RUNTIME_DIR=$BATS_TEST_TMPDIR/run
   mkdir -p "$HOME/.local" "$HOME/.config" "$XDG_RUNTIME_DIR"
-  INSTALL="$KARMA_REPO/install.sh"
+  INSTALL="$MUJO_REPO/install.sh"
 }
 
 old_dotfiles() {
@@ -46,7 +46,7 @@ install() {
 }
 
 snapshot() {
-  (cd "$HOME" && find . -path ./.local/state/karma/install.log -prune -o -printf '%p %y %l %s %T@\n' | sort)
+  (cd "$HOME" && find . -path ./.local/state/mujo/install.log -prune -o -printf '%p %y %l %s %T@\n' | sort)
 }
 
 @test "dry run prints the plan and changes nothing" {
@@ -73,7 +73,7 @@ snapshot() {
   [ "$("$HOME/.local/bin/old-tool")" = old-tool ]
   [ "$("$HOME/.local/bin/abs-tool")" = real-tool ]
   [ -L "$HOME/dots/bin/.local/bin/abs-tool" ]
-  run "$HOME/.local/bin/karma" version
+  run "$HOME/.local/bin/mujo" version
   [ "$status" -eq 0 ]
   host=$HOME/.config/hypr/host.lua
   grep -q 'output = "eDP-1", mode = "2880x1920@120", position = "0x0", scale = "2"' "$host"
@@ -82,10 +82,10 @@ snapshot() {
   grep -q 'hl.bind("switch:on:Lid Switch"' "$host"
   grep -q 'hl.workspace_rule({ workspace = "1", monitor = "DP-1" })' "$host"
   if command -v luac >/dev/null; then luac -p "$host"; fi
-  [ -f "$HOME/.config/hypr/karma_tokens.lua" ]
+  [ -f "$HOME/.config/hypr/mujo_tokens.lua" ]
   [ -f "$HOME/.config/zsh/local.zsh" ]
-  [ "$(jq -r .install.keyboard.variant "$HOME/.config/karma/config.json")" = altgr-intl ]
-  manifest=$(ls -d "$HOME"/.local/state/karma/backups/*/manifest.json)
+  [ "$(jq -r .install.keyboard.variant "$HOME/.config/mujo/config.json")" = altgr-intl ]
+  manifest=$(ls -d "$HOME"/.local/state/mujo/backups/*/manifest.json)
   [ "$(jq '[.entries[] | select(.unfolded.package == "bin")] | length' "$manifest")" = 1 ]
   [ "$(jq -r '.entries[] | select(.unfolded.package == "bin") | .unfolded.link' "$manifest")" = ../dots/bin/.local/bin ]
   [ -L "$HOME/.config/hypr/hyprland.conf" ]
@@ -100,19 +100,19 @@ snapshot() {
   install
   [ -L "$HOME/.config/hypr/hyprland.lua" ]
 
-  run "$KARMA_REPO/bin/karma" uninstall --skip-system
+  run "$MUJO_REPO/bin/mujo" uninstall --skip-system
   [ "$status" -eq 2 ]
-  run "$KARMA_REPO/bin/karma" uninstall --skip-system --dry-run
+  run "$MUJO_REPO/bin/mujo" uninstall --skip-system --dry-run
   [ "$status" -eq 0 ]
   [ -L "$HOME/.config/hypr/hyprland.lua" ]
 
-  run "$KARMA_REPO/bin/karma" uninstall --skip-system --yes
+  run "$MUJO_REPO/bin/mujo" uninstall --skip-system --yes
   [ "$status" -eq 0 ]
   [ ! -e "$HOME/.config/hypr/hyprland.lua" ]
   [ -L "$HOME/.local/bin" ]
   [ "$before" = "$(home_state)" ]
-  # what karma wrote was moved, not deleted
-  [ -f "$(ls -d "$HOME"/.local/state/karma/uninstalled/*)/.config/hypr/host.lua" ]
+  # what mujo wrote was moved, not deleted
+  [ -f "$(ls -d "$HOME"/.local/state/mujo/uninstalled/*)/.config/hypr/host.lua" ]
 
   # and installing again works
   install
@@ -137,7 +137,7 @@ snapshot() {
   [ ! -e "$HOME/.config/hypr/hyprland.conf" ]
   [ -f "$HOME/dots/hypr/.config/hypr/hyprland.conf" ]
   [ -L "$HOME/.config/hypr/hyprland.lua" ]
-  manifest=$(ls -d "$HOME"/.local/state/karma/backups/*/manifest.json | tail -n 1)
+  manifest=$(ls -d "$HOME"/.local/state/mujo/backups/*/manifest.json | tail -n 1)
   [ "$(jq -r '.entries[] | select(.unstowed) | .unstowed.package' "$manifest")" = hypr ]
   dir=$(dirname "$manifest")
   [ -L "$dir/home/.config/hypr/hyprland.conf" ]
@@ -149,7 +149,7 @@ snapshot() {
   run install
   [ "$status" -eq 0 ]
   [ -L "$HOME/.config/ghostty/config" ]
-  backup=$(ls -d "$HOME"/.local/state/karma/backups/*)
+  backup=$(ls -d "$HOME"/.local/state/mujo/backups/*)
   [ "$(cat "$backup/home/.config/ghostty/config")" = "font-size = 14" ]
 }
 

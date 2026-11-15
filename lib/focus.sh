@@ -1,13 +1,13 @@
 # shellcheck shell=bash
-# karma focus: a countdown that keeps notifications quiet while it runs.
+# mujo focus: a countdown that keeps notifications quiet while it runs.
 
-karma_register focus "Focus timer: do-not-disturb for a set time"
+mujo_register focus "Focus timer: do-not-disturb for a set time"
 
 help_focus() {
   cat <<EOF
-Usage: $KARMA_NAME focus [status]
-       $KARMA_NAME focus start [MINUTES]
-       $KARMA_NAME focus stop
+Usage: $MUJO_NAME focus [status]
+       $MUJO_NAME focus start [MINUTES]
+       $MUJO_NAME focus stop
 
 start   Begin a focus session (25 minutes unless you say otherwise, up to
         480). Do-not-disturb goes on and the bar counts the minutes down.
@@ -19,7 +19,7 @@ notification says so. Start and stop are journaled and can be undone.
 EOF
 }
 
-FOCUS_UNIT=$KARMA_NAME-focus
+FOCUS_UNIT=$MUJO_NAME-focus
 
 # focus_state: the "focus" object from the config ({until, dnd_before}), or
 # nothing if no session is running (one whose time has passed is not).
@@ -33,8 +33,8 @@ focus_end() {
   dnd_before=$(jq -r '.focus.dnd_before == true' <<<"$cfg")
   before=$(jq -c '{focus: true, until: .focus.until}' <<<"$cfg")
   after='{"focus":false}'
-  karma_lock
-  jq --argjson d "$dnd_before" 'del(.focus) | .dnd = $d' <<<"$cfg" | atomic_write "$KARMA_CONFIG_FILE"
+  mujo_lock
+  jq --argjson d "$dnd_before" 'del(.focus) | .dnd = $d' <<<"$cfg" | atomic_write "$MUJO_CONFIG_FILE"
   systemctl --user stop "$FOCUS_UNIT.timer" >/dev/null 2>&1 || true
   ui_ipc notify reload
   change_end "$summary" "$before" "$after" null
@@ -43,7 +43,7 @@ focus_end() {
 cmd_focus() {
   local sub=${1:-status}
   (( $# )) && shift
-  karma_set_cmd "focus $sub"
+  mujo_set_cmd "focus $sub"
   local state="" now left
   now=$(date +%s)
   state=$(focus_state) || state=""
@@ -66,22 +66,22 @@ cmd_focus() {
         usage_error "expected a number of minutes from 1 to 480, got '$minutes'"
       fi
       minutes=$(( 10#$minutes ))
-      [[ -z $state ]] || die "$EXIT_FAIL" "a focus session is already running ('$KARMA_NAME focus stop' ends it)"
+      [[ -z $state ]] || die "$EXIT_FAIL" "a focus session is already running ('$MUJO_NAME focus stop' ends it)"
       local until=$(( now + minutes * 60 )) cfg dnd before after
       cfg=$(config_read)
       dnd=$(jq -r '.dnd == true' <<<"$cfg")
       before='{"focus":false}'
       after=$(jq -cn --argjson u "$until" '{focus: true, until: $u}')
       change_begin "focus: $minutes minute(s)" "$before" "$after" || return 0
-      karma_lock
+      mujo_lock
       jq --argjson u "$until" --argjson d "$dnd" '.focus = {until: $u, dnd_before: $d} | .dnd = true' <<<"$cfg" \
-        | atomic_write "$KARMA_CONFIG_FILE"
+        | atomic_write "$MUJO_CONFIG_FILE"
       # A one-off timer ends the session even if this terminal is long gone.
       if command -v systemd-run >/dev/null 2>&1; then
         systemctl --user stop "$FOCUS_UNIT.timer" >/dev/null 2>&1 || true
         systemd-run --user --quiet --collect --unit "$FOCUS_UNIT" --on-active="${minutes}m" \
-          "$KARMA_BIN" focus finish >/dev/null 2>&1 3>&- 9>&- \
-          || warn "could not schedule the end; run '$KARMA_NAME focus stop' yourself"
+          "$MUJO_BIN" focus finish >/dev/null 2>&1 3>&- 9>&- \
+          || warn "could not schedule the end; run '$MUJO_NAME focus stop' yourself"
       fi
       ui_ipc notify reload
       change_end "focus: $minutes minute(s)" "$before" "$after" "$(json_array focus stop)"
@@ -105,7 +105,7 @@ cmd_focus() {
       config_read | jq -e '.focus != null' >/dev/null || return 0
       focus_end "focus: finished"
       if command -v notify-send >/dev/null 2>&1; then
-        timeout 2 notify-send -a "$KARMA_NAME" -t 8000 "Focus time is over" "Notifications are back to normal." >/dev/null 2>&1 3>&- || true
+        timeout 2 notify-send -a "$MUJO_NAME" -t 8000 "Focus time is over" "Notifications are back to normal." >/dev/null 2>&1 3>&- || true
       fi
       ;;
     *) usage_error "unknown subcommand '$sub'" ;;

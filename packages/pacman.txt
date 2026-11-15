@@ -7,9 +7,9 @@ hyprland                    # the compositor (Lua config needs 0.55 or newer)
 xdg-desktop-portal-hyprland # screen sharing, file pickers for Hyprland
 xdg-desktop-portal-gtk      # file chooser and settings portal for GTK apps
 hyprpolkitagent             # polkit prompts for GUI apps
-hypridle                    # idle handling; triggers `karma power lock` (phase 3)
-hyprsunset                  # night light for `karma display` (phase 2)
-quickshell                  # the karma UI (qs -c karma), phase 3
+hypridle                    # idle handling; triggers `mujo power lock` (phase 3)
+hyprsunset                  # night light for `mujo display` (phase 2)
+quickshell                  # the mujo UI (qs -c mujo), phase 3
 greetd                      # login manager
 greetd-tuigreet             # greetd's terminal greeter
 gnome-keyring               # Secret Service for apps that store credentials
@@ -36,36 +36,36 @@ fd                          # file search in neovim's picker
 tree-sitter-cli             # compiles neovim's syntax parsers
 eza                         # ls replacement (the ls/ll/la aliases use it)
 
-# karma's own dependencies
-bash                        # karma needs bash 5
+# mujo's own dependencies
+bash                        # mujo needs bash 5
 jq                          # JSON for --json, tokens and the journal
 gawk                        # desktop-entry and wallpaper colour parsing
 stow                        # links config/ into $HOME
-git                         # updates (`karma update`)
+git                         # updates (`mujo update`)
 kbd                         # setvtrgb for the console palette
 
 # Desktop services
-networkmanager              # network (karma net uses nmcli)
+networkmanager              # network (mujo net uses nmcli)
 bluez                       # Bluetooth stack
-bluez-utils                 # bluetoothctl for `karma bt`
+bluez-utils                 # bluetoothctl for `mujo bt`
 pipewire                    # audio
 pipewire-pulse              # PulseAudio clients on PipeWire
 wireplumber                 # PipeWire session manager, provides wpctl
-brightnessctl               # backlight for `karma display`
+brightnessctl               # backlight for `mujo display`
 playerctl                   # media keys
 wl-clipboard                # wl-copy and wl-paste
-cliphist                    # clipboard history for `karma clip`
+cliphist                    # clipboard history for `mujo clip`
 imagemagick                 # measures wallpaper brightness for the automatic light/dark mode
 grim                        # screenshots
 slurp                       # region selection for screenshots
 libnotify                   # notify-send
-wf-recorder                 # screen recording for `karma record`
-tesseract                   # reads text from the screen for `karma shot text`
+wf-recorder                 # screen recording for `mujo record`
+tesseract                   # reads text from the screen for `mujo shot text`
 tesseract-data-eng          # English for tesseract
-libqalculate                # qalc, the calculator behind `karma calc`
-unicode-emoji               # emoji names for `karma emoji`
+libqalculate                # qalc, the calculator behind `mujo calc`
+unicode-emoji               # emoji names for `mujo emoji`
 pacman-contrib              # checkupdates: counts pending updates without touching the system
-curl                        # asks the weather service for `karma weather`
+curl                        # asks the weather service for `mujo weather`
 
 # Look
 ttf-jetbrains-mono-nerd     # the only UI and terminal font

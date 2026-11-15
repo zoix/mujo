@@ -2,4 +2,4 @@
 # not in pacman.txt. install.sh bootstraps an AUR helper only if this file
 # lists at least one package.
 #
-# Empty: every package karma needs is in the official repositories.
+# Empty: every package mujo needs is in the official repositories.

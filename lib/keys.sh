@@ -1,13 +1,13 @@
 # shellcheck shell=bash
-# karma keys: the keybinding cheat sheet, read live from Hyprland.
+# mujo keys: the keybinding cheat sheet, read live from Hyprland.
 
-karma_register keys "Keybinding cheat sheet (TUI: keys tui)"
+mujo_register keys "Keybinding cheat sheet (TUI: keys tui)"
 
 help_keys() {
   cat <<EOF
-Usage: $KARMA_NAME keys [list]
-       $KARMA_NAME keys tui [--window]
-       $KARMA_NAME keys run DESCRIPTION
+Usage: $MUJO_NAME keys [list]
+       $MUJO_NAME keys tui [--window]
+       $MUJO_NAME keys run DESCRIPTION
 
 list  Every keybinding with its description (the default).
 tui   Search the list with fzf; Enter does what the chosen binding does.
@@ -40,7 +40,7 @@ keys_json() {
         description: (if .has_description and .description != "" then .description else .dispatcher end),
         mods: $mods, key, locked, repeat, mouse,
         action: (if .has_description then $run[.description] else null end)}]' \
-    --slurpfile actions <(cat "${XDG_RUNTIME_DIR:-/nonexistent}/karma-binds.json" 2>/dev/null || echo "[]")
+    --slurpfile actions <(cat "${XDG_RUNTIME_DIR:-/nonexistent}/mujo-binds.json" 2>/dev/null || echo "[]")
 }
 
 keys_table() {
@@ -50,13 +50,13 @@ keys_table() {
 cmd_keys() {
   local sub=${1:-list}
   (( $# )) && shift
-  karma_set_cmd "keys $sub"
+  mujo_set_cmd "keys $sub"
   if [[ $sub == run ]]; then
-    (( $# == 1 )) || usage_error "run needs exactly one description (see '$KARMA_NAME keys')"
+    (( $# == 1 )) || usage_error "run needs exactly one description (see '$MUJO_NAME keys')"
     require_hyprland
     local action
     action=$(keys_json | jq -r --arg d "$1" '[.[] | select(.description == $d)][0] | .action // empty')
-    [[ -n $action ]] || die "$EXIT_FAIL" "no binding '$1' that can be run (see '$KARMA_NAME keys')"
+    [[ -n $action ]] || die "$EXIT_FAIL" "no binding '$1' that can be run (see '$MUJO_NAME keys')"
     if (( OPT_DRY_RUN )); then
       say "Would run: $action"
     else
@@ -82,7 +82,7 @@ cmd_keys() {
     row=$(jq -r '.[] | "\(.description)\t\(.keys)"' <<<"$binds" | column -t -s $'\t' -o $'\t' \
       | tui_pick --delimiter '\t' --prompt 'Keys > ' --header 'Type to search; Enter runs it; Escape closes') || return 0
     row=${row%%$'\t'*}
-    "$KARMA_BIN" keys run "${row%"${row##*[![:space:]]}"}" || true
+    "$MUJO_BIN" keys run "${row%"${row##*[![:space:]]}"}" || true
     return 0
   fi
   keys_table "$binds" | say_stream

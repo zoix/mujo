@@ -1,12 +1,12 @@
-# Packages that karma replaces. install.sh offers to remove the ones that are
+# Packages that mujo replaces. install.sh offers to remove the ones that are
 # installed, after showing this list, and never removes them on its own.
 # Format: package  # what replaces it
 
 waybar                      # the Quickshell bar (phase 3)
 hyprpaper                   # the Quickshell wallpaper layer (phase 3)
-wofi                        # the karma launcher (phase 2)
-network-manager-applet      # the Wi-Fi icon and `karma net` (phases 2-3)
+wofi                        # the mujo launcher (phase 2)
+network-manager-applet      # the Wi-Fi icon and `mujo net` (phases 2-3)
 polkit-kde-agent            # hyprpolkitagent
 dunst                       # Quickshell notifications (phase 3)
 swaync                      # Quickshell notifications (phase 3)
-starship                    # karma's zsh prompt
+starship                    # mujo's zsh prompt

@@ -26,13 +26,13 @@ commands with their descriptions. Typing `:` lists matching commands as you type
 | `gc` | Comment |
 
 **Language servers** are used when installed; nothing is downloaded behind your
-back. Install the ones you need with `karma pkg install`, for example
+back. Install the ones you need with `mujo pkg install`, for example
 `lua-language-server`, `gopls`, `typescript-language-server`, `pyright`,
 `bash-language-server`. The same goes for formatters (`stylua`, `prettier`,
 `shfmt`, `ruff`), which run on save.
 
 **Syntax parsers** for more languages are compiled with `tree-sitter-cli`
-(on karma's package list). Without it only Lua, C, Markdown, Vim and help
+(on mujo's package list). Without it only Lua, C, Markdown, Vim and help
 files get tree-based highlighting.
 
 The colours follow the desktop: Catppuccin Mocha in dark mode, Latte in light

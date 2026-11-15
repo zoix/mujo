@@ -1,9 +1,9 @@
-# karma: interactive zsh. No framework; plugins come from the Arch repos.
+# mujo: interactive zsh. No framework; plugins come from the Arch repos.
 # Personal settings (aliases, tool hooks, PATH) go in local.zsh next to this
 # file. install.sh creates it once and never touches it again.
 
-# Colours generated from design/tokens.json by `karma theme build`.
-[[ -r $ZDOTDIR/karma-theme.zsh ]] && source "$ZDOTDIR/karma-theme.zsh"
+# Colours generated from design/tokens.json by `mujo theme build`.
+[[ -r $ZDOTDIR/mujo-theme.zsh ]] && source "$ZDOTDIR/mujo-theme.zsh"
 
 # History: shared between sessions, no duplicates, kept out of $HOME.
 HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
@@ -16,13 +16,13 @@ setopt hist_reduce_blanks hist_verify
 setopt auto_cd interactive_comments no_beep
 bindkey -e
 
-# Completion (karma's own completion lives in functions/).
+# Completion (mujo's own completion lives in functions/).
 fpath=("$ZDOTDIR/functions" $fpath)
 autoload -Uz compinit
-_karma_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
-[[ -d $_karma_cache ]] || mkdir -p "$_karma_cache"
-compinit -d "$_karma_cache/zcompdump"
-unset _karma_cache
+_mujo_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+[[ -d $_mujo_cache ]] || mkdir -p "$_mujo_cache"
+compinit -d "$_mujo_cache/zcompdump"
+unset _mujo_cache
 zstyle ':completion:*' menu select
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 

@@ -1,11 +1,11 @@
 # shellcheck shell=bash
-# karma term: a drop-down terminal that one key shows and hides.
+# mujo term: a drop-down terminal that one key shows and hides.
 
-karma_register term "Show or hide the drop-down terminal"
+mujo_register term "Show or hide the drop-down terminal"
 
 help_term() {
   cat <<EOF
-Usage: $KARMA_NAME term
+Usage: $MUJO_NAME term
 
 Shows the drop-down terminal over whatever is on screen, or hides it again.
 It is one Ghostty window that keeps running while hidden, so what was in it
@@ -15,7 +15,7 @@ EOF
 
 cmd_term() {
   (( $# == 0 )) || usage_error "unexpected argument '$1'"
-  local class=$KARMA_NAME.drop
+  local class=$MUJO_NAME.drop
   if (( OPT_DRY_RUN )); then
     say "Would show or hide the drop-down terminal"
     jq -n '{started: false, toggled: false}' | emit

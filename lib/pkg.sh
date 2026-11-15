@@ -1,14 +1,14 @@
 # shellcheck shell=bash
-# karma pkg: find packages by fuzzy search and install or remove them. Covers
+# mujo pkg: find packages by fuzzy search and install or remove them. Covers
 # the official repositories (pacman) and, with an AUR helper, the AUR.
 
-karma_register pkg "Search, install and remove packages (pacman and AUR)"
+mujo_register pkg "Search, install and remove packages (pacman and AUR)"
 
 help_pkg() {
   cat <<EOF
-Usage: $KARMA_NAME pkg [install] [--window]
-       $KARMA_NAME pkg remove [--window]
-       $KARMA_NAME pkg list [--aur]
+Usage: $MUJO_NAME pkg [install] [--window]
+       $MUJO_NAME pkg remove [--window]
+       $MUJO_NAME pkg list [--aur]
 
 install  Type to search every package in the official repositories and, if
          yay or paru is installed, the AUR. The right side shows the
@@ -21,7 +21,7 @@ remove   The same list for the packages you installed yourself; Enter removes
 list     The package names the install picker searches (--aur: only the AUR).
 
 Installing and removing are recorded in the journal; they cannot be undone
-by '$KARMA_NAME undo'.
+by '$MUJO_NAME undo'.
 EOF
 }
 
@@ -90,7 +90,7 @@ pkg_cmd_install() {
   fi
   (( ok )) || warn "something was not installed; see the messages above"
   # In its own window, wait so that the result can be read.
-  [[ -n ${KARMA_WINDOW:-} ]] && tui_pause
+  [[ -n ${MUJO_WINDOW:-} ]] && tui_pause
   (( ok )) || exit "$EXIT_FAIL"
 }
 
@@ -110,14 +110,14 @@ pkg_cmd_remove() {
   local ok=1
   if sudo pacman -Rns "${names[@]}"; then pkg_record remove "${names[@]}"; else ok=0; fi
   # In its own window, wait so that the result can be read.
-  [[ -n ${KARMA_WINDOW:-} ]] && tui_pause
+  [[ -n ${MUJO_WINDOW:-} ]] && tui_pause
   (( ok )) || exit "$EXIT_FAIL"
 }
 
 cmd_pkg() {
   local sub=${1:-install}
   (( $# )) && shift
-  karma_set_cmd "pkg $sub"
+  mujo_set_cmd "pkg $sub"
   case $sub in
     install) pkg_cmd_install "$@" ;;
     remove) pkg_cmd_remove "$@" ;;

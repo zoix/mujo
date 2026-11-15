@@ -1,11 +1,11 @@
-# karma
+# mujo
 
 A terminal-first desktop for Arch Linux: Hyprland (Lua config), a Quickshell
-interface and a `karma` CLI that owns every change to the system, with
+interface and a `mujo` CLI that owns every change to the system, with
 dry runs, a journal and undo. Catppuccin Mocha (dark) or Latte (light), chosen from the wallpaper; one accent.
 Optionally the whole palette is tinted with the wallpaper's colour.
 
-![The desktop: Neovim, yazi and the karma CLI in Ghostty, inside the frame with the bar on the left](docs/screenshots/desktop.webp)
+![The desktop: Neovim, yazi and the mujo CLI in Ghostty, inside the frame with the bar on the left](docs/screenshots/desktop.webp)
 
 | | |
 | --- | --- |
@@ -13,9 +13,9 @@ Optionally the whole palette is tinted with the wallpaper's colour.
 | ![Wallpaper strip](docs/screenshots/wallpapers.webp) Wallpapers, `SUPER + Shift + W` | ![Keybindings](docs/screenshots/keys.webp) Keybindings, `SUPER + /` |
 | ![Power menu](docs/screenshots/power-menu.webp) Power menu, `SUPER + Shift + Escape` | |
 
-**Status: phase 4 (complete).** `install.sh` sets up Hyprland with the karma
+**Status: phase 4 (complete).** `install.sh` sets up Hyprland with the mujo
 look, Ghostty, a themed zsh, greetd with tuigreet and the console
-palette. The `karma` CLI controls audio, Wi-Fi, Bluetooth, brightness, night
+palette. The `mujo` CLI controls audio, Wi-Fi, Bluetooth, brightness, night
 light, wallpaper, theme, power, screenshots and the clipboard, and every
 change can be previewed, is journaled and can be undone. The Quickshell
 interface draws a frame around the screen with a bar on the left; the
@@ -30,7 +30,7 @@ that frame. Light or dark and the accent colour follow the wallpaper.
 ```
 
 Then reboot: greetd starts on tty1 and logs you into Hyprland.
-Existing configs are backed up to `~/.local/state/karma/backups/` first.
+Existing configs are backed up to `~/.local/state/mujo/backups/` first.
 Details, flags and what happens to an existing `hyprland.conf`:
 [docs/install.md](docs/install.md).
 
@@ -38,7 +38,7 @@ Details, flags and what happens to an existing `hyprland.conf`:
 
 | Keys | Opens |
 | --- | --- |
-| `SUPER + Space` | Launcher; type `>` for every karma command |
+| `SUPER + Space` | Launcher; type `>` for every mujo command |
 | `SUPER + A` | Quick settings and notification history |
 | `SUPER + Tab` | All workspaces at a glance |
 | `SUPER + D` | Dashboard: calendar, system gauges, media |
@@ -51,16 +51,16 @@ Everything is also a command, and works over SSH or on a TTY except what
 needs the screen:
 
 ```sh
-karma status                  # audio, network, display, theme, battery
-karma audio volume +5         # every change is journaled...
-karma undo                    # ...and can be put back
-karma log                     # what changed
-karma net tui                 # pick a Wi-Fi network
-karma theme mode light        # or dark, or auto (follow the wallpaper)
-karma theme accent blue       # or auto
-karma power reboot --dry-run  # see what an action would do
-karma doctor                  # is everything in place?
-karma update                  # karma and the system
+mujo status                  # audio, network, display, theme, battery
+mujo audio volume +5         # every change is journaled...
+mujo undo                    # ...and can be put back
+mujo log                     # what changed
+mujo net tui                 # pick a Wi-Fi network
+mujo theme mode light        # or dark, or auto (follow the wallpaper)
+mujo theme accent blue       # or auto
+mujo power reboot --dry-run  # see what an action would do
+mujo doctor                  # is everything in place?
+mujo update                  # mujo and the system
 ```
 
 Put your wallpapers in `~/Pictures/Wallpapers`. All keys:
@@ -69,8 +69,8 @@ Put your wallpapers in `~/Pictures/Wallpapers`. All keys:
 ## Remove
 
 ```sh
-karma uninstall --dry-run     # shows the plan
-karma uninstall --yes         # restores what install.sh backed up
+mujo uninstall --dry-run     # shows the plan
+mujo uninstall --yes         # restores what install.sh backed up
 ```
 
 ## Develop
@@ -83,7 +83,7 @@ To try the theme engine without touching your config:
 
 ```sh
 export XDG_CONFIG_HOME=$(mktemp -d) XDG_STATE_HOME=$(mktemp -d)
-bin/karma theme build && bin/karma theme check
+bin/mujo theme build && bin/mujo theme check
 ```
 
 ## Docs

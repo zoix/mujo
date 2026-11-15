@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install.sh: install or update karma on Arch Linux. Safe to run again: a
+# install.sh: install or update mujo on Arch Linux. Safe to run again: a
 # second run with the same answers changes nothing.
 #
 #   ./install.sh               ask a few questions, show the plan, then apply it
@@ -7,7 +7,7 @@
 #   ./install.sh --yes         use the defaults, no questions (see --help)
 #
 # Everything it changes is listed in the plan first. Files it replaces are
-# backed up to ~/.local/state/karma/backups/<time>/ with a manifest.json.
+# backed up to ~/.local/state/mujo/backups/<time>/ with a manifest.json.
 set -euo pipefail
 
 if (( BASH_VERSINFO[0] < 5 )); then
@@ -16,18 +16,18 @@ if (( BASH_VERSINFO[0] < 5 )); then
 fi
 
 REPO=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")" && pwd)
-export KARMA_ROOT=$REPO
+export MUJO_ROOT=$REPO
 
 exec 3>&1
 # shellcheck source=lib/core.sh
 source "$REPO/lib/core.sh"
 # shellcheck source=lib/config.sh
 source "$REPO/lib/config.sh"
-KARMA_CMD=install
+MUJO_CMD=install
 
-SYSROOT=${KARMA_SYSROOT:-}
-CHECKOUT=${XDG_DATA_HOME:-$HOME/.local/share}/$KARMA_NAME
-LOG=$KARMA_STATE_DIR/install.log
+SYSROOT=${MUJO_SYSROOT:-}
+CHECKOUT=${XDG_DATA_HOME:-$HOME/.local/share}/$MUJO_NAME
+LOG=$MUJO_STATE_DIR/install.log
 MIN_FREE_GIB=3
 
 DRY=0
@@ -39,7 +39,7 @@ usage() {
   cat <<EOF
 Usage: ./install.sh [--dry-run] [--yes] [--skip-system] [--retire-old-config]
 
-Installs $KARMA_NAME for the current user. Run it as yourself, not as root;
+Installs $MUJO_NAME for the current user. Run it as yourself, not as root;
 it uses sudo for the system part and shows every file it writes under /etc.
 
   --dry-run            Show the plan and change nothing
@@ -51,7 +51,7 @@ it uses sudo for the system part and shows every file it writes under /etc.
                        (normally a question; see docs/install.md)
   --help, -h           Show this help
 
-Log: ~/.local/state/$KARMA_NAME/install.log
+Log: ~/.local/state/$MUJO_NAME/install.log
 EOF
 }
 
@@ -265,13 +265,13 @@ print_port_table() {
       *xrdb*) where="dropped: ~/.Xresources does not exist" ;;
       *monitor*=*|*switch:*|*moveworkspacetomonitor*) where="host.lua" ;;
       *kb_layout*|*kb_variant*|*kb_options*|*sensitivity*) where="host.lua (keyboard question)" ;;
-      *waybar*|*hyprpaper*|*nm-applet*|*swaync*) where="replaced by the karma UI (phase 3)" ;;
-      *'vicinae server'*) where="dropped: karma launch replaced the Vicinae server (Vicinae itself stays installed)" ;;
-      *vicinae*|*'$menu'*) where="binds.lua: SUPER+SPACE opens karma launch" ;;
+      *waybar*|*hyprpaper*|*nm-applet*|*swaync*) where="replaced by the mujo UI (phase 3)" ;;
+      *'vicinae server'*) where="dropped: mujo launch replaced the Vicinae server (Vicinae itself stays installed)" ;;
+      *vicinae*|*'$menu'*) where="binds.lua: SUPER+SPACE opens mujo launch" ;;
       *browser*) where="not bound; the browser question can install one" ;;
       *fileManager*) where="binds.lua: SUPER+E opens yazi in Ghostty" ;;
       *TERMINAL*|*terminal*) where="binds.lua / autostart.lua: ghostty" ;;
-      *hyprshot*) where="binds.lua: karma shot" ;;
+      *hyprshot*) where="binds.lua: mujo shot" ;;
       *bind*|*'$mainMod'*) where="binds.lua" ;;
       *bezier*|*animation*) where="animations.lua (from tokens)" ;;
       *pseudotile*) where="dropped: no longer a Hyprland option" ;;
@@ -288,7 +288,7 @@ render_local_zsh() {
   local editor=$1
   cat <<EOF
 # local.zsh: your own zsh settings. Written once by install.sh and never
-# overwritten; karma's .zshrc sources it near the end. Edit freely.
+# overwritten; mujo's .zshrc sources it near the end. Edit freely.
 
 export EDITOR=$(printf '%q' "$editor")
 export VISUAL=\$EDITOR
@@ -381,7 +381,7 @@ questions() {
   if (( ! SKIP_SYSTEM )); then
     detect_dm
     if [[ -n $DM_CURRENT ]]; then
-      info "The login screen is $DM_CURRENT. karma uses greetd with tuigreet."
+      info "The login screen is $DM_CURRENT. mujo uses greetd with tuigreet."
       confirm DO_DM "Replace $DM_CURRENT with greetd at the next boot?" y
     fi
     local lang
@@ -394,7 +394,7 @@ questions() {
       pacman -Q "$p" >/dev/null 2>&1 && REPLACED_PRESENT+=("$p")
     done < <(read_list "$REPO/packages/replaced.txt")
     if (( ${#REPLACED_PRESENT[@]} )); then
-      info "Installed packages that karma replaces: ${REPLACED_PRESENT[*]}"
+      info "Installed packages that mujo replaces: ${REPLACED_PRESENT[*]}"
       confirm DO_REMOVE "Remove them (pacman -Rns)?" n
     fi
     # A fingerprint reader that sudo does not use yet. Asked, never assumed:
@@ -404,14 +404,14 @@ questions() {
       confirm DO_FPRINT "Let sudo accept your fingerprint (the password stays as the fallback)?" n
     fi
     if pacman -Q vicinae-bin >/dev/null 2>&1 || pacman -Q vicinae >/dev/null 2>&1; then
-      info "SUPER+SPACE opens karma's launcher; Vicinae is no longer bound to a key."
+      info "SUPER+SPACE opens mujo's launcher; Vicinae is no longer bound to a key."
       confirm DO_VICINAE "Remove Vicinae now?" n
     fi
   fi
 
   if [[ -e $OLD_CONF || -L $OLD_CONF ]]; then
     print_port_table
-    info "Hyprland 0.57 no longer reads hyprland.conf; karma's hyprland.lua replaces it."
+    info "Hyprland 0.57 no longer reads hyprland.conf; mujo's hyprland.lua replaces it."
     info "Retiring it removes the link (or file) after a backup; the original stays in your dotfiles."
     local owner
     if owner=$(owner_of "$OLD_CONF") && has_abs_links "${owner%%$'\t'*}" "${owner#*$'\t'}"; then
@@ -491,7 +491,7 @@ plan_links() {
         BACKUP_PATHS+=("$target")
         LINK_NEW+=("$target")
       elif [[ -d $target ]]; then
-        fail "$(tilde "$target") is a directory where karma links a file. Move it aside and run again."
+        fail "$(tilde "$target") is a directory where mujo links a file. Move it aside and run again."
       elif [[ -e $target ]]; then
         FILE_CONFLICT+=("$target")
         BACKUP_PATHS+=("$target")
@@ -502,7 +502,7 @@ plan_links() {
     done < <(cd -- "$pkgdir" && find . \( -type f -o -type l \) -printf '%P\n' | sort)
   done
   check_ancestors "$CHECKOUT"
-  check_ancestors "$KARMA_STATE_DIR/x"
+  check_ancestors "$MUJO_STATE_DIR/x"
 
   ok "${#LINK_OK[@]} already linked"
   local t
@@ -515,19 +515,19 @@ plan_links() {
   done
   for o in "${!UNSTOW[@]}"; do
     if has_abs_links "${o%%$'\t'*}" "${o#*$'\t'}"; then
-      fail "stow package '${o#*$'\t'}' in $(tilde "${o%%$'\t'*}") conflicts with karma but contains absolute symlinks, so stow cannot unstow it. Remove the conflicting links by hand and run again."
+      fail "stow package '${o#*$'\t'}' in $(tilde "${o%%$'\t'*}") conflicts with mujo but contains absolute symlinks, so stow cannot unstow it. Remove the conflicting links by hand and run again."
     fi
     info "stow package '${o#*$'\t'}' in $(tilde "${o%%$'\t'*}") conflicts and will be unstowed; it links:"
     stow -n -v -d "${o%%$'\t'*}" -t "$HOME" -D "${o#*$'\t'}" 2>&1 | sed -n 's/^UNLINK: /     - ~\//p'
   done
 }
 
-# Generated theme files that exist but were not written by karma.
+# Generated theme files that exist but were not written by mujo.
 plan_generated_backups() {
   local id target
   while IFS=$'\t' read -r id target; do
     target=${target/#@config/${XDG_CONFIG_HOME:-$HOME/.config}}
-    if [[ -e $target ]] && ! head -n 3 -- "$target" | grep -qF "Generated by '$KARMA_NAME theme build'"; then
+    if [[ -e $target ]] && ! head -n 3 -- "$target" | grep -qF "Generated by '$MUJO_NAME theme build'"; then
       BACKUP_PATHS+=("$target")
       info "existing $(tilde "$target") will be backed up and replaced by the generated $id file"
     fi
@@ -541,7 +541,7 @@ declare -a MANIFEST_ENTRIES=()
 
 backup_dir() {
   if [[ -z $BACKUP_DIR ]]; then
-    BACKUP_DIR=$KARMA_STATE_DIR/backups/$(date -u +%Y%m%dT%H%M%SZ)
+    BACKUP_DIR=$MUJO_STATE_DIR/backups/$(date -u +%Y%m%dT%H%M%SZ)
     mkdir -p -- "$BACKUP_DIR"
   fi
 }
@@ -575,7 +575,7 @@ record() {
 write_manifest() {
   [[ -n $BACKUP_DIR ]] || return 0
   printf '%s\n' "${MANIFEST_ENTRIES[@]}" | jq -s --arg time "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-    --arg version "$KARMA_VERSION" '{schema_version: 1, time: $time, karma_version: $version, entries: .}' \
+    --arg version "$MUJO_VERSION" '{schema_version: 1, time: $time, mujo_version: $version, entries: .}' \
     >"$BACKUP_DIR/manifest.json"
 }
 
@@ -591,7 +591,7 @@ do_unfold() {
   link=$(readlink -- "$path")
   target=$link
   [[ $target == /* ]] || target=$(dirname -- "$path")/$target
-  tmp=$(mktemp -d "$(dirname -- "$path")/.karma-unfold.XXXXXX")
+  tmp=$(mktemp -d "$(dirname -- "$path")/.mujo-unfold.XXXXXX")
   shopt -s dotglob nullglob
   for entry in "$target"/*; do
     name=$(basename -- "$entry")
@@ -707,18 +707,18 @@ user_steps() {
     '{keyboard: {layout: $l, variant: $v, options: $o}, timezone: $tz, editor: $e, browser: $b}')
   have=$(config_read | jq -c '.install // null')
   if [[ $want == "$have" ]]; then
-    ok "answers already saved in $(tilde "$KARMA_CONFIG_FILE")"
+    ok "answers already saved in $(tilde "$MUJO_CONFIG_FILE")"
   else
-    act "save answers to $(tilde "$KARMA_CONFIG_FILE")" config_set install "$want"
+    act "save answers to $(tilde "$MUJO_CONFIG_FILE")" config_set install "$want"
   fi
 
   # Generated theme files.
   local pending
-  pending=$("$REPO/bin/karma" theme list --json | jq '[.data.consumers[] | select(.status != "unchanged")] | length')
+  pending=$("$REPO/bin/mujo" theme list --json | jq '[.data.consumers[] | select(.status != "unchanged")] | length')
   if (( pending )); then
     # No Hyprland reload: the running session may be an older Hyprland that
     # still reads hyprland.conf. The new config starts with the next login.
-    act "generate $pending theme file(s): karma theme build" env -u HYPRLAND_INSTANCE_SIGNATURE "$REPO/bin/karma" theme build
+    act "generate $pending theme file(s): mujo theme build" env -u HYPRLAND_INSTANCE_SIGNATURE "$REPO/bin/mujo" theme build
   else
     ok "theme files are current"
   fi
@@ -728,8 +728,8 @@ user_steps() {
     local k v cur
     # The values follow the current mode (dark or light) from the tokens.
     local scheme gtk_theme
-    scheme=$("$REPO/bin/karma" theme show gtk.color_scheme --json 2>/dev/null | jq -r '.data.value // "prefer-dark"')
-    gtk_theme=$("$REPO/bin/karma" theme show gtk.theme --json 2>/dev/null | jq -r '.data.value // "adw-gtk3-dark"')
+    scheme=$("$REPO/bin/mujo" theme show gtk.color_scheme --json 2>/dev/null | jq -r '.data.value // "prefer-dark"')
+    gtk_theme=$("$REPO/bin/mujo" theme show gtk.theme --json 2>/dev/null | jq -r '.data.value // "adw-gtk3-dark"')
     for k in "color-scheme $scheme" "gtk-theme $gtk_theme"; do
       v=${k#* }
       k=${k%% *}
@@ -796,7 +796,7 @@ system_packages() {
   else
     ok "all ${#want[@]} packages are installed"
   fi
-  # Packages on karma's list that are only installed as a dependency of
+  # Packages on mujo's list that are only installed as a dependency of
   # something else would be removed together with that something
   # (`pacman -Rns`). Marking them as explicitly installed prevents that.
   local -a asdeps=()
@@ -806,7 +806,7 @@ system_packages() {
   if (( ${#asdeps[@]} )); then
     act "mark as explicitly installed: ${asdeps[*]}" sudo pacman -D --asexplicit "${asdeps[@]}"
   else
-    ok "karma's packages are all marked as explicitly installed"
+    ok "mujo's packages are all marked as explicitly installed"
   fi
   if [[ -n $(read_list "$REPO/packages/aur.txt") ]]; then
     fail "packages/aur.txt lists packages, but the AUR bootstrap is not part of this installer yet"
@@ -822,7 +822,7 @@ install_etc() {
   fi
   if [[ -e $real ]]; then
     info "changes to $dest:"
-    sudo_or_cat "$real" | diff -u --label "$dest" --label "$dest (karma)" - "$src" | sed 's/^/       /' || true
+    sudo_or_cat "$real" | diff -u --label "$dest" --label "$dest (mujo)" - "$src" | sed 's/^/       /' || true
     act "install $dest (previous version backed up)" do_install_etc "$src" "$dest" 1
   else
     info "new file $dest:"
@@ -850,15 +850,15 @@ do_install_etc() {
 
 system_files() {
   step "System files (/etc)"
-  local staged=$KARMA_STATE_DIR/theme/system
+  local staged=$MUJO_STATE_DIR/theme/system
   if (( DRY )) && [[ ! -f $staged/greetd/config.toml ]]; then
-    info "the greetd and console palette files are generated by karma theme build; run without --dry-run to see their diffs"
+    info "the greetd and console palette files are generated by mujo theme build; run without --dry-run to see their diffs"
   else
     [[ -f $staged/greetd/config.toml ]] && install_etc "$staged/greetd/config.toml" /etc/greetd/config.toml
-    [[ -f $staged/vtrgb/palette.vtrgb ]] && install_etc "$staged/vtrgb/palette.vtrgb" /etc/karma/palette.vtrgb
+    [[ -f $staged/vtrgb/palette.vtrgb ]] && install_etc "$staged/vtrgb/palette.vtrgb" /etc/mujo/palette.vtrgb
   fi
   local before=$CHANGES
-  install_etc "$REPO/system/vtrgb/karma-vtrgb.service" /etc/systemd/system/karma-vtrgb.service
+  install_etc "$REPO/system/vtrgb/mujo-vtrgb.service" /etc/systemd/system/mujo-vtrgb.service
   if (( CHANGES > before )); then
     act "systemctl daemon-reload" sudo systemctl daemon-reload
   fi
@@ -876,10 +876,10 @@ system_services() {
   for u in NetworkManager.service bluetooth.service; do
     if systemctl is-enabled -q "$u" 2>/dev/null; then ok "$u is enabled"; else act "enable and start $u" sudo systemctl enable --now "$u"; fi
   done
-  if systemctl is-enabled -q karma-vtrgb.service 2>/dev/null; then
-    ok "karma-vtrgb.service is enabled"
+  if systemctl is-enabled -q mujo-vtrgb.service 2>/dev/null; then
+    ok "mujo-vtrgb.service is enabled"
   else
-    act "enable karma-vtrgb.service and load the console palette now" sudo systemctl enable --now karma-vtrgb.service
+    act "enable mujo-vtrgb.service and load the console palette now" sudo systemctl enable --now mujo-vtrgb.service
   fi
 
   if systemctl is-enabled -q greetd.service 2>/dev/null; then
@@ -927,7 +927,7 @@ fingerprint_enrolled() {
 }
 
 # Put pam_fprintd first in sudo's rules. The file is backed up and recorded,
-# so `karma uninstall` puts the old one back.
+# so `mujo uninstall` puts the old one back.
 do_fprint_pam() {
   local tmp
   backup_dir
@@ -1012,7 +1012,7 @@ system_removals() {
     for v in vicinae-bin vicinae; do pacman -Q "$v" >/dev/null 2>&1 && pkgs+=("$v"); done
   fi
   (( ${#pkgs[@]} )) || return 0
-  step "Packages to remove (cannot be undone by karma)"
+  step "Packages to remove (cannot be undone by mujo)"
   act "pacman -Rns ${pkgs[*]}" do_remove "${pkgs[@]}"
 }
 
@@ -1020,12 +1020,12 @@ system_removals() {
 
 main() {
   if (( ! DRY )); then
-    mkdir -p -- "$KARMA_STATE_DIR"
+    mkdir -p -- "$MUJO_STATE_DIR"
     exec > >(tee -a "$LOG") 2>&1
     exec 3>&1
-    printf '\n===== %s install.sh %s (%s)\n' "$KARMA_NAME" "$KARMA_VERSION" "$(date -Is)"
+    printf '\n===== %s install.sh %s (%s)\n' "$MUJO_NAME" "$MUJO_VERSION" "$(date -Is)"
   fi
-  printf '%s installer%s\n' "$KARMA_NAME" "$( (( DRY )) && echo ': dry run, nothing will change')"
+  printf '%s installer%s\n' "$MUJO_NAME" "$( (( DRY )) && echo ': dry run, nothing will change')"
 
   preflight
   questions
@@ -1056,14 +1056,14 @@ main() {
 
   printf '\n'
   if (( CHANGES == 0 )); then
-    echo "Nothing to do: $KARMA_NAME is installed and up to date."
+    echo "Nothing to do: $MUJO_NAME is installed and up to date."
   elif (( DRY )); then
     echo "Dry run: $CHANGES change(s) planned, none made."
   else
     echo "Done: $CHANGES change(s)."
     [[ -n $BACKUP_DIR ]] && echo "Backups and manifest: $(tilde "$BACKUP_DIR")"
     echo "Log: $(tilde "$LOG")"
-    (( SKIP_SYSTEM )) || echo "Reboot to log in through greetd into the karma session."
+    (( SKIP_SYSTEM )) || echo "Reboot to log in through greetd into the mujo session."
   fi
 }
 

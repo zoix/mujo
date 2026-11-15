@@ -1,17 +1,17 @@
 # shellcheck shell=bash
-# karma audio: volume, mute and the default output/input device, through
+# mujo audio: volume, mute and the default output/input device, through
 # WirePlumber (wpctl). Device lists come from pw-dump.
 
-karma_register audio "Volume, mute, output and input device"
+mujo_register audio "Volume, mute, output and input device"
 
 help_audio() {
   cat <<EOF
-Usage: $KARMA_NAME audio [status]
-       $KARMA_NAME audio volume [N | +N | -N] [--input] [--muted on|off]
-       $KARMA_NAME audio mute [on | off | toggle] [--input]
-       $KARMA_NAME audio output [ID | NAME]
-       $KARMA_NAME audio input [ID | NAME]
-       $KARMA_NAME audio tui [--window]
+Usage: $MUJO_NAME audio [status]
+       $MUJO_NAME audio volume [N | +N | -N] [--input] [--muted on|off]
+       $MUJO_NAME audio mute [on | off | toggle] [--input]
+       $MUJO_NAME audio output [ID | NAME]
+       $MUJO_NAME audio input [ID | NAME]
+       $MUJO_NAME audio tui [--window]
 
 status   Volume and mute of the default output and input, and every device.
 volume   Show or set the volume in percent (0-100); +N and -N are steps.
@@ -22,7 +22,7 @@ input    The same for inputs (microphones).
 tui      Open the wiremix mixer (per-application volumes, routing).
 
 --input makes volume and mute act on the default microphone.
-Changes are journaled; '$KARMA_NAME undo' puts the previous value back.
+Changes are journaled; '$MUJO_NAME undo' puts the previous value back.
 EOF
 }
 
@@ -117,7 +117,7 @@ audio_mute_word() {
 cmd_audio() {
   local sub=${1:-status}
   (( $# )) && shift
-  karma_set_cmd "audio $sub"
+  mujo_set_cmd "audio $sub"
   case $sub in
     status) audio_cmd_status "$@" ;;
     volume) audio_cmd_volume "$@" ;;
@@ -125,10 +125,10 @@ cmd_audio() {
     output|input) audio_cmd_device "$sub" "$@" ;;
     tui)
       (( $# == 0 )) || usage_error "unexpected argument '$1'"
-      (( OPT_JSON )) && usage_error "'$KARMA_CMD' is interactive and has no --json output"
+      (( OPT_JSON )) && usage_error "'$MUJO_CMD' is interactive and has no --json output"
       need wiremix
       [[ -t 0 && -t 2 ]] \
-        || die "$EXIT_ENV" "'$KARMA_NAME $KARMA_CMD' needs a terminal (inside the desktop, add --window)"
+        || die "$EXIT_ENV" "'$MUJO_NAME $MUJO_CMD' needs a terminal (inside the desktop, add --window)"
       exec wiremix
       ;;
     *) usage_error "unknown subcommand '$sub'" ;;
@@ -229,7 +229,7 @@ audio_cmd_device() {
   fi
   local want=$1 pick cur
   pick=$(jq -c --arg w "$want" '[.[] | select((.id | tostring) == $w or .name == $w)][0] // empty' <<<"$devices")
-  [[ -n $pick ]] || die "$EXIT_FAIL" "no $kind device '$want' (see '$KARMA_NAME audio $kind')"
+  [[ -n $pick ]] || die "$EXIT_FAIL" "no $kind device '$want' (see '$MUJO_NAME audio $kind')"
   cur=$(jq -c '[.[] | select(.default)][0] // {name: null, description: "none"}' <<<"$devices")
   local before after summary undo=null
   summary="audio $kind: $(jq -r .description <<<"$cur") -> $(jq -r .description <<<"$pick")"

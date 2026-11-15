@@ -1,13 +1,13 @@
 # shellcheck shell=bash
-# karma emoji: find an emoji by name and copy it.
+# mujo emoji: find an emoji by name and copy it.
 
-karma_register emoji "Emoji picker"
+mujo_register emoji "Emoji picker"
 
 help_emoji() {
   cat <<EOF
-Usage: $KARMA_NAME emoji [pick] [--window]
-       $KARMA_NAME emoji list
-       $KARMA_NAME emoji copy EMOJI
+Usage: $MUJO_NAME emoji [pick] [--window]
+       $MUJO_NAME emoji list
+       $MUJO_NAME emoji copy EMOJI
 
 pick  Search by name with fzf; Enter copies the emoji (the default).
 list  Every emoji with its name.
@@ -19,7 +19,7 @@ EOF
 }
 
 emoji_file() {
-  echo "${KARMA_SYSROOT:-}/usr/share/unicode/emoji/emoji-test.txt"
+  echo "${MUJO_SYSROOT:-}/usr/share/unicode/emoji/emoji-test.txt"
 }
 
 # "EMOJI<TAB>name" per line.
@@ -46,7 +46,7 @@ emoji_copy() {
 cmd_emoji() {
   local sub=${1:-pick}
   (( $# )) && shift
-  karma_set_cmd "emoji $sub"
+  mujo_set_cmd "emoji $sub"
   case $sub in
     list)
       (( $# == 0 )) || usage_error "unexpected argument '$1'"

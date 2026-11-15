@@ -1,4 +1,4 @@
-# karma theme engine (jq module): resolves design tokens and renders templates.
+# mujo theme engine (jq module): resolves design tokens and renders templates.
 # Loaded with `jq -L lib` and `include "theme";`. See docs/tokens.md.
 
 def _refpat: "^\\{[a-z0-9_.]+\\}$";

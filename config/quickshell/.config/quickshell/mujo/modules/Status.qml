@@ -1,0 +1,203 @@
+// Status icons: network, Bluetooth, do-not-disturb, battery. (Volume has
+// no icon: the keys show the level on the right edge, and quick settings
+// has the slider.)
+// Each opens the terminal UI that controls it, through mujo.
+// Three more appear only when there is something to say: a red dot while
+// the screen is recorded, the minutes left of a focus session, and the
+// number of packages waiting to be upgraded.
+import QtQuick
+import Quickshell
+import Quickshell.Bluetooth
+import qs.theme
+import qs.components
+import qs.services
+
+Rectangle {
+    id: root
+
+    required property ShellScreen screen
+
+    // Tell the interface which icon the pointer rests on, and where.
+    function hover(button: Item, kind: string): void {
+        if (button.hovered)
+            Ui.hoverIcon(kind, root.screen.name, button.mapToItem(null, 0, button.height / 2).y);
+        else
+            Ui.leaveIcon(kind);
+    }
+
+    // A slim pill: it leaves a clear margin to both sides of the bar.
+    implicitWidth: icons.implicitWidth + Tokens.borderFocus + Tokens.borderFocus
+    implicitHeight: icons.implicitHeight + Tokens.spaceXs + Tokens.spaceXs
+    radius: Tokens.radiusFull
+    // A wash of the accent colour, so the group reads as a unit on the bar.
+    color: Tokens.group
+
+    SystemClock {
+        id: clock
+        precision: SystemClock.Minutes
+    }
+
+    // Minutes left of the focus session (0 = none running).
+    // (The clock only says that a minute has passed; the time is read afresh.)
+    readonly property int focusLeft: clock.date ? Math.max(0, Math.ceil((Settings.focusUntil - Date.now() / 1000) / 60)) : 0
+
+    Column {
+        id: icons
+
+        x: Tokens.borderFocus
+        y: Tokens.spaceXs
+        spacing: Tokens.borderFocus
+
+        BarButton {
+            hoverColor: Tokens.groupHover
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: Ui.recording
+            onClicked: Mujo.run(["record", "stop"])
+
+            Glyph {
+                anchors.centerIn: parent
+                font.pixelSize: Tokens.fontMd
+                text: "\uf111"
+                color: Tokens.stateError
+            }
+        }
+
+        BarButton {
+            hoverColor: Tokens.groupHover
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: root.focusLeft > 0
+            implicitHeight: focus.implicitHeight + Tokens.spaceSm
+            onClicked: Mujo.run(["focus", "stop"])
+
+            Column {
+                id: focus
+                anchors.centerIn: parent
+                spacing: 0
+
+                Glyph {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    font.pixelSize: Tokens.fontMd
+                    text: "\uf252"
+                    color: Tokens.accent
+                }
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: root.focusLeft
+                    color: Tokens.textMuted
+                    font.family: Tokens.fontFamily
+                    font.pixelSize: Tokens.fontXs
+                }
+            }
+        }
+
+        BarButton {
+            hoverColor: Tokens.groupHover
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: Updates.count > 0
+            implicitHeight: updates.implicitHeight + Tokens.spaceSm
+            onClicked: Mujo.run(["menu", "run", "System: update mujo and packages"])
+            onRightClicked: Updates.refresh()
+
+            Column {
+                id: updates
+                anchors.centerIn: parent
+                spacing: 0
+
+                Glyph {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    font.pixelSize: Tokens.fontMd
+                    text: "\uf019"
+                    color: Tokens.textPrimary
+                }
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: Updates.count
+                    color: Tokens.textMuted
+                    font.family: Tokens.fontFamily
+                    font.pixelSize: Tokens.fontXs
+                }
+            }
+        }
+
+        BarButton {
+            hoverColor: Tokens.groupHover
+            id: netButton
+            anchors.horizontalCenter: parent.horizontalCenter
+            onHoveredChanged: root.hover(netButton, "net")
+            onClicked: Ui.toggleLauncher("wifi")
+            onRightClicked: Mujo.run(["net", "wifi", "toggle"])
+
+            Glyph {
+                anchors.centerIn: parent
+                font.pixelSize: Tokens.fontLg
+                text: Net.wired && Net.ssid === "" ? "" : ""
+                color: Net.ssid !== "" || Net.wired ? Tokens.textPrimary : Tokens.borderSubtle
+                opacity: Net.ssid === "" || Net.signal >= 50 ? 1 : 0.6
+            }
+        }
+
+        BarButton {
+            hoverColor: Tokens.groupHover
+            id: btButton
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: Bluetooth.defaultAdapter !== null
+            onHoveredChanged: root.hover(btButton, "bt")
+            onClicked: Mujo.open(["bt", "tui"])
+            onRightClicked: Mujo.run(["bt", "power", "toggle"])
+
+            Glyph {
+                anchors.centerIn: parent
+                font.pixelSize: Tokens.fontLg
+                text: ""
+                color: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled ? Tokens.textPrimary : Tokens.borderSubtle
+            }
+        }
+
+        BarButton {
+            hoverColor: Tokens.groupHover
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: Settings.dnd
+            onClicked: Mujo.run(["dnd", "off"])
+
+            Glyph {
+                anchors.centerIn: parent
+                font.pixelSize: Tokens.fontLg
+                text: ""
+                color: Tokens.stateWarning
+            }
+        }
+
+        BarButton {
+            hoverColor: Tokens.groupHover
+            id: batteryButton
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: Battery.present
+            implicitHeight: battery.implicitHeight + Tokens.spaceSm
+            onHoveredChanged: root.hover(batteryButton, "battery")
+            onClicked: Ui.toggleLauncher("actions")
+
+            Column {
+                id: battery
+                anchors.centerIn: parent
+                spacing: 0
+
+                Glyph {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    font.pixelSize: Tokens.fontLg
+                    text: Battery.charging ? "" : Battery.percent > 80 ? "" : Battery.percent > 55 ? "" : Battery.percent > 30 ? "" : Battery.percent > 10 ? "" : ""
+                    color: Battery.charging ? Tokens.stateSuccess : Battery.percent <= 10 ? Tokens.stateError : Battery.percent <= 20 ? Tokens.stateWarning : Tokens.textPrimary
+                }
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: Battery.percent
+                    color: Tokens.textMuted
+                    font.family: Tokens.fontFamily
+                    font.pixelSize: Tokens.fontXs
+                }
+            }
+        }
+    }
+}

@@ -9,7 +9,7 @@ ui_session() {
 ui_ipc() {
   ui_session || return 0
   command -v qs >/dev/null 2>&1 || return 0
-  timeout 2 qs -c "$KARMA_NAME" ipc call "$@" >/dev/null 2>&1 || true
+  timeout 2 qs -c "$MUJO_NAME" ipc call "$@" >/dev/null 2>&1 || true
 }
 
 # ui_notify TITLE BODY: a desktop notification, for results of commands that
@@ -18,7 +18,7 @@ ui_notify() {
   ui_session || return 0
   [[ -t 1 ]] && return 0
   command -v notify-send >/dev/null 2>&1 || return 0
-  timeout 2 notify-send -a "$KARMA_NAME" -t 4000 "$1" "$2" >/dev/null 2>&1 3>&- || true
+  timeout 2 notify-send -a "$MUJO_NAME" -t 4000 "$1" "$2" >/dev/null 2>&1 3>&- || true
 }
 
 # ui_reload NAME: run a named reload hook from design/consumers.json.
@@ -36,7 +36,7 @@ ui_reload() {
     tmux)
       # A running tmux server reads the new colours at once.
       if [[ -n ${WAYLAND_DISPLAY:-} ]] && command -v tmux >/dev/null 2>&1 && tmux has-session 2>/dev/null; then
-        tmux source-file "$KARMA_CONFIG_HOME/tmux/karma-theme.conf" >/dev/null 2>&1 || true
+        tmux source-file "$MUJO_CONFIG_HOME/tmux/mujo-theme.conf" >/dev/null 2>&1 || true
       fi
       ;;
     gtk) ;;  # handled by theme.sh, which knows the resolved tokens

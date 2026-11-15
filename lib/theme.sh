@@ -1,16 +1,16 @@
 # shellcheck shell=bash
-# karma theme: render design/tokens.json into every consumer listed in
+# mujo theme: render design/tokens.json into every consumer listed in
 # design/consumers.json, check for drift and hardcoded values, and change the
 # accent or reduce_motion setting. See docs/tokens.md.
 
-karma_register theme "Design tokens: build, check, accent, reduce-motion"
+mujo_register theme "Design tokens: build, check, accent, reduce-motion"
 
-THEME_DESIGN=$KARMA_ROOT/design
+THEME_DESIGN=$MUJO_ROOT/design
 THEME_TOKENS=$THEME_DESIGN/tokens.json
 THEME_CONSUMERS=$THEME_DESIGN/consumers.json
 THEME_ALLOW=$THEME_DESIGN/check-allow.txt
-THEME_STATE=$KARMA_STATE_DIR/theme
-THEME_SNAPSHOTS=$KARMA_STATE_DIR/snapshots
+THEME_STATE=$MUJO_STATE_DIR/theme
+THEME_SNAPSHOTS=$MUJO_STATE_DIR/snapshots
 # Palette names that are also ordinary words; the lint ignores them.
 THEME_GENERIC_NAMES=(text base red green yellow blue pink)
 # Repo directories scanned by a full `theme check`.
@@ -24,7 +24,7 @@ PLAN_DIR=""
 
 help_theme() {
   cat <<EOF
-Usage: $KARMA_NAME theme <subcommand> [arguments]
+Usage: $MUJO_NAME theme <subcommand> [arguments]
 
 Subcommands:
   build [ID...]          Render tokens into every consumer (or only the given ones)
@@ -60,7 +60,7 @@ cmd_theme() {
   [[ -n $sub ]] || usage_error "missing subcommand"
   shift
   # shellcheck disable=SC2034  # read by emit/usage_error in core.sh
-  KARMA_CMD="theme $sub"
+  MUJO_CMD="theme $sub"
   case $sub in
     build) theme_cmd_build "$@" ;;
     check) theme_cmd_check "$@" ;;
@@ -82,15 +82,15 @@ cmd_theme() {
 # ---- helpers -----------------------------------------------------------------
 
 # theme_jq OUT ARGS...: run jq with the theme module; OUT is a file or "-".
-# jq errors become a clean karma error (exit 1).
+# jq errors become a clean mujo error (exit 1).
 theme_jq() {
   local out=$1 err rc=0 msg
   shift
   err=$(mktemp)
   if [[ $out == - ]]; then
-    jq -L "$KARMA_ROOT/lib" "$@" 2>"$err" || rc=$?
+    jq -L "$MUJO_ROOT/lib" "$@" 2>"$err" || rc=$?
   else
-    jq -L "$KARMA_ROOT/lib" "$@" >"$out" 2>"$err" || rc=$?
+    jq -L "$MUJO_ROOT/lib" "$@" >"$out" 2>"$err" || rc=$?
   fi
   if (( rc )); then
     msg=$(sed -E 's/^jq: error \(at [^)]*\): //; s/^jq: error: //' "$err" | head -n 3)
@@ -141,15 +141,15 @@ theme_dest() {
   if [[ ${C_SCOPE[$id]} == system ]]; then
     printf '%s/system/%s/%s\n' "$THEME_STATE" "$id" "${t##*/}"
   else
-    t=${t/#@config/$KARMA_CONFIG_HOME}
-    t=${t/#@state/$KARMA_STATE_HOME}
+    t=${t/#@config/$MUJO_CONFIG_HOME}
+    t=${t/#@state/$MUJO_STATE_HOME}
     printf '%s\n' "$t"
   fi
 }
 
-# Where a system consumer is finally installed (KARMA_SYSROOT is for tests).
+# Where a system consumer is finally installed (MUJO_SYSROOT is for tests).
 theme_installed_path() {
-  printf '%s%s\n' "${KARMA_SYSROOT:-}" "${C_TARGET[$1]}"
+  printf '%s%s\n' "${MUJO_SYSROOT:-}" "${C_TARGET[$1]}"
 }
 
 # theme_settings [OVERRIDE-JSON]: the effective settings as JSON.
@@ -176,7 +176,7 @@ theme_plan() {
   local -a ids=("$@")
   (( ${#ids[@]} )) || ids=("${C_IDS[@]}")
   theme_check_ids "${ids[@]}"
-  karma_tmpdir PLAN_DIR
+  mujo_tmpdir PLAN_DIR
   theme_jq "$PLAN_DIR/tokens.resolved.json" -n --slurpfile tok "$THEME_TOKENS" --argjson s "$settings" \
     'include "theme"; $tok[0] | resolve($s)'
   PLAN_IDS=()
@@ -187,7 +187,7 @@ theme_plan() {
     [[ -f $tpl ]] || die "$EXIT_FAIL" "theme: template for '$id' not found: ${C_TEMPLATE[$id]}"
     theme_jq "$PLAN_DIR/$id" -rj -n --rawfile tpl "$tpl" --slurpfile t "$PLAN_DIR/tokens.resolved.json" \
       --arg name "${C_TEMPLATE[$id]}" --arg c "${C_COMMENT[$id]}" --arg ce "${C_COMMENT_END[$id]}" \
-      --arg id "$id" --arg prog "$KARMA_NAME" \
+      --arg id "$id" --arg prog "$MUJO_NAME" \
       'include "theme"; header($c; $ce; $id; $prog) + render($tpl; $t[0]; $name)'
     dest=$(theme_dest "$id")
     PLAN_IDS+=("$id")
@@ -294,7 +294,7 @@ theme_update_manifest() {
   done
   cur='{}'
   [[ -f $manifest ]] && cur=$(jq -c 'if type == "object" then . else {} end' "$manifest" 2>/dev/null || echo '{}')
-  jq -n --argjson cur "$cur" --argjson v "$KARMA_SCHEMA_VERSION" --arg now "$(date -u +%FT%TZ)" '
+  jq -n --argjson cur "$cur" --argjson v "$MUJO_SCHEMA_VERSION" --arg now "$(date -u +%FT%TZ)" '
     $ARGS.positional as $r
     | reduce range(0; $r | length; 4) as $i ($cur.files // {};
         if $r[$i + 1] == "" then del(.[$r[$i]])
@@ -344,7 +344,7 @@ theme_commit() {
     say "$summary (dry run, nothing written)"
     say "Tokens: $(theme_settings_label "$settings")"
     if [[ -n $ckey ]]; then
-      diff -u --label "$(tilde "$KARMA_CONFIG_FILE")" --label "$(tilde "$KARMA_CONFIG_FILE") (planned)" \
+      diff -u --label "$(tilde "$MUJO_CONFIG_FILE")" --label "$(tilde "$MUJO_CONFIG_FILE") (planned)" \
         <(config_read | jq .) <(config_with "$ckey" "$cval") | say_stream || true
     fi
     theme_print_plan
@@ -367,7 +367,7 @@ theme_commit() {
   say "$summary"
   say "Tokens: $(theme_settings_label "$settings")"
   theme_print_plan
-  say "$changed file(s) written. Journal: $jid$([[ $undo != null ]] && echo " (undo: $KARMA_NAME undo $jid)")"
+  say "$changed file(s) written. Journal: $jid$([[ $undo != null ]] && echo " (undo: $MUJO_NAME undo $jid)")"
   theme_plan_json 0 | jq --arg j "$jid" --argjson s "$settings" '{journal_id: $j, settings: $s, files: .}' | emit
 }
 
@@ -392,7 +392,7 @@ theme_ids_from_args() {
 
 theme_cmd_build() {
   theme_ids_from_args "$@"
-  (( OPT_DRY_RUN )) || karma_lock
+  (( OPT_DRY_RUN )) || mujo_lock
   local settings before after
   settings=$(theme_settings)
   before=$(jq -cn --arg h "$(theme_current_hash)" '{tokens_hash: $h}')
@@ -431,7 +431,7 @@ theme_cmd_palette() {
   fi
   local new=$1
   [[ $new == catppuccin || $new == wallpaper ]] || usage_error "expected catppuccin or wallpaper, got '$new'"
-  (( OPT_DRY_RUN )) || karma_lock
+  (( OPT_DRY_RUN )) || mujo_lock
   if [[ $new == "$cur" ]]; then
     say "The palette is already $new; nothing to do."
     jq -n --arg p "$cur" '{journal_id: null, settings: {palette: $p}, files: []}' | emit
@@ -500,7 +500,7 @@ theme_cmd_accent() {
   [[ $want == auto || " $accents " == *" $want "* ]] \
     || usage_error "unknown accent '$want'; choose one of: $accents auto"
   new=$(theme_accent_wanted "$want")
-  (( OPT_DRY_RUN )) || karma_lock
+  (( OPT_DRY_RUN )) || mujo_lock
   cur=$(theme_settings | jq -r .accent)
   if [[ $new == "$cur" ]]; then
     if [[ $want == "$pref" ]]; then
@@ -529,7 +529,7 @@ theme_cmd_sync() {
   (( $# == 0 )) || usage_error "unexpected argument '$1'"
   # Lock first: when wallpapers change in quick succession, each sync must
   # see the wallpaper that is current when its turn comes, not an older one.
-  (( OPT_DRY_RUN )) || karma_lock
+  (( OPT_DRY_RUN )) || mujo_lock
   local cur_mode cur_accent new_mode new_accent cur_hue new_hue
   cur_mode=$(theme_settings | jq -r .mode)
   cur_accent=$(theme_settings | jq -r .accent)
@@ -592,7 +592,7 @@ theme_cmd_mode() {
     *) usage_error "expected dark, light or auto, got '$want'" ;;
   esac
   new=$(theme_mode_wanted "$want")
-  (( OPT_DRY_RUN )) || karma_lock
+  (( OPT_DRY_RUN )) || mujo_lock
   if [[ $new == "$cur" ]]; then
     if [[ $want == "$pref" ]]; then
       say "Mode is already $cur (preference: $pref); nothing to do."
@@ -624,7 +624,7 @@ theme_cmd_glass() {
     return 0
   fi
   new=$(on_off "$1" "$cur") || usage_error "expected on, off or toggle, got '$1'"
-  (( OPT_DRY_RUN )) || karma_lock
+  (( OPT_DRY_RUN )) || mujo_lock
   if [[ $new == "$cur" ]]; then
     say "Glass is already $1; nothing to do."
     jq -n --argjson g "$cur" '{journal_id: null, settings: {glass: $g}, files: []}' | emit
@@ -648,13 +648,13 @@ theme_cmd_motion() {
   fi
   local new=$1
   [[ $new == normal || $new == gentle ]] || usage_error "expected normal or gentle, got '$new'"
-  (( OPT_DRY_RUN )) || karma_lock
+  (( OPT_DRY_RUN )) || mujo_lock
   if [[ $new == "$cur" ]]; then
     say "Motion is already $new; nothing to do."
     jq -n --arg m "$cur" '{journal_id: null, settings: {motion: $m}, files: []}' | emit
     return 0
   fi
-  [[ $off == true ]] && warn "reduce-motion is on, so nothing will move until '$KARMA_NAME theme reduce-motion off'"
+  [[ $off == true ]] && warn "reduce-motion is on, so nothing will move until '$MUJO_NAME theme reduce-motion off'"
   theme_set motion "\"$new\"" "\"$cur\"" "theme motion: $cur -> $new" "$(json_array theme motion "$cur")"
 }
 
@@ -672,7 +672,7 @@ theme_cmd_reduce_motion() {
     off|false) new=false ;;
     *) usage_error "expected 'on' or 'off', got '$1'" ;;
   esac
-  (( OPT_DRY_RUN )) || karma_lock
+  (( OPT_DRY_RUN )) || mujo_lock
   cur=$(theme_settings | jq -r .reduce_motion)
   if [[ $new == "$cur" ]]; then
     say "reduce_motion is already $1; nothing to do."
@@ -689,9 +689,9 @@ theme_cmd_restore() {
   (( $# == 1 )) || usage_error "restore needs exactly one snapshot id"
   local sid=$1 src=$THEME_SNAPSHOTS/$1 rows id path existed
   [[ $sid =~ ^[0-9A-Za-z-]+$ && -f $src/index.json ]] || die "$EXIT_FAIL" "no snapshot '$sid'"
-  (( OPT_DRY_RUN )) || karma_lock
+  (( OPT_DRY_RUN )) || mujo_lock
   theme_load_consumers
-  karma_tmpdir PLAN_DIR
+  mujo_tmpdir PLAN_DIR
   PLAN_IDS=()
   PLAN_STATUS=()
   PLAN_DEST=()
@@ -726,7 +726,7 @@ theme_cmd_show() {
   (( $# <= 1 )) || usage_error "too many arguments"
   local path=${1:-} out
   theme_load_consumers
-  karma_tmpdir PLAN_DIR
+  mujo_tmpdir PLAN_DIR
   theme_jq "$PLAN_DIR/r.json" -n --slurpfile tok "$THEME_TOKENS" --argjson s "$(theme_settings)" \
     'include "theme"; $tok[0] | resolve($s)'
   out=$(theme_jq - -c --arg p "$path" '
@@ -740,7 +740,7 @@ theme_cmd_show() {
 theme_cmd_render() {
   (( $# == 1 )) || usage_error "render needs one template file"
   [[ -f $1 ]] || die "$EXIT_FAIL" "no such file: $1"
-  karma_tmpdir PLAN_DIR
+  mujo_tmpdir PLAN_DIR
   theme_jq "$PLAN_DIR/r.json" -n --slurpfile tok "$THEME_TOKENS" --argjson s "$(theme_settings)" \
     'include "theme"; $tok[0] | resolve($s)'
   theme_jq "$PLAN_DIR/out" -rj -n --rawfile tpl "$1" --slurpfile t "$PLAN_DIR/r.json" --arg name "$1" \
@@ -765,7 +765,7 @@ theme_lint() {
   else
     roots=("${THEME_LINT_ROOTS[@]}")
   fi
-  mapfile -t files < <(cd -- "$KARMA_ROOT" && for r in "${roots[@]}"; do
+  mapfile -t files < <(cd -- "$MUJO_ROOT" && for r in "${roots[@]}"; do
     [[ -e $r ]] && find "$r" -type f ! -name '*.md'
   done | sort -u)
   (( ${#files[@]} )) || return 0
@@ -780,7 +780,7 @@ theme_lint() {
   )
   local rule name re
   (
-    cd -- "$KARMA_ROOT" || exit "$EXIT_FAIL"
+    cd -- "$MUJO_ROOT" || exit "$EXIT_FAIL"
     for rule in "${rules[@]}"; do
       name=${rule%%|*}
       re=${rule#*|}
@@ -828,7 +828,7 @@ theme_cmd_check() {
   local id problems='[]' notes='[]' p findings inst
   for id in "${PLAN_IDS[@]}"; do
     case ${PLAN_STATUS[$id]} in
-      new) p="not built: run '$KARMA_NAME theme build'" ;;
+      new) p="not built: run '$MUJO_NAME theme build'" ;;
       changed) p="out of date or edited by hand: differs from a fresh render" ;;
       *) p="" ;;
     esac

@@ -1,11 +1,11 @@
 # shellcheck shell=bash
-# karma calc: a calculator (qalc). The launcher's "=" mode uses it.
+# mujo calc: a calculator (qalc). The launcher's "=" mode uses it.
 
-karma_register calc "Calculate an expression"
+mujo_register calc "Calculate an expression"
 
 help_calc() {
   cat <<EOF
-Usage: $KARMA_NAME calc EXPRESSION... [--copy]
+Usage: $MUJO_NAME calc EXPRESSION... [--copy]
 
 Works out the expression with qalc (package libqalculate): arithmetic,
 units ("5 km in miles"), percentages ("15% of 80"). --copy puts the result
