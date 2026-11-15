@@ -310,8 +310,15 @@ Item {
     // the selection has rested for a moment.
     function previewWallpaper(): void {
         const entry = root.results[thumbs.currentIndex];
-        if (!root.strip || !entry || entry.path === root.wallCurrent)
+        if (!root.strip || !entry)
             return;
+        if (entry.path === root.wallCurrent) {
+            // Back on the wallpaper in use (also where the strip opens):
+            // nothing to preview, and no earlier preview may stay behind.
+            settle.stop();
+            Ui.wallPreview = "";
+            return;
+        }
         Ui.wallPreview = entry.path;
         settle.restart();
     }
@@ -348,6 +355,9 @@ Item {
         if (!active) {
             if (settle.running)
                 root.applyWallpaper();
+            // A preview that was not applied does not outlive the strip.
+            if (Ui.wallPreview !== root.wallCurrent)
+                Ui.wallPreview = "";
             return;
         }
         input.text = "";
