@@ -269,8 +269,8 @@ print_port_table() {
       *'vicinae server'*) where="dropped: karma launch replaced the Vicinae server (Vicinae itself stays installed)" ;;
       *vicinae*|*'$menu'*) where="binds.lua: SUPER+SPACE opens karma launch" ;;
       *browser*) where="not bound; the browser question can install one" ;;
-      *fileManager*) where="binds.lua: SUPER+E opens yazi in kitty" ;;
-      *TERMINAL*|*terminal*) where="binds.lua / autostart.lua: kitty" ;;
+      *fileManager*) where="binds.lua: SUPER+E opens yazi in Ghostty" ;;
+      *TERMINAL*|*terminal*) where="binds.lua / autostart.lua: ghostty" ;;
       *hyprshot*) where="binds.lua: karma shot" ;;
       *bind*|*'$mainMod'*) where="binds.lua" ;;
       *bezier*|*animation*) where="animations.lua (from tokens)" ;;

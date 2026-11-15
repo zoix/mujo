@@ -1,6 +1,6 @@
 -- Session daemons, started once when Hyprland starts.
 
-hl.env("TERMINAL", "kitty")
+hl.env("TERMINAL", "ghostty")
 
 hl.on("hyprland.start", function()
     -- Lets GUI apps ask for elevated privileges.

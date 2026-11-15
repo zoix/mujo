@@ -102,7 +102,7 @@ launch_start() {
   terminal=$(jq -r .terminal <<<"$entry")
   if (( OPT_DRY_RUN )); then
     say "launch $id (dry run, nothing started)"
-    say "Would run: $([[ $terminal == true ]] && echo "kitty -e ")$cmd"
+    say "Would run: $([[ $terminal == true ]] && echo "ghostty -e ")$cmd"
     jq '{id, name, exec, terminal, started: false}' <<<"$entry" | emit
     return 0
   fi
@@ -111,8 +111,7 @@ launch_start() {
   launch_count "$id" || warn "could not update the launch history"
   cd -- "$HOME" || true
   if [[ $terminal == true ]]; then
-    need kitty
-    tui_detach kitty -e sh -c "$cmd"
+    tui_term "" "" sh -c "$cmd"
   else
     tui_detach sh -c "$cmd"
   fi

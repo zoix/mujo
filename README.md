@@ -6,7 +6,7 @@ dry runs, a journal and undo. Catppuccin Mocha (dark) or Latte (light), chosen f
 Optionally the whole palette is tinted with the wallpaper's colour.
 
 **Status: phase 4 (complete).** `install.sh` sets up Hyprland with the karma
-look, kitty and Ghostty, a themed zsh, greetd with tuigreet and the console
+look, Ghostty, a themed zsh, greetd with tuigreet and the console
 palette. The `karma` CLI controls audio, Wi-Fi, Bluetooth, brightness, night
 light, wallpaper, theme, power, screenshots and the clipboard, and every
 change can be previewed, is journaled and can be undone. The Quickshell

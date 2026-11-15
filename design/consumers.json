@@ -26,18 +26,6 @@
       ]
     },
     {
-      "id": "kitty",
-      "description": "kitty colours, font and padding (include from kitty.conf)",
-      "template": "kitty/karma-theme.conf.tmpl",
-      "target": "@config/kitty/karma-theme.conf",
-      "scope": "user",
-      "comment": "#",
-      "reload": "kitty",
-      "lint": [
-        "config/kitty"
-      ]
-    },
-    {
       "id": "ghostty",
       "description": "Ghostty colours, font and padding",
       "template": "ghostty/karma-theme.tmpl",

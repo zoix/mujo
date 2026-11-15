@@ -1,4 +1,4 @@
-# Ghostty, set up to match kitty in the karma desktop.
+# Ghostty: karma's terminal.
 # Colours, font and padding come from karma-theme, which `karma theme build`
 # generates from design/tokens.json. Do not put colours here.
 config-file = karma-theme

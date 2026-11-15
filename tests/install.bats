@@ -67,7 +67,7 @@ snapshot() {
   [ "$status" -eq 0 ]
   [ -L "$HOME/.zshenv" ]
   [ -L "$HOME/.config/hypr/hyprland.lua" ]
-  [ -L "$HOME/.config/kitty/kitty.conf" ]
+  [ -L "$HOME/.config/ghostty/config" ]
   [ ! -L "$HOME/.local/bin" ]
   [ -d "$HOME/.local/bin" ]
   [ "$("$HOME/.local/bin/old-tool")" = old-tool ]
@@ -144,13 +144,13 @@ snapshot() {
 }
 
 @test "a plain file in the way is backed up, then replaced by the link" {
-  mkdir -p "$HOME/.config/kitty"
-  echo "font_size 14" >"$HOME/.config/kitty/kitty.conf"
+  mkdir -p "$HOME/.config/ghostty"
+  echo "font-size = 14" >"$HOME/.config/ghostty/config"
   run install
   [ "$status" -eq 0 ]
-  [ -L "$HOME/.config/kitty/kitty.conf" ]
+  [ -L "$HOME/.config/ghostty/config" ]
   backup=$(ls -d "$HOME"/.local/state/karma/backups/*)
-  [ "$(cat "$backup/home/.config/kitty/kitty.conf")" = "font_size 14" ]
+  [ "$(cat "$backup/home/.config/ghostty/config")" = "font-size = 14" ]
 }
 
 @test "a fresh home gets a default monitor rule and no lid binds" {

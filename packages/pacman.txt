@@ -16,7 +16,7 @@ gnome-keyring               # Secret Service for apps that store credentials
 libsecret                   # client library for the Secret Service
 
 # Terminal, shell and TUIs
-kitty                       # terminal
+ghostty                     # terminal
 zsh                         # login shell
 zsh-autosuggestions         # history-based suggestions
 zsh-syntax-highlighting     # command line highlighting

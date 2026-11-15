@@ -30,9 +30,8 @@ ui_reload() {
         hyprctl reload >/dev/null 2>&1 || true
       fi
       ;;
-    # Terminals are only told to reload from inside a graphical session;
+    # The terminal is only told to reload from inside a graphical session;
     # otherwise the test suite would signal the terminals on the real desktop.
-    kitty) [[ -z ${WAYLAND_DISPLAY:-} ]] || pkill -USR1 -x kitty >/dev/null 2>&1 || true ;;
     ghostty) [[ -z ${WAYLAND_DISPLAY:-} ]] || pkill -USR2 -x ghostty >/dev/null 2>&1 || true ;;
     gtk) ;;  # handled by theme.sh, which knows the resolved tokens
     "") ;;

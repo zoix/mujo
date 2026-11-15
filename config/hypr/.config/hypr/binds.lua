@@ -10,7 +10,7 @@
 -- expression, which is how Enter in the keybinding list (SUPER + /) works.
 
 local mod      = "SUPER"
-local terminal = "kitty"
+local terminal = "ghostty"
 local karma    = "$HOME/.local/bin/karma "
 
 local recorded = {}
@@ -40,7 +40,7 @@ end
 
 -- Apps
 bind(mod .. " + Return", run(terminal), "Open a terminal")
-bind(mod .. " + E", run(terminal .. " --class karma-files -e yazi"), "Open the file manager (yazi)")
+bind(mod .. " + E", run(terminal .. " --class=karma.files -e yazi"), "Open the file manager (yazi)")
 bind(mod .. " + space", run(karma .. "launch --window"), "Open the launcher")
 bind(mod .. " + X", run(karma .. "menu --window"), "Open the system menu")
 bind(mod .. " + V", run(karma .. "clip --window"), "Open the clipboard history")

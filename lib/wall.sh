@@ -22,8 +22,8 @@ index   Make a thumbnail of each image and measure its brightness and main
         colour, so that choosing it later is instant. Done on demand too.
 pick    Choose from them. With --window inside the desktop this is the
         thumbnail strip of the Quickshell UI; in a terminal it is an fzf list
-        with a preview of each image (in kitty), where Enter applies the
-        image and keeps the list open.
+        with a line about each image, where Enter applies the image and
+        keeps the list open.
 set     Use FILE (png, jpg, jpeg or webp).
 next    The image after the current one in the wallpaper directory, by name.
 prev    The image before it.
@@ -260,9 +260,6 @@ cmd_wall() {
       [[ -n $(wall_images | head -n 1) ]] \
         || die "$EXIT_FAIL" "no images in $(wall_dir) (put some there, or see '$KARMA_NAME wall dir')"
       local preview='file -b {1}'
-      if [[ -n ${KITTY_WINDOW_ID:-} ]] && command -v kitty >/dev/null 2>&1; then
-        preview='kitty icat --clear --transfer-mode=memory --stdin=no --place=${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES}@0x0 {1}'
-      fi
       wall_images | gawk -F/ '{ print $0 "\t" $NF }' \
         | tui_pick --delimiter '\t' --with-nth 2 --prompt 'Wallpaper > ' \
             --header "$(tilde "$(wall_dir)")"$'\n'"Enter: apply"$'\n'"Escape: close" \

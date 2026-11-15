@@ -8,8 +8,8 @@ screen. `SUPER` is the Windows key.
 
 | Keys | Action |
 | --- | --- |
-| `SUPER + Return` | Terminal (kitty) |
-| `SUPER + E` | File manager (yazi in kitty) |
+| `SUPER + Return` | Terminal (Ghostty) |
+| `SUPER + E` | File manager (yazi in Ghostty) |
 | `SUPER + Space` | Launcher (`karma launch`); Tab or `>` switches to karma's commands, Tab or Backspace back |
 | `SUPER + X` | System menu (`karma menu`) |
 | `SUPER + V` | Clipboard history (`karma clip`) |

@@ -148,16 +148,15 @@ menu_run() {
     tui) "$KARMA_BIN" "${argv[@]}" --window ;;
     show)
       require_wayland
-      need kitty
       # A floating terminal that runs the command and waits, so the output
       # can be read (and sudo can ask for the password).
-      tui_detach kitty --class "$KARMA_NAME-tui-show" --title "$KARMA_NAME ${argv[*]}" -o remember_window_size=no \
-        -e sh -c '"$@"; printf "\nPress Enter to close "; read -r _' sh "$KARMA_BIN" "${argv[@]}"
+      tui_term "$KARMA_NAME.tui.show" "$KARMA_NAME ${argv[*]}" \
+        sh -c '"$@"; printf "\nPress Enter to close "; read -r _' sh "$KARMA_BIN" "${argv[@]}"
       ;;
     app)
       require_wayland
-      need kitty "${argv[0]}"
-      tui_detach kitty -e "${argv[@]}"
+      need "${argv[0]}"
+      tui_term "" "" "${argv[@]}"
       ;;
     shot) tui_detach sh -c 'sleep 0.4; exec "$@"' sh "$KARMA_BIN" "${argv[@]}" ;;
     confirm) "$KARMA_BIN" power --window ;;

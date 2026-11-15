@@ -2,13 +2,13 @@
 # Shared pieces of the interactive commands (launcher, menu, Wi-Fi, keys,
 # clipboard): the floating window, the terminal check and the fzf wrapper.
 
-# tui_window NAME [ARGS...]: run `karma NAME ARGS` in a floating kitty window
-# with the class karma-tui-NAME (Hyprland floats and centres that class).
+# tui_window NAME [ARGS...]: run `karma NAME ARGS` in a floating terminal
+# with the class karma.tui.NAME (Hyprland floats and centres that class).
 # Running it again while the window is open closes it, so one key toggles.
 tui_window() {
   local name=$1 class
   shift
-  class=$KARMA_NAME-tui-$name
+  class=$KARMA_NAME.tui.$name
   require_wayland
   # The launcher, the system menu, the wallpaper picker, the power menu and
   # the dashboard have a panel in the Quickshell UI. Use it when the UI is running;
@@ -36,14 +36,27 @@ tui_window() {
   fi
   [[ $name == power ]] && die "$EXIT_ENV" "the power menu is part of the Quickshell UI, which is not running"
   [[ $name == sys ]] && die "$EXIT_ENV" "the dashboard is part of the Quickshell UI, which is not running"
-  need kitty setsid
-  # (The window may have been started as "kitty" or as "/usr/bin/kitty".)
-  if pkill -f -- "^(/usr/bin/)?kitty --class $class " 2>/dev/null; then
+  need setsid
+  # (The window may have been started as "ghostty" or as "/usr/bin/ghostty".)
+  if pkill -f -- "^(/usr/bin/)?ghostty --class=${class//./\\.} " 2>/dev/null; then
     exit "$EXIT_OK"
   fi
-  tui_detach kitty --class "$class" --title "$KARMA_NAME $name" -o remember_window_size=no \
-    -e env KARMA_WINDOW=1 "$KARMA_BIN" "$name" "$@"
+  tui_term "$class" "$KARMA_NAME $name" env KARMA_WINDOW=1 "$KARMA_BIN" "$name" "$@"
   exit "$EXIT_OK"
+}
+
+# tui_term CLASS TITLE [CMD...]: open the terminal (Ghostty) as its own
+# program, running CMD or, without one, a shell. An empty CLASS gives an
+# ordinary terminal window. Ghostty wants a class with a dot in it.
+tui_term() {
+  local class=$1 title=$2
+  shift 2
+  need ghostty
+  local -a cmd=(ghostty)
+  [[ -n $class ]] && cmd+=("--class=$class")
+  [[ -n $title ]] && cmd+=("--title=$title")
+  (( $# )) && cmd+=(-e "$@")
+  tui_detach "${cmd[@]}"
 }
 
 # Interactive commands need a terminal and fzf, and have no JSON form.

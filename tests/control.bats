@@ -180,7 +180,7 @@ journal_count() {
   karma theme mode light
   light_bg=$(karma theme show color.bg.base --json | jq -r .data.value)
   [ "$dark_bg" != "$light_bg" ]
-  grep -q "$light_bg" "$(conf)/kitty/karma-theme.conf"
+  grep -q "$light_bg" "$(conf)/ghostty/karma-theme"
   grep -q 'gtk-application-prefer-dark-theme=0' "$(conf)/gtk-3.0/settings.ini"
   run karma theme check
   [ "$status" -eq 0 ]
@@ -542,7 +542,7 @@ journal_count() {
 
   run karma launch run top --dry-run
   [ "$status" -eq 0 ]
-  [[ $output == *"Would run: kitty -e mytop"* ]]
+  [[ $output == *"Would run: ghostty -e mytop"* ]]
   run karma launch run editor
   [ "$status" -eq 3 ]
   run karma launch run missing

@@ -22,7 +22,7 @@ roles do not change.
 | `color` | Roles: `bg.{frame,base,raised,control}`, `border.subtle`, `text.{primary,muted,on_accent}`, `accent`, `state.{success,warning,error,info}` |
 | `term` | Terminal `fg`, `bg`, `cursor`, `selection_bg` and 16 `ansi` colours (Catppuccin's mapping) |
 | `console` | Linux console palette (`ansi`, background slot 0 is `base`, magenta slots are the accent) and `slot` names used by tuigreet |
-| `font` | `family`, `terminal_pt` (kitty), `ui_pt` (GTK), `size.{xs,sm,md,lg,xl,display}` px, `weight.{regular,emphasis,heavy}` |
+| `font` | `family`, `terminal_pt` (Ghostty), `ui_pt` (GTK), `size.{xs,sm,md,lg,xl,display}` px, `weight.{regular,emphasis,heavy}` |
 | `space` | `xs` 4, `sm` 8, `md` 12, `lg` 16, `xl` 24, `xxl` 32 |
 | `radius` | `sm` 6, `md` 10, `lg` 14, `xl` 18, `full` |
 | `border` | `thin` 1, `focus` 2 |
@@ -97,11 +97,11 @@ trying things out.
 | `target` | `@config/...` (XDG config), `@state/...`, or `/etc/...` |
 | `scope` | `user` (written directly) or `system` (staged in `~/.local/state/karma/theme/system/`, installed by the installer) |
 | `comment`, `comment_end` | Comment syntax for the "do not edit" header; empty for formats without comments |
-| `reload` | Optional hook run after a change: `quickshell`, `hyprland`, `kitty`, `ghostty`, `gtk` |
+| `reload` | Optional hook run after a change: `quickshell`, `hyprland`, `ghostty`, `gtk` |
 | `lint` | Repo paths of hand-written config that belongs with this consumer |
 
-Current consumers (14): `quickshell` (tokens.json, read live by Tokens.qml),
-`hypr` (karma_tokens.lua), `kitty`, `ghostty`, `btop`, `yazi`, `fzf` (FZF_DEFAULT_OPTS_FILE), `zsh`, `gtk3` and `gtk4`
+Current consumers (13): `quickshell` (tokens.json, read live by Tokens.qml),
+`hypr` (karma_tokens.lua), `ghostty`, `btop`, `yazi`, `fzf` (FZF_DEFAULT_OPTS_FILE), `zsh`, `gtk3` and `gtk4`
 (gtk.css colour overrides), `gtk3-settings` and `gtk4-settings` (settings.ini:
 theme, dark preference, UI font), `greetd` (tuigreet theme), `vtrgb` (console
 palette).

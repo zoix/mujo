@@ -8,7 +8,7 @@ load helpers
   [ "$status" -eq 0 ]
   [ -f "$(conf)/quickshell/karma/theme/tokens.json" ]
   [ -f "$(conf)/hypr/karma_tokens.lua" ]
-  [ -f "$(conf)/kitty/karma-theme.conf" ]
+  [ -f "$(conf)/ghostty/karma-theme" ]
   [ -f "$(conf)/btop/themes/karma.theme" ]
   [ -f "$(conf)/yazi/theme.toml" ]
   [ -f "$(conf)/fzf/karma.fzfrc" ]
@@ -17,7 +17,7 @@ load helpers
   [ -f "$(conf)/gtk-4.0/gtk.css" ]
   [ -f "$(state)/theme/system/greetd/config.toml" ]
   [ -f "$(state)/theme/system/vtrgb/palette.vtrgb" ]
-  grep -q "Do not edit" "$(conf)/kitty/karma-theme.conf"
+  grep -q "Do not edit" "$(conf)/ghostty/karma-theme"
   grep -q "Do not edit" "$(conf)/gtk-3.0/gtk.css"
   run grep -q "Do not edit" "$(state)/theme/system/vtrgb/palette.vtrgb"
   [ "$status" -ne 0 ]
@@ -45,18 +45,18 @@ load helpers
   run karma theme check
   [ "$status" -eq 1 ]
   karma theme build
-  echo "# edited" >>"$(conf)/kitty/karma-theme.conf"
-  run karma theme check --json kitty
+  echo "# edited" >>"$(conf)/ghostty/karma-theme"
+  run karma theme check --json ghostty
   [ "$status" -eq 1 ]
   [ "$(jq -r '.data.problems[0].kind' <<<"$output")" = drift ]
-  [ "$(jq -r '.data.problems[0].consumer' <<<"$output")" = kitty ]
+  [ "$(jq -r '.data.problems[0].consumer' <<<"$output")" = ghostty ]
 }
 
 @test "check finds hardcoded colours in a copy of the repo" {
   cp -r "$KARMA_REPO" "$BATS_TEST_TMPDIR/repo"
-  mkdir -p "$BATS_TEST_TMPDIR/repo/config/kitty"
-  echo 'background #ff0000' >"$BATS_TEST_TMPDIR/repo/config/kitty/kitty.conf"
-  echo 'color: mauve' >"$BATS_TEST_TMPDIR/repo/config/kitty/extra.conf"
+  mkdir -p "$BATS_TEST_TMPDIR/repo/config/ghostty"
+  echo 'background = #ff0000' >"$BATS_TEST_TMPDIR/repo/config/ghostty/config"
+  echo 'color: mauve' >"$BATS_TEST_TMPDIR/repo/config/ghostty/extra.conf"
   "$BATS_TEST_TMPDIR/repo/bin/karma" theme build
   run "$BATS_TEST_TMPDIR/repo/bin/karma" theme check --json
   [ "$status" -eq 1 ]
@@ -91,12 +91,12 @@ load helpers
 
 @test "dry-run changes nothing and records nothing" {
   karma theme build
-  before=$(sha256sum "$(conf)/kitty/karma-theme.conf")
+  before=$(sha256sum "$(conf)/ghostty/karma-theme")
   run karma theme accent green --dry-run
   [ "$status" -eq 0 ]
   [[ $output == *"dry run"* ]]
   [[ $output == *'+  "accent": '* ]]
-  [ "$before" = "$(sha256sum "$(conf)/kitty/karma-theme.conf")" ]
+  [ "$before" = "$(sha256sum "$(conf)/ghostty/karma-theme")" ]
   [ ! -f "$(conf)/karma/config.json" ]
   run karma log --json
   [ "$(jq '.data.entries | length' <<<"$output")" = 1 ]
@@ -123,22 +123,22 @@ load helpers
 
 @test "undo of a build restores the previous files; repeated undo walks back" {
   karma theme build
-  echo "# old" >>"$(conf)/kitty/karma-theme.conf"
-  karma theme build kitty
-  run grep -q "# old" "$(conf)/kitty/karma-theme.conf"
+  echo "# old" >>"$(conf)/ghostty/karma-theme"
+  karma theme build ghostty
+  run grep -q "# old" "$(conf)/ghostty/karma-theme"
   [ "$status" -ne 0 ]
   karma undo
-  grep -q "# old" "$(conf)/kitty/karma-theme.conf"
+  grep -q "# old" "$(conf)/ghostty/karma-theme"
   run karma undo --json
   [ "$status" -eq 0 ]
   [ "$(jq -r '.command' <<<"$output")" = "theme restore" ]
-  [ ! -f "$(conf)/kitty/karma-theme.conf" ]
+  [ ! -f "$(conf)/ghostty/karma-theme" ]
 }
 
 @test "undo of a first build removes the files it created" {
   karma theme build
   karma undo
-  [ ! -f "$(conf)/kitty/karma-theme.conf" ]
+  [ ! -f "$(conf)/ghostty/karma-theme" ]
 }
 
 @test "undo refuses irreversible and already undone entries" {

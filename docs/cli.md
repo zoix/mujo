@@ -92,7 +92,7 @@ Without a value the same subcommand only reports the current state.
 
 `launch`, `menu`, `clip`, `wall pick`, `net tui`, `keys tui`, `bt tui` and `audio tui` need a terminal
 (exit 3 without one) and have no `--json` form (exit 2). With `--window` they
-open in a floating kitty window with the class `karma-tui-<command>`; running
+open in a floating Ghostty window with the class `karma.tui.<command>`; running
 the same command again closes that window, so one key toggles it. Four of
 them have a panel in the Quickshell UI, which `--window` uses instead while
 the UI runs: `launch`, `menu`, `wall pick`, `clip`, `keys tui`, `net tui`,
@@ -183,7 +183,7 @@ nmcli ask for the password; `--password-stdin` reads one line instead.
 | `status` (default) | no | `{wallpaper, directory, available}` |
 | `list` | no | `{directory, current, images: [{path, name, thumb}]}`; `thumb` is `null` until indexed |
 | `index` | no | Cache a thumbnail and the brightness and main colour of each image (`~/.cache/karma/wallpapers`) |
-| `pick` | - | With `--window` in the desktop: the thumbnail strip of the UI, which applies as you move. In a terminal: an fzf list with a preview (in kitty) |
+| `pick` | - | With `--window` in the desktop: the thumbnail strip of the UI, which applies as you move. In a terminal: an fzf list with a line about each image |
 | `set FILE` | yes | png, jpg, jpeg or webp |
 | `next`, `prev` | yes | Cycle through the directory by name |
 | `clear` | yes | No wallpaper |
@@ -268,8 +268,8 @@ Not journaled.
 
 ## karma term
 
-`term` shows or hides the drop-down terminal: a kitty window of class
-`karma-drop` that a window rule keeps on the special workspace `term`. The
+`term` shows or hides the drop-down terminal: a Ghostty window of class
+`karma.drop` that a window rule keeps on the special workspace `term`. The
 first call starts it. `data`: `{started, toggled}`. Needs Hyprland.
 
 ## karma focus
@@ -441,7 +441,7 @@ best effort and never fatal. `qs -c karma ipc show` lists the targets:
   "journal_id": "20261114T094622Z-3df5",
   "settings": {"accent": "blue", "reduce_motion": false},
   "files": [
-    {"id": "kitty", "scope": "user", "path": "/home/u/.config/kitty/karma-theme.conf",
+    {"id": "ghostty", "scope": "user", "path": "/home/u/.config/ghostty/karma-theme",
      "status": "changed", "diff": "--- ... (only with --dry-run)"}
   ]
 }
@@ -458,8 +458,8 @@ without an argument return `{"accent": "mauve", "available": [...]}` and
 {
   "ok": false,
   "problems": [
-    {"kind": "drift", "consumer": "kitty", "path": "...", "message": "...", "diff": "..."},
-    {"kind": "hardcoded", "file": "config/kitty/kitty.conf", "line": 1, "rule": "hex-colour", "text": "..."}
+    {"kind": "drift", "consumer": "ghostty", "path": "...", "message": "...", "diff": "..."},
+    {"kind": "hardcoded", "file": "config/ghostty/config", "line": 1, "rule": "hex-colour", "text": "..."}
   ],
   "notes": [{"consumer": "greetd", "path": "/etc/greetd/config.toml", "message": "..."}]
 }

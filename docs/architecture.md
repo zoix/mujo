@@ -65,7 +65,7 @@ split: **the core decides, Quickshell presents.**
 | `lib/doctor.sh`, `update.sh`, `uninstall.sh` | Health check, updates, and reversing the installer from its manifests |
 | `lib/theme.jq` | Token resolver and template renderer (jq module) |
 | `design/` | `tokens.json`, `consumers.json`, `templates/`, `check-allow.txt` |
-| `config/` | Hand-written configs, one GNU Stow package per directory: `hypr`, `quickshell`, `systemd`, `kitty`, `ghostty`, `zsh`, `bin` |
+| `config/` | Hand-written configs, one GNU Stow package per directory: `hypr`, `quickshell`, `systemd`, `ghostty`, `zsh`, `bin` |
 | `system/` | Files for `/etc` that are not generated (the console palette unit); installed only by `install.sh` |
 | `packages/` | `pacman.txt` (installed), `aur.txt` (empty), `replaced.txt` (offered for removal) |
 | `tests/` | bats tests, `lint.sh`, and `stubs/`: test doubles for wpctl, nmcli, brightnessctl and friends |
