@@ -40,7 +40,7 @@ Item {
 
             Logo {
                 anchors.centerIn: parent
-                size: Tokens.barButton + Tokens.borderFocus
+                size: Tokens.icon
                 color: logo.hovered ? Tokens.textPrimary : Tokens.accent
                 dotColor: logo.hovered ? Tokens.accent : Tokens.textPrimary
             }
