@@ -600,6 +600,12 @@ journal_count() {
   run mujo shot copy "$BATS_TEST_TMPDIR/a.png" --dry-run --json
   [ "$status" -eq 0 ]
   [ "$(data .done)" = false ]
+  run mujo shot folder recordings --dry-run --json
+  [ "$(data .folder)" = "$XDG_VIDEOS_DIR/Recordings" ]
+  run mujo shot folder --dry-run --json
+  [ "$(data .folder)" = "$XDG_PICTURES_DIR/Screenshots" ]
+  run mujo shot folder elsewhere
+  [ "$status" -eq 2 ]
 }
 
 @test "about reports the machine, the health check and the latest changes" {

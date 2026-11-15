@@ -11,6 +11,7 @@ Usage: $MUJO_NAME shot [region | window | screen] [--no-save] [--no-copy] [--dir
        $MUJO_NAME shot text [--geometry "X,Y WxH"] [--lang LANGUAGE]
        $MUJO_NAME shot copy FILE
        $MUJO_NAME shot open FILE
+       $MUJO_NAME shot folder [screenshots | recordings]
 
 region  Choose an area (the default). With the interface running, the screen
         freezes: click a window or drag a rectangle, Escape cancels. Without
@@ -24,6 +25,8 @@ text    Drag an area; the text in it is read (tesseract) and copied to the
 
 copy    Put a saved screenshot on the clipboard again.
 open    Open a saved screenshot or recording in the program for its type.
+folder  Open the folder of screenshots (the default) or of recordings in
+        the file manager.
 
 The image is saved as mujo-<date>-<time>.png in ~/Pictures/Screenshots (or
 --dir, or "screenshot_dir" in config.json) and copied to the clipboard.
@@ -97,7 +100,35 @@ shot_file() {
   jq -n --arg f "$file" --arg a "$sub" '{file: $f, action: $a, done: true}' | emit
 }
 
+# shot_folder WHICH: open the folder of screenshots or of recordings in the
+# file manager (yazi in the terminal). The folder is made if it is not there.
+shot_folder() {
+  local which=${1:-screenshots} dir
+  case $which in
+    screenshots) dir=$(shot_dir) ;;
+    recordings) dir=$(record_dir) ;;
+    *) usage_error "folder takes screenshots or recordings" ;;
+  esac
+  mujo_set_cmd "shot folder"
+  if (( OPT_DRY_RUN )); then
+    say "Would open $dir"
+    jq -n --arg d "$dir" '{folder: $d, done: false}' | emit
+    return 0
+  fi
+  require_wayland
+  need yazi
+  mkdir -p -- "$dir"
+  tui_term "$MUJO_NAME.files" "" yazi "$dir"
+  say "Opened $dir"
+  jq -n --arg d "$dir" '{folder: $d, done: true}' | emit
+}
+
 cmd_shot() {
+  if [[ ${1:-} == folder ]]; then
+    (( $# <= 2 )) || usage_error "unexpected argument '$3'"
+    shot_folder "${2:-screenshots}"
+    return 0
+  fi
   if [[ ${1:-} == copy || ${1:-} == open ]]; then
     (( $# <= 2 )) || usage_error "unexpected argument '$3'"
     shot_file "$@"

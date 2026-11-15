@@ -86,7 +86,7 @@ sys_battery_history() {
 sys_captures() {
   local shots videos
   shots=$(shot_dir)
-  videos=$(config_read | jq -r --arg d "${XDG_VIDEOS_DIR:-$HOME/Videos}/Recordings" '.record_dir // $d')
+  videos=$(record_dir)
   {
     [[ -d $shots ]] && find "$shots" -maxdepth 1 -type f \( -name '*.png' -o -name '*.jpg' \) -printf '%T@\tscreenshot\t%p\n' 2>/dev/null
     [[ -d $videos ]] && find "$videos" -maxdepth 1 -type f \( -name '*.mp4' -o -name '*.mkv' -o -name '*.webm' \) -printf '%T@\trecording\t%p\n' 2>/dev/null

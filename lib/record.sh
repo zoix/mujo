@@ -23,6 +23,11 @@ session. Recordings are not journaled: they change no setting.
 EOF
 }
 
+# record_dir: where recordings are saved.
+record_dir() {
+  config_read | jq -r --arg d "${XDG_VIDEOS_DIR:-$HOME/Videos}/Recordings" '.record_dir // $d'
+}
+
 RECORD_PID=${XDG_RUNTIME_DIR:-/tmp}/$MUJO_NAME-record.pid
 
 # Prints "PID<TAB>FILE" if a recording is running.
@@ -96,7 +101,7 @@ cmd_record() {
   esac
 
   mode=${mode:-region}
-  dir=${dir:-$(config_read | jq -r --arg d "${XDG_VIDEOS_DIR:-$HOME/Videos}/Recordings" '.record_dir // $d')}
+  dir=${dir:-$(record_dir)}
   local path
   path=$dir/$MUJO_NAME-$(date +%Y%m%d-%H%M%S).mp4
   if (( OPT_DRY_RUN )); then

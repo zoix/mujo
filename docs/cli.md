@@ -263,6 +263,8 @@ kept; exit 1 if the area holds no text.
 `shot copy FILE` puts a saved screenshot on the clipboard again and
 `shot open FILE` opens a screenshot or recording in the program for its
 type; `data` is `{file, action, done}`. Both need a Wayland session.
+`shot folder [screenshots | recordings]` opens that folder in the file
+manager (`{folder, done}`).
 
 ## mujo record
 

@@ -254,9 +254,54 @@ Item {
                 readonly property int cell: Math.floor((width - Tokens.spaceSm) / 2)
                 readonly property int cellHeight: Math.floor((height - capturesTitle.height - Tokens.spaceSm * 3) / 3)
 
-                Title {
+                // The title, and a button for each folder on the right.
+                Item {
                     id: capturesTitle
-                    text: "Screenshots and recordings"
+                    width: captures.width
+                    height: Tokens.barButton
+
+                    Title {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Captures"
+                    }
+
+                    Row {
+                        anchors.right: parent.right
+                        spacing: Tokens.spaceXs
+
+                        Repeater {
+                            model: [
+                                {
+                                    folder: "screenshots",
+                                    icon: "\uf03e"
+                                },
+                                {
+                                    folder: "recordings",
+                                    icon: "\uf03d"
+                                }
+                            ]
+
+                            delegate: BarButton {
+                                id: folderButton
+
+                                required property var modelData
+
+                                hoverColor: Tokens.group
+                                radius: Tokens.radiusFull
+                                onClicked: {
+                                    Mujo.run(["shot", "folder", modelData.folder]);
+                                    Ui.closeDashboard();
+                                }
+
+                                Glyph {
+                                    anchors.centerIn: parent
+                                    text: folderButton.modelData.icon
+                                    font.pixelSize: Tokens.fontSm
+                                    color: folderButton.hovered ? Tokens.accent : Tokens.textMuted
+                                }
+                            }
+                        }
+                    }
                 }
 
                 Line {
