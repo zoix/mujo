@@ -23,6 +23,7 @@ zsh-syntax-highlighting     # command line highlighting
 zsh-completions             # extra completion definitions
 fzf                         # launcher, menus, shell key bindings
 yazi                        # file manager
+imv                         # image viewer (opens pictures from yazi)
 btop                        # system monitor
 bluetui                     # Bluetooth TUI
 wiremix                     # audio mixer TUI
