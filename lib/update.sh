@@ -142,6 +142,7 @@ update_cmd_rollback() {
     sudo mkinitcpio -P >&2 || warn "mkinitcpio failed; run 'sudo mkinitcpio -P' before rebooting"
   fi
   rm -f -- "$UPDATE_CACHE" "$UPDATE_SNAPSHOT_FILE"
+  ui_ipc updates refresh
   local jid
   jid=$(journal_new_id)
   journal_record "$jid" "update rollback: system files back to snapshot $pre (undid $pre..$post)" '{}' \
@@ -324,6 +325,8 @@ cmd_update() {
     fi
     after=$(pacman -Q 2>/dev/null | sort)
     rm -f -- "$UPDATE_CACHE"
+    # The bar shows the old count until it looks again.
+    ui_ipc updates refresh
     mapfile -t upgraded < <(comm -13 <(printf '%s\n' "$before") <(printf '%s\n' "$after") | awk '{ print $1 }')
     if [[ -n $snap_pre ]]; then
       snap_post=$(sudo snapper -c "$snap_config" create --type post --pre-number "$snap_pre" \

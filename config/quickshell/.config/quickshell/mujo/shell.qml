@@ -127,6 +127,15 @@ ShellRoot {
         }
     }
 
+    // `mujo update` calls this when it has finished.
+    IpcHandler {
+        target: "updates"
+
+        function refresh(): void {
+            Updates.refresh();
+        }
+    }
+
     IpcHandler {
         target: "dashboard"
 
