@@ -316,6 +316,9 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     text: root.player ? root.player.trackArtist : "Start a player to control it here"
                     color: Tokens.textMuted
+                    // Up to two lines; only a longer text is cut.
+                    wrapMode: Text.WordWrap
+                    maximumLineCount: 2
                     elide: Text.ElideRight
                     font.family: Tokens.fontFamily
                     font.pixelSize: Tokens.fontXs

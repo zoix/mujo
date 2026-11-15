@@ -29,6 +29,9 @@ Item {
         BarButton {
             id: logo
             Layout.alignment: Qt.AlignHCenter
+            // Down a little, so the top of the gate is level with the top
+            // of the windows beside it.
+            Layout.topMargin: Tokens.borderFocus
             // No box behind the logo under the pointer; the logo lights up instead.
             hoverColor: "transparent"
             onClicked: Ui.toggleAbout(root.screen.name, logo.mapToItem(null, 0, logo.height / 2).y)
