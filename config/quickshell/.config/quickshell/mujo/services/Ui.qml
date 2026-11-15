@@ -122,6 +122,11 @@ Singleton {
         root.launcher = true;
     }
 
+    // Sent when the dashboard is closed on purpose (Escape, an action that
+    // leaves it). The frame then lets go of it even if the pointer, which
+    // had opened it from the top edge, is still on it.
+    signal dashboardClosed
+
     // Asking for the page that is already open closes the dashboard.
     function toggleDashboard(page: string): void {
         if (root.dashboard && root.dashboardPage === page) {
@@ -137,6 +142,7 @@ Singleton {
     // slid away, so that the top edge always opens "Today".
     function closeDashboard(): void {
         root.dashboard = false;
+        root.dashboardClosed();
         dashboardReset.restart();
     }
 

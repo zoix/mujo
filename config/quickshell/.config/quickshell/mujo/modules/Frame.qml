@@ -167,6 +167,13 @@ Scope {
         property bool dashboardHovered: false
 
         Connections {
+            target: Ui
+            function onDashboardClosed(): void {
+                overlay.dashboardHovered = false;
+            }
+        }
+
+        Connections {
             target: edgeHover
             function onHoveredChanged(): void {
                 if (edgeHover.hovered)
