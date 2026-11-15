@@ -1,80 +1,164 @@
-# mujo
+<h1 align="center">mujo</h1>
 
-A terminal-first desktop for Arch Linux: Hyprland (Lua config), a Quickshell
-interface and a `mujo` CLI that owns every change to the system, with
-dry runs, a journal and undo. Catppuccin Mocha (dark) or Latte (light), chosen from the wallpaper; one accent.
-Optionally the whole palette is tinted with the wallpaper's colour.
+<p align="center">
+  <b>A terminal-first desktop for Arch Linux where every change can be previewed, is written down, and can be undone.</b>
+</p>
+
+<p align="center">
+  Hyprland (Lua config) · Quickshell · one <code>mujo</code> command · Catppuccin
+</p>
+
+<p align="center">
+  <a href="#install">Install</a> ·
+  <a href="#a-quick-tour">Tour</a> ·
+  <a href="#everything-is-a-command">CLI</a> ·
+  <a href="#one-theme-everywhere">Theme</a> ·
+  <a href="#docs">Docs</a>
+</p>
 
 ![The desktop: Neovim, yazi and the mujo CLI in Ghostty, inside the frame with the bar on the left](docs/screenshots/desktop.webp)
 
+## Why mujo
+
+Most desktop setups are a pile of configs and a bar that shells out to a dozen
+tools. mujo puts one command in the middle. The volume keys, the quick-settings
+sliders, the launcher and you at a prompt all go through `mujo`, so the desktop
+behaves the same wherever a change comes from.
+
+- **See it first.** `--dry-run` on any command prints what would change and changes nothing.
+- **Take it back.** Changes are journaled with the state before and after. `mujo undo` reverts the last one; actions that cannot be undone say so and ask for `--yes`.
+- **Works without the screen.** Everything that does not need Wayland runs over SSH or on a TTY, and `--json` gives scripts stable output.
+- **One source for the look.** Colours, sizes, fonts and durations live in one file and are rendered into 14 programs, from the bar to the login screen.
+- **Updates you can walk back.** `mujo update` takes a snapshot before and after when snapper covers `/`, and `mujo update rollback` returns the system files to the earlier one.
+- **Leaves cleanly.** The installer backs up what it replaces, and `mujo uninstall` restores it.
+
+## A quick tour
+
+A frame runs around the screen with a bar on the left. Panels grow out of that
+frame instead of floating over your windows.
+
 | | |
 | --- | --- |
-| ![Launcher](docs/screenshots/launcher.webp) Launcher, `SUPER + Space` | ![Dashboard](docs/screenshots/dashboard.webp) Dashboard, `SUPER + D` |
-| ![Wallpaper strip](docs/screenshots/wallpapers.webp) Wallpapers, `SUPER + Shift + W` | ![Keybindings](docs/screenshots/keys.webp) Keybindings, `SUPER + /` |
-| ![Power menu](docs/screenshots/power-menu.webp) Power menu, `SUPER + Shift + Escape` | |
+| ![Launcher](docs/screenshots/launcher.webp) **Launcher** `SUPER + Space`<br>Apps, every mujo command (`>`), a calculator (`=`), clipboard, emoji, Wi-Fi | ![Dashboard](docs/screenshots/dashboard.webp) **Dashboard** `SUPER + D`<br>Calendar, system gauges, media, weather |
+| ![Wallpaper strip](docs/screenshots/wallpapers.webp) **Wallpapers** `SUPER + Shift + W`<br>Moving along the strip applies the image; light or dark and the accent follow it | ![Keybindings](docs/screenshots/keys.webp) **Keybindings** `SUPER + /`<br>Every bind with its description; pick one to run it |
+| ![Power menu](docs/screenshots/power-menu.webp) **Power menu** `SUPER + Shift + Escape` | |
 
-**Status: phase 4 (complete).** `install.sh` sets up Hyprland with the mujo
-look, Ghostty, a themed zsh, greetd with tuigreet and the console
-palette. The `mujo` CLI controls audio, Wi-Fi, Bluetooth, brightness, night
-light, wallpaper, theme, power, screenshots and the clipboard, and every
-change can be previewed, is journaled and can be undone. The Quickshell
-interface draws a frame around the screen with a bar on the left; the
-launcher, the power menu, notifications and the volume display grow out of
-that frame. Light or dark and the accent colour follow the wallpaper.
+Also in the box:
+
+- **Quick settings** (`SUPER + A`): Wi-Fi, Bluetooth, volume, brightness, night light, power profile, keep-awake and notification history.
+- **Workspace overview** (`SUPER + Tab`) with live pictures of the windows.
+- **Lock screen** with password or fingerprint, and media controls.
+- **Screenshots and recording**: an area picker on `Print`, `mujo record`, and `mujo shot text` to copy text out of any part of the screen.
+- **Battery care**: a charge limit, a power profile that follows the charger, and 60 Hz with solid panels while on battery.
+- **Drop-down terminal** (``SUPER + ` ``), a focus timer, and a pending-updates count in the bar.
+- **A terminal toolkit that matches**: Ghostty, zsh, tmux, Neovim, yazi, btop and fzf, all themed from the same tokens.
 
 ## Install
 
+> [!IMPORTANT]
+> mujo is for **Arch Linux** and replaces your Hyprland config and, if you agree, your login screen. Run the dry run first. It has been used daily on one machine (a Framework 13, AMD); other hardware and multi-monitor setups are less tested.
+
 ```sh
-./install.sh --dry-run    # see everything it would do; changes nothing
+git clone https://github.com/zoix/mujo ~/.local/share/mujo
+cd ~/.local/share/mujo
+./install.sh --dry-run    # the full plan; changes nothing and needs no sudo
 ./install.sh              # a few questions, the plan, one confirmation
 ```
 
 Then reboot: greetd starts on tty1 and logs you into Hyprland.
-Existing configs are backed up to `~/.local/state/mujo/backups/` first.
-Details, flags and what happens to an existing `hyprland.conf`:
+
+- Existing configs are backed up to `~/.local/state/mujo/backups/` before anything is replaced.
+- Nothing is removed without you agreeing to it, and `--skip-system` keeps the installer inside `$HOME`.
+- Running it again with the same answers changes nothing.
+
+Flags, the order of steps and what happens to an existing `hyprland.conf`:
 [docs/install.md](docs/install.md).
 
-## Use
-
-| Keys | Opens |
-| --- | --- |
-| `SUPER + Space` | Launcher; type `>` for every mujo command |
-| `SUPER + A` | Quick settings and notification history |
-| `SUPER + Tab` | All workspaces at a glance |
-| `SUPER + D` | Dashboard: calendar, system gauges, media |
-| `SUPER + Shift + W` | Wallpaper strip; moving along it applies the image |
-| `SUPER + Shift + Escape` | Power menu |
-| `SUPER + Escape` | Lock |
-| `SUPER + /` | All keybindings |
-
-Everything is also a command, and works over SSH or on a TTY except what
-needs the screen:
+## Everything is a command
 
 ```sh
 mujo status                  # audio, network, display, theme, battery
 mujo audio volume +5         # every change is journaled...
 mujo undo                    # ...and can be put back
-mujo log                     # what changed
+mujo log                     # what changed, and when
 mujo net tui                 # pick a Wi-Fi network
-mujo theme mode light        # or dark, or auto (follow the wallpaper)
-mujo theme accent blue       # or auto
 mujo power reboot --dry-run  # see what an action would do
+mujo pkg install             # search the repos and the AUR with fzf
 mujo doctor                  # is everything in place?
-mujo update                  # mujo and the system
+mujo update                  # mujo and the system, with snapshots
 mujo update rollback --yes   # put the system back as it was before that update
 ```
 
-Put your wallpapers in `~/Pictures/Wallpapers`. All keys:
-[docs/keybinds.md](docs/keybinds.md). All commands: [docs/cli.md](docs/cli.md).
+`mujo help` lists all 30 commands; the full reference is in
+[docs/cli.md](docs/cli.md).
+
+| Keys | Opens |
+| --- | --- |
+| `SUPER + Return` | Terminal |
+| `SUPER + Space` | Launcher |
+| `SUPER + A` | Quick settings and notification history |
+| `SUPER + Tab` | All workspaces at a glance |
+| `SUPER + D` | Dashboard |
+| `SUPER + V` | Clipboard history |
+| `SUPER + Escape` | Lock |
+| `SUPER + /` | All keybindings |
+
+All keys: [docs/keybinds.md](docs/keybinds.md).
+
+## One theme, everywhere
+
+`design/tokens.json` is the only place a colour, size, font or duration is
+written. `mujo theme build` renders it into Quickshell, Hyprland, Ghostty,
+tmux, btop, yazi, fzf, zsh, GTK 3 and 4, the greetd login screen and the
+console palette. `mujo theme check` fails if any of them drifts.
+
+```sh
+mujo theme mode auto          # light or dark, following the wallpaper
+mujo theme accent auto        # the accent closest to the wallpaper's colour
+mujo theme palette wallpaper  # tint the whole palette with the wallpaper
+mujo theme glass on           # see-through panels with the desktop blurred behind
+mujo theme motion gentle      # slower, fades instead of slides
+mujo theme reduce-motion on   # no animation at all
+```
+
+Put your wallpapers in `~/Pictures/Wallpapers`. How tokens and templates work:
+[docs/tokens.md](docs/tokens.md).
+
+## How it fits together
+
+Two layers with a strict split: **the core decides, Quickshell presents.** The
+interface never calls `nmcli`, `wpctl` or `hyprctl` to change anything; it runs
+`mujo <command> --json`, and the core plans, applies and records.
+
+```
+ Terminal / TTY / SSH      Floating TUIs          Quickshell UI
+   mujo <command>      launcher, menu, Wi-Fi   bar, panels, notifications
+          \                    |                    /
+           v                   v                   v
+          +-----------------------------------------+
+          |             mujo core (CLI)             |
+          |         plan -> apply -> record         |
+          +-----------------------------------------+
+             |                 |                 |
+       Action journal     Design tokens    System services
+       log and undo       theme build      wpctl, nmcli, hyprctl
+```
+
+More in [docs/architecture.md](docs/architecture.md).
 
 ## Remove
 
 ```sh
 mujo uninstall --dry-run     # shows the plan
-mujo uninstall --yes         # restores what install.sh backed up
+mujo uninstall --yes         # removes mujo's links and restores the backups
 ```
 
+Packages the installer removed at your request are not reinstalled.
+
 ## Develop
+
+The core is Bash and jq, the interface is QML, and the tests run against test
+doubles, so they never touch your audio, network or packages.
 
 ```sh
 tests/lint.sh    # shellcheck, bats, theme check, Lua and zsh syntax, qmllint
@@ -87,12 +171,23 @@ export XDG_CONFIG_HOME=$(mktemp -d) XDG_STATE_HOME=$(mktemp -d)
 bin/mujo theme build && bin/mujo theme check
 ```
 
+Issues and pull requests are welcome. For anything larger than a fix, open an
+issue first so we can agree on the shape.
+
 ## Docs
 
 - [Architecture](docs/architecture.md)
 - [Installing](docs/install.md)
 - [Keybindings](docs/keybinds.md)
-- [Design tokens and templates](docs/tokens.md)
 - [CLI reference](docs/cli.md)
-- [Neovim](docs/neovim.md)
-- [tmux](docs/tmux.md)
+- [Design tokens and templates](docs/tokens.md)
+- [Neovim](docs/neovim.md) · [tmux](docs/tmux.md)
+
+## Thanks
+
+mujo stands on [Hyprland](https://hypr.land), [Quickshell](https://quickshell.org),
+[Catppuccin](https://catppuccin.com) and [Ghostty](https://ghostty.org).
+
+## License
+
+[MIT](LICENSE)

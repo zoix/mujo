@@ -5,7 +5,7 @@ install and on a machine that already has its own dotfiles. Running it again
 with the same answers changes nothing.
 
 ```sh
-git clone <repo> ~/.local/share/mujo     # or run it from any checkout
+git clone https://github.com/zoix/mujo ~/.local/share/mujo     # or run it from any checkout
 cd ~/.local/share/mujo
 ./install.sh --dry-run    # the full plan, nothing changes
 ./install.sh              # questions, the plan, one confirmation, then unattended
