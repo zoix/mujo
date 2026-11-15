@@ -49,3 +49,17 @@ do
         enabled      = t.glass,
     })
 end
+
+-- A window alone on its workspace has no border: the border says which
+-- window has the focus, and with one window there is nothing to say.
+-- (w[tv1] = one visible tiled window; f[1] = a maximized window.)
+hl.window_rule({
+    name        = "mujo-alone",
+    match       = { workspace = "w[tv1]", float = false },
+    border_size = 0,
+})
+hl.window_rule({
+    name        = "mujo-maximized",
+    match       = { workspace = "f[1]", float = false },
+    border_size = 0,
+})
