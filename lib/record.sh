@@ -50,7 +50,7 @@ record_stop() {
     printf '%s' "$file" | wl-copy >/dev/null 2>&1 3>&- 9>&- || true
   fi
   say "Saved $file"
-  if command -v notify-send >/dev/null 2>&1; then
+  if ui_session && command -v notify-send >/dev/null 2>&1; then
     timeout 2 notify-send -a "$MUJO_NAME" -t 4000 "Recording saved" "$file" >/dev/null 2>&1 3>&- || true
   fi
   jq -n --arg f "$file" '{recording: false, path: $f}' | emit

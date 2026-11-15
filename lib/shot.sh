@@ -57,7 +57,7 @@ shot_text() {
   fi
   printf '%s' "$text" | wl-copy >/dev/null 2>&1 3>&- 9>&- || die "$EXIT_FAIL" "could not copy the text"
   say "Copied $(wc -w <<<"$text") word(s) to the clipboard"
-  if command -v notify-send >/dev/null 2>&1; then
+  if ui_session && command -v notify-send >/dev/null 2>&1; then
     timeout 2 notify-send -a "$MUJO_NAME" -t 4000 "Text copied" "${text:0:120}" >/dev/null 2>&1 3>&- || true
   fi
   jq -n --arg t "$text" '{mode: "text", text: $t, copied: true}' | emit
@@ -168,7 +168,7 @@ cmd_shot() {
 
   if (( save )); then say "Saved $path$( (( copy )) && echo " and copied it to the clipboard" || true)"
   else say "Copied the screenshot to the clipboard"; fi
-  if command -v notify-send >/dev/null 2>&1; then
+  if ui_session && command -v notify-send >/dev/null 2>&1; then
     timeout 2 notify-send -a "$MUJO_NAME" -t 3000 "Screenshot" \
       "$( (( save )) && echo "$path" || echo "Copied to the clipboard")" >/dev/null 2>&1 3>&- || true
   fi

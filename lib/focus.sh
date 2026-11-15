@@ -104,7 +104,7 @@ cmd_focus() {
       # Called by the timer when the time is up.
       config_read | jq -e '.focus != null' >/dev/null || return 0
       focus_end "focus: finished"
-      if command -v notify-send >/dev/null 2>&1; then
+      if ui_session && command -v notify-send >/dev/null 2>&1; then
         timeout 2 notify-send -a "$MUJO_NAME" -t 8000 "Focus time is over" "Notifications are back to normal." >/dev/null 2>&1 3>&- || true
       fi
       ;;

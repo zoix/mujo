@@ -29,6 +29,8 @@ Item {
         BarButton {
             id: logo
             Layout.alignment: Qt.AlignHCenter
+            // No box behind the logo under the pointer; the logo lights up instead.
+            hoverColor: "transparent"
             onClicked: Ui.toggleAbout(root.screen.name, logo.mapToItem(null, 0, logo.height / 2).y)
             onRightClicked: Ui.toggleLauncher("actions")
             onHoveredChanged: {
@@ -38,9 +40,9 @@ Item {
 
             Logo {
                 anchors.centerIn: parent
-                size: Tokens.barButton
-                color: Tokens.accent
-                dotColor: Tokens.textPrimary
+                size: Tokens.barButton + Tokens.borderFocus
+                color: logo.hovered ? Tokens.textPrimary : Tokens.accent
+                dotColor: logo.hovered ? Tokens.accent : Tokens.textPrimary
             }
         }
 
