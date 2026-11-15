@@ -80,6 +80,7 @@ mujo() { "$MUJO" "$@"; }
   grep -qx reload "$STUB_STATE/hyprctl.log"
   # no blur on battery: the drop-down terminal's background is solid meanwhile
   grep -qx 'background-opacity = 1' "$XDG_CONFIG_HOME/ghostty/mujo-drop"
+  grep -qx 'background-opacity = 1' "$XDG_CONFIG_HOME/ghostty/mujo-theme"
   # asked again on battery, the mode chosen at first is kept
   echo 60 >"$STUB_STATE/refresh"
   run mujo power sync --json

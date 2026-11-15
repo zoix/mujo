@@ -27,7 +27,7 @@
     },
     {
       "id": "ghostty",
-      "description": "Ghostty colours, font and padding",
+      "description": "Ghostty colours, font, padding and, with glass on, a slightly see-through background",
       "template": "ghostty/mujo-theme.tmpl",
       "target": "@config/ghostty/mujo-theme",
       "scope": "user",
@@ -39,7 +39,7 @@
     },
     {
       "id": "ghostty-drop",
-      "description": "The drop-down terminal's see-through background (with glass on)",
+      "description": "The drop-down terminal's background, more see-through than the others (with glass on)",
       "template": "ghostty/mujo-drop.tmpl",
       "target": "@config/ghostty/mujo-drop",
       "scope": "user",

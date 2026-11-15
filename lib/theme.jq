@@ -85,11 +85,14 @@ def _resolve_tree($s):
   # that read .motion.gentle fade instead of sliding.
   # Glass: the frame and its panels let the (blurred) desktop show through.
   | .layout.panel_opacity = (if $s.glass then 0.72 else 1 end)
-  # The drop-down terminal joins in: it lies over other windows, and its
-  # background lets them through, blurred; the text stays as it is. Solid
-  # again while the blur is off on battery. Other terminals are always solid.
-  | .term.opacity = (if $s.glass and ($s.solid | not) then 0.82 else 1 end)
-  | .term.blur = (.term.opacity < 1)
+  # The terminals join in: the background lets the blurred desktop through,
+  # the text stays as it is. Only a little in ordinary terminals, which are
+  # read all day; more in the drop-down one, which lies over other windows.
+  # Solid again while the blur is off on battery.
+  | ($s.glass and ($s.solid | not)) as $through
+  | .term.opacity = (if $through then 0.92 else 1 end)
+  | .term.drop_opacity = (if $through then 0.82 else 1 end)
+  | .term.blur = $through
   | .motion.gentle = ($s.motion == "gentle")
   | if .motion.gentle then .motion.duration |= map_values(. * 1.8 | round) else . end
   | if $s.reduce_motion then .motion.duration |= map_values(0) else . end

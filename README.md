@@ -124,7 +124,7 @@ console palette. `mujo theme check` fails if any of them drifts.
 mujo theme mode auto          # light or dark, following the wallpaper
 mujo theme accent auto        # the accent closest to the wallpaper's colour
 mujo theme palette wallpaper  # tint the whole palette with the wallpaper
-mujo theme glass on           # see-through panels and drop-down terminal, blurred behind
+mujo theme glass on           # see-through panels, a hint of it in the terminal, blurred behind
 mujo theme motion gentle      # slower, fades instead of slides
 mujo theme reduce-motion on   # no animation at all
 ```

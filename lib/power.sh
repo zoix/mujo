@@ -266,9 +266,9 @@ power_battery_apply() {
         + " }"' <<<"$want" | atomic_write "$POWER_BATTERY_STATE"
     fi
     config_set battery_now "$want"
-    # The drop-down terminal's see-through background follows: solid while the blur is off.
+    # The terminals' see-through background follows: solid while the blur is off.
     if [[ $(jq -r '.solid // false' <<<"$want") != "$(jq -r '.solid // false' <<<"$now")" ]]; then
-      theme_quiet_build ghostty-drop >/dev/null 2>&1 || warn "the terminal's theme could not be rebuilt"
+      theme_quiet_build ghostty ghostty-drop >/dev/null 2>&1 || warn "the terminal's theme could not be rebuilt"
     fi
     if power_has_hyprland; then hyprctl reload >/dev/null 2>&1 || true; fi
     if [[ $want == null ]]; then say "Battery savings: lifted"

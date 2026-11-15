@@ -215,11 +215,13 @@ journal_count() {
   grep -q 'glass = true' "$(conf)/hypr/mujo_tokens.lua"
   # the drop-down terminal's background joins in
   grep -qx 'background-opacity = 0.82' "$(conf)/ghostty/mujo-drop"
-  grep -qx 'background-blur = true' "$(conf)/ghostty/mujo-drop"
+  grep -qx 'background-opacity = 0.92' "$(conf)/ghostty/mujo-theme"
+  grep -qx 'background-blur = true' "$(conf)/ghostty/mujo-theme"
   mujo undo
   [ "$(jq .panelOpacity "$tokens")" = 1 ]
   grep -qx 'background-opacity = 1' "$(conf)/ghostty/mujo-drop"
-  grep -qx 'background-blur = false' "$(conf)/ghostty/mujo-drop"
+  grep -qx 'background-opacity = 1' "$(conf)/ghostty/mujo-theme"
+  grep -qx 'background-blur = false' "$(conf)/ghostty/mujo-theme"
 }
 
 @test "the console palette for /etc is the same in light and dark mode" {

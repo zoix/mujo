@@ -40,9 +40,9 @@ Subcommands:
   motion [normal|gentle] Show the setting, or set it and rebuild (journaled).
                          gentle is slower, and fades instead of sliding
   glass [on|off]         Show the setting, or set it and rebuild (journaled).
-                         on makes the frame, its panels and the drop-down
-                         terminal's background see-through, with the desktop
-                         blurred behind them
+                         on makes the frame and its panels see-through, with
+                         the desktop blurred behind them; the terminal's
+                         background a little, the drop-down terminal's more
   reduce-motion [on|off] Show the setting, or set it and rebuild (journaled).
                          on switches every animation off
   list                   List consumers, their targets and whether they are current
