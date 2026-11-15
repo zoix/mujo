@@ -314,7 +314,7 @@ Item {
                 Text {
                     width: parent.width
                     horizontalAlignment: Text.AlignHCenter
-                    text: root.player ? root.player.trackArtist : "Start a player to control it here"
+                    text: root.player ? root.player.trackArtist : "Player controls show up here"
                     color: Tokens.textMuted
                     // Up to two lines; only a longer text is cut.
                     wrapMode: Text.WordWrap
