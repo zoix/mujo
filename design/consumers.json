@@ -38,6 +38,18 @@
       ]
     },
     {
+      "id": "tmux",
+      "description": "tmux colours: status line, panes, messages, copy mode, pop-ups",
+      "template": "tmux/karma-theme.conf.tmpl",
+      "target": "@config/tmux/karma-theme.conf",
+      "scope": "user",
+      "comment": "#",
+      "reload": "tmux",
+      "lint": [
+        "config/tmux"
+      ]
+    },
+    {
       "id": "btop",
       "description": "btop theme (color_theme = \"karma\")",
       "template": "btop/karma.theme.tmpl",

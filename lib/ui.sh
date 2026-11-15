@@ -33,6 +33,12 @@ ui_reload() {
     # The terminal is only told to reload from inside a graphical session;
     # otherwise the test suite would signal the terminals on the real desktop.
     ghostty) [[ -z ${WAYLAND_DISPLAY:-} ]] || pkill -USR2 -x ghostty >/dev/null 2>&1 || true ;;
+    tmux)
+      # A running tmux server reads the new colours at once.
+      if [[ -n ${WAYLAND_DISPLAY:-} ]] && command -v tmux >/dev/null 2>&1 && tmux has-session 2>/dev/null; then
+        tmux source-file "$KARMA_CONFIG_HOME/tmux/karma-theme.conf" >/dev/null 2>&1 || true
+      fi
+      ;;
     gtk) ;;  # handled by theme.sh, which knows the resolved tokens
     "") ;;
     *) warn "unknown reload hook '$1'" ;;

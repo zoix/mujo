@@ -81,6 +81,24 @@ else
   echo "skipped: zsh is not installed"
 fi
 
+step "tmux config (tmux.conf and the generated karma-theme.conf load without errors)"
+if command -v tmux >/dev/null; then
+  # A private server and a private home, so the real tmux is never touched.
+  mkdir -p "$sbx/home/.config/tmux"
+  cp config/tmux/.config/tmux/tmux.conf "$sbx/config/tmux/karma-theme.conf" "$sbx/home/.config/tmux/"
+  tmux_sock=$sbx/tmux.sock
+  if out=$(HOME=$sbx/home TMUX='' tmux -S "$tmux_sock" -f /dev/null new-session -d -s lint \; \
+             source-file "$sbx/home/.config/tmux/tmux.conf" 2>&1) && [[ -z $out ]]; then
+    echo ok
+  else
+    printf '%s\n' "$out"; fail=1
+  fi
+  tmux -S "$tmux_sock" kill-server 2>/dev/null || true
+else
+  skipped+=("tmux config (pacman -S tmux)")
+  echo "skipped: tmux is not installed"
+fi
+
 step "Quickshell tokens (generated tokens.json has every value Tokens.qml reads)"
 tokens_json=$sbx/config/quickshell/karma/theme/tokens.json
 missing=$(grep -oE ': t\.[A-Za-z]+$' config/quickshell/.config/quickshell/karma/theme/Tokens.qml | sed 's/.*t\.//' \

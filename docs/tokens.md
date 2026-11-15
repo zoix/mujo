@@ -97,11 +97,11 @@ trying things out.
 | `target` | `@config/...` (XDG config), `@state/...`, or `/etc/...` |
 | `scope` | `user` (written directly) or `system` (staged in `~/.local/state/karma/theme/system/`, installed by the installer) |
 | `comment`, `comment_end` | Comment syntax for the "do not edit" header; empty for formats without comments |
-| `reload` | Optional hook run after a change: `quickshell`, `hyprland`, `ghostty`, `gtk` |
+| `reload` | Optional hook run after a change: `quickshell`, `hyprland`, `ghostty`, `tmux`, `gtk` |
 | `lint` | Repo paths of hand-written config that belongs with this consumer |
 
-Current consumers (13): `quickshell` (tokens.json, read live by Tokens.qml),
-`hypr` (karma_tokens.lua), `ghostty`, `btop`, `yazi`, `fzf` (FZF_DEFAULT_OPTS_FILE), `zsh`, `gtk3` and `gtk4`
+Current consumers (14): `quickshell` (tokens.json, read live by Tokens.qml),
+`hypr` (karma_tokens.lua), `ghostty`, `tmux`, `btop`, `yazi`, `fzf` (FZF_DEFAULT_OPTS_FILE), `zsh`, `gtk3` and `gtk4`
 (gtk.css colour overrides), `gtk3-settings` and `gtk4-settings` (settings.ini:
 theme, dark preference, UI font), `greetd` (tuigreet theme), `vtrgb` (console
 palette).

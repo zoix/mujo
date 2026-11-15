@@ -86,3 +86,4 @@ bin/karma theme build && bin/karma theme check
 - [Design tokens and templates](docs/tokens.md)
 - [CLI reference](docs/cli.md)
 - [Neovim](docs/neovim.md)
+- [tmux](docs/tmux.md)
