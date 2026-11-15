@@ -17,7 +17,11 @@ Item {
     readonly property string kind: Ui.popout
     readonly property var connected: Bluetooth.devices.values.filter(d => d.connected)
 
-    implicitWidth: Tokens.card + Tokens.spaceMd + Tokens.spaceMd
+    // The about card has more to say than the others and is half as wide again.
+    readonly property int bodyWidth: kind === "about" ? Math.round(Tokens.card * 1.5) : Tokens.card
+    readonly property var about: About.info
+
+    implicitWidth: bodyWidth + Tokens.spaceMd + Tokens.spaceMd
     implicitHeight: body.implicitHeight + Tokens.spaceMd + Tokens.spaceMd
 
     function duration(seconds: real): string {
@@ -33,7 +37,23 @@ Item {
     property var menuStack: []
     readonly property var menuHandle: menuStack.length > 0 ? menuStack[menuStack.length - 1] : Ui.trayMenu
 
-    onKindChanged: menuStack = []
+    onKindChanged: {
+        menuStack = [];
+        if (kind === "about")
+            About.refresh();
+    }
+
+    function gib(kb: real): string {
+        return Math.round(kb / 1048576) + " GiB";
+    }
+
+    // The machine, as label and value; a fact mujo could not find is left out.
+    readonly property var facts: {
+        const a = root.about;
+        if (!a)
+            return [];
+        return [["Machine", a.host], ["System", a.os], ["Kernel", a.kernel], ["Hyprland", a.hyprland], ["Processor", a.cpu], ["Graphics", a.gpu], ["Memory", root.gib(a.memory_kb)], ["Disk", a.disk.percent + "% of " + root.gib(a.disk.total_kb)], ["Packages", a.packages === null ? null : String(a.packages)], ["Uptime", root.duration(a.uptime_s)]].filter(f => f[1]);
+    }
 
     QsMenuOpener {
         id: opener
@@ -77,10 +97,11 @@ Item {
 
         x: Tokens.spaceMd
         y: Tokens.spaceMd
-        width: Tokens.card
+        width: root.bodyWidth
         spacing: Tokens.spaceXs
 
         Text {
+            visible: root.title !== ""
             text: root.title
             color: Tokens.accent
             font.family: Tokens.fontFamily
@@ -102,6 +123,214 @@ Item {
                 font.pixelSize: index === 0 ? Tokens.fontMd : Tokens.fontSm
                 font.weight: index === 0 ? Tokens.weightEmphasis : Tokens.weightRegular
             }
+        }
+
+        // The about card: who this machine is, then how mujo is doing.
+        Row {
+            visible: root.kind === "about"
+            spacing: Tokens.spaceMd
+
+            Logo {
+                anchors.verticalCenter: parent.verticalCenter
+                size: Tokens.spaceXxl + Tokens.spaceMd
+            }
+
+            Column {
+                anchors.verticalCenter: parent.verticalCenter
+
+                Text {
+                    text: "mujo"
+                    color: Tokens.textPrimary
+                    font.family: Tokens.fontFamily
+                    font.pixelSize: Tokens.fontLg
+                    font.weight: Tokens.weightEmphasis
+                }
+
+                Text {
+                    text: root.about ? root.about.mujo.version + (root.about.mujo.commit ? "  " + root.about.mujo.commit : "") : "Reading…"
+                    color: Tokens.textMuted
+                    font.family: Tokens.fontFamily
+                    font.pixelSize: Tokens.fontXs
+                }
+            }
+        }
+
+        Item {
+            visible: root.kind === "about"
+            width: body.width
+            height: Tokens.spaceXs
+        }
+
+        Repeater {
+            model: root.kind === "about" ? root.facts : []
+
+            delegate: Item {
+                id: fact
+
+                required property var modelData
+
+                width: body.width
+                height: factValue.implicitHeight
+
+                Text {
+                    id: factLabel
+                    width: Math.round(body.width * 0.28)
+                    text: fact.modelData[0]
+                    color: Tokens.textMuted
+                    font.family: Tokens.fontFamily
+                    font.pixelSize: Tokens.fontSm
+                }
+
+                Text {
+                    id: factValue
+                    anchors.left: factLabel.right
+                    anchors.right: parent.right
+                    text: fact.modelData[1]
+                    color: Tokens.textPrimary
+                    elide: Text.ElideRight
+                    font.family: Tokens.fontFamily
+                    font.pixelSize: Tokens.fontSm
+                }
+            }
+        }
+
+        Rectangle {
+            visible: root.kind === "about" && root.about !== null
+            width: body.width
+            height: Tokens.borderThin
+            color: Tokens.borderSubtle
+        }
+
+        // Health, updates and the snapshots of the last update: a coloured
+        // dot, a line of text and, where there is something to do, a button.
+        Repeater {
+            model: {
+                const a = root.kind === "about" ? root.about : null;
+                if (!a)
+                    return [];
+                const rows = [];
+                const d = a.doctor;
+                rows.push({
+                    state: !d ? "idle" : d.failed > 0 ? "bad" : d.warnings > 0 ? "warn" : "good",
+                    text: !d ? "Health not checked" : d.failed > 0 ? d.failed + " problem" + (d.failed === 1 ? "" : "s") + " found" : d.warnings > 0 ? d.warnings + " warning" + (d.warnings === 1 ? "" : "s") : "Everything is in order",
+                    action: "Details",
+                    entry: "System: health check (doctor)"
+                });
+                rows.push({
+                    state: Updates.count > 0 ? "warn" : "good",
+                    text: Updates.count > 0 ? Updates.count + " update" + (Updates.count === 1 ? "" : "s") + " waiting" : "Up to date",
+                    action: Updates.count > 0 ? "Update" : "",
+                    entry: "System: update mujo and packages"
+                });
+                if (a.snapshot && a.snapshot.post !== null && a.snapshot.packages.length > 0)
+                    rows.push({
+                        state: "idle",
+                        text: "Last update: " + a.snapshot.packages.length + " package" + (a.snapshot.packages.length === 1 ? "" : "s"),
+                        action: "Rollback plan",
+                        entry: "System: show what rolling back the last update would do"
+                    });
+                return rows;
+            }
+
+            delegate: Item {
+                id: health
+
+                required property var modelData
+
+                width: body.width
+                height: Math.max(healthText.implicitHeight, healthChip.visible ? healthChip.implicitHeight : 0) + Tokens.spaceXs
+
+                Rectangle {
+                    id: healthDot
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: Tokens.spaceSm
+                    height: Tokens.spaceSm
+                    radius: Tokens.radiusFull
+                    color: health.modelData.state === "good" ? Tokens.stateSuccess : health.modelData.state === "warn" ? Tokens.stateWarning : health.modelData.state === "bad" ? Tokens.stateError : Tokens.textMuted
+                }
+
+                Text {
+                    id: healthText
+                    anchors.left: healthDot.right
+                    anchors.leftMargin: Tokens.spaceSm
+                    anchors.right: healthChip.visible ? healthChip.left : parent.right
+                    anchors.rightMargin: Tokens.spaceSm
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: health.modelData.text
+                    color: Tokens.textPrimary
+                    elide: Text.ElideRight
+                    font.family: Tokens.fontFamily
+                    font.pixelSize: Tokens.fontSm
+                }
+
+                Chip {
+                    id: healthChip
+                    visible: health.modelData.action !== ""
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    label: health.modelData.action
+                    onClicked: {
+                        Mujo.run(["menu", "run", health.modelData.entry]);
+                        Ui.popout = "";
+                    }
+                }
+            }
+        }
+
+        Text {
+            visible: root.kind === "about" && root.about !== null && root.about.recent.length > 0
+            topPadding: Tokens.spaceXs
+            text: "Latest changes"
+            color: Tokens.accent
+            font.family: Tokens.fontFamily
+            font.pixelSize: Tokens.fontXs
+        }
+
+        // The newest journal entries; one that can be undone has a button.
+        Repeater {
+            model: root.kind === "about" && root.about ? root.about.recent : []
+
+            delegate: Item {
+                id: change
+
+                required property var modelData
+
+                width: body.width
+                height: Math.max(changeText.implicitHeight, undo.visible ? undo.implicitHeight : 0) + Tokens.spaceXs
+
+                Text {
+                    id: changeText
+                    anchors.left: parent.left
+                    anchors.right: undo.visible ? undo.left : parent.right
+                    anchors.rightMargin: Tokens.spaceSm
+                    anchors.verticalCenter: parent.verticalCenter
+                    // Folders are left out of file names to keep the line short.
+                    text: change.modelData.summary.replace(/\/[^ ]*\//g, "")
+                    color: change.modelData.undone ? Tokens.textMuted : Tokens.textPrimary
+                    elide: Text.ElideRight
+                    font.family: Tokens.fontFamily
+                    font.pixelSize: Tokens.fontSm
+                }
+
+                Chip {
+                    id: undo
+                    visible: change.modelData.reversible && !change.modelData.undone
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    label: "Undo"
+                    onClicked: {
+                        Mujo.run(["undo", change.modelData.id]);
+                        aboutAgain.restart();
+                    }
+                }
+            }
+        }
+
+        // Read the card again once an undo has had time to finish.
+        Timer {
+            id: aboutAgain
+            interval: 1200
+            onTriggered: About.refresh()
         }
 
         // Actions on the focused window. These are window management, which

@@ -90,9 +90,11 @@ Packages: search and install${t}tui${t}pkg install
 Packages: remove${t}tui${t}pkg remove
 System: quick settings${t}tui${t}status
 System: dashboard${t}tui${t}sys
+System: about this machine${t}tui${t}about
 System: health check (doctor)${t}show${t}doctor
 System: update mujo and packages${t}show${t}update
 System: check for updates now${t}run${t}update check --refresh
+System: show what rolling back the last update would do${t}show${t}update rollback --dry-run
 System: show what uninstall would do${t}show${t}uninstall --dry-run
 Power: lock${t}run${t}power lock
 Power: suspend${t}run${t}power suspend

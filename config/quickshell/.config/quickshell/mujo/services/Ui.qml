@@ -167,6 +167,21 @@ Singleton {
         root.popout = "tray";
     }
 
+    // The card behind the bar's logo. It opens on a click and, like the
+    // other pop-outs, closes once the pointer has left both logo and card.
+    function toggleAbout(screen: string, y: real): void {
+        if (root.popout === "about") {
+            root.popout = "";
+            return;
+        }
+        root.popoutScreen = screen;
+        root.popoutY = y;
+        root.popoutWanted = "about";
+        popoutOpen.stop();
+        popoutClose.stop();
+        root.popout = "about";
+    }
+
     function toggleSession(): void {
         if (!root.session)
             root.screen = root.focusedScreen();

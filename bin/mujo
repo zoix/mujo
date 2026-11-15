@@ -73,5 +73,7 @@ source "$MUJO_ROOT/lib/update.sh"
 source "$MUJO_ROOT/lib/uninstall.sh"
 # shellcheck source=../lib/journal.sh
 source "$MUJO_ROOT/lib/journal.sh"
+# shellcheck source=../lib/about.sh
+source "$MUJO_ROOT/lib/about.sh"
 
 mujo_main "$@"

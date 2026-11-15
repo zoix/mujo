@@ -364,6 +364,32 @@ readings is `1 - Δidle / Δtotal`. `sys workspaces` lists the Hyprland
 workspaces with their windows (`{workspaces: [{id, name, monitor, windows}]}`). The human output takes two readings itself.
 `temperature_c` is `null` without a sensor. `sys --window` opens the dashboard.
 
+## mujo about
+
+Read-only: the machine, and how mujo is doing. `data`:
+
+```json
+{"mujo": {"version": "0.1.0", "commit": "48abd2f"},
+ "host": "Framework Laptop 13 (AMD Ryzen AI 300 Series)", "os": "Arch Linux",
+ "kernel": "7.3.4-arch1-2", "hyprland": "0.57.2",
+ "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M", "gpu": "Radeon 880M / 890M",
+ "memory_kb": 131156644, "disk": {"total_kb": 975694848, "used_kb": 19220432, "percent": 2},
+ "uptime_s": 2915, "packages": 809,
+ "doctor": {"ok": true, "failed": 0, "warnings": 0},
+ "updates": {"count": 0, "checked": 1794770791},
+ "snapshot": {"config": "root", "pre": 41, "post": 42, "time": "2026-11-15T19:20:56Z", "packages": ["btop"]},
+ "recent": [{"id": "20261115T195749Z-5ab0", "time": "2026-11-15T19:57:49Z",
+             "summary": "audio volume: 35% -> 40%", "reversible": true, "undone": false}]}
+```
+
+A fact that cannot be found is `null` (`hyprland` outside a session, `gpu`
+without `lspci`, `commit` outside a git checkout). `doctor` is the summary
+of `mujo doctor`, run for this call. `updates` is the last count kept by
+`mujo update check` and `null` before the first one; `about` never asks the
+network. `snapshot` is the pair taken around the last update, or `null`.
+`recent` holds the three newest journal entries. `about --window` opens the
+card behind the logo in the bar.
+
 ## mujo doctor
 
 Read-only. `data`:

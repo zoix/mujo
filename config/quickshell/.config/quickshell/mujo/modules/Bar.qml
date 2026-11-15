@@ -24,15 +24,23 @@ Item {
         anchors.bottomMargin: Tokens.spaceMd
         spacing: Tokens.spaceMd
 
+        // The logo: a click shows the card about this machine and mujo's
+        // health; a right click opens the menu of every mujo command.
         BarButton {
+            id: logo
             Layout.alignment: Qt.AlignHCenter
-            onClicked: Ui.toggleLauncher("apps")
+            onClicked: Ui.toggleAbout(root.screen.name, logo.mapToItem(null, 0, logo.height / 2).y)
             onRightClicked: Ui.toggleLauncher("actions")
+            onHoveredChanged: {
+                if (!hovered)
+                    Ui.leaveIcon("about");
+            }
 
-            Glyph {
+            Logo {
                 anchors.centerIn: parent
-                text: ""
+                size: Tokens.barButton
                 color: Tokens.accent
+                dotColor: Tokens.textPrimary
             }
         }
 

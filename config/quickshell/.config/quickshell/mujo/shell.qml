@@ -127,6 +127,14 @@ ShellRoot {
         }
     }
 
+    IpcHandler {
+        target: "about"
+
+        function toggle(): void {
+            Ui.toggleAbout(Ui.focusedScreen(), 0);
+        }
+    }
+
     // `mujo update` calls this when it has finished.
     IpcHandler {
         target: "updates"

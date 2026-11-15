@@ -27,6 +27,7 @@ tui_window() {
     "sys ") panel="dashboard toggle" ;;
     "sys workspaces") panel="dashboard workspaces" ;;
     "status ") panel="sidebar toggle" ;;
+    "about ") panel="about toggle" ;;
   esac
   if [[ -n $panel ]] && command -v qs >/dev/null 2>&1; then
     # shellcheck disable=SC2086  # target and function are two words
@@ -35,6 +36,7 @@ tui_window() {
     fi
   fi
   [[ $name == power ]] && die "$EXIT_ENV" "the power menu is part of the Quickshell UI, which is not running"
+  [[ $name == about ]] && die "$EXIT_ENV" "the about card is part of the Quickshell UI, which is not running"
   [[ $name == sys ]] && die "$EXIT_ENV" "the dashboard is part of the Quickshell UI, which is not running"
   need setsid
   # (The window may have been started as "ghostty" or as "/usr/bin/ghostty".)

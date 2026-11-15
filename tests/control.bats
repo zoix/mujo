@@ -29,7 +29,7 @@ journal_count() {
 }
 
 @test "every command has help" {
-  for c in status audio net bt display wall dnd notify power shot record calc emoji term focus weather clip launch menu keys sys pkg doctor update uninstall; do
+  for c in status audio net bt display wall dnd notify power shot record calc emoji term focus weather clip launch menu keys sys about pkg doctor update uninstall; do
     run mujo help "$c"
     [ "$status" -eq 0 ]
     [[ $output == "Usage: mujo $c"* ]]
@@ -569,6 +569,27 @@ journal_count() {
   [ "$status" -eq 3 ]
   run mujo pkg remove --json
   [ "$status" -eq 2 ]
+}
+
+@test "about reports the machine, the health check and the latest changes" {
+  run mujo audio volume +15
+  [ "$status" -eq 0 ]
+  run mujo about --json
+  [ "$status" -eq 0 ]
+  [ "$(data .mujo.version)" = "$(mujo version | awk '{ print $2 }')" ]
+  [ "$(data .kernel)" = "$(uname -r)" ]
+  [ "$(data .packages)" -eq 3 ]
+  [ "$(data '.doctor | has("failed")')" = true ]
+  [ "$(data .updates)" = null ]
+  [ "$(data .snapshot)" = null ]
+  [[ "$(data '.recent[0].summary')" == "audio volume:"* ]]
+  [ "$(data '.recent[0].reversible')" = true ]
+  # after a count of the pending updates, about has it too
+  run mujo update check --json
+  run mujo about --json
+  [ "$(data .updates.count)" -eq 2 ]
+  run mujo about
+  [[ $output == *"Kernel"* && $output == *"Latest changes:"* ]]
 }
 
 # ---- doctor and update --------------------------------------------------------

@@ -52,6 +52,7 @@ frame instead of floating over your windows.
 
 Also in the box:
 
+- **About card** (click the logo in the bar, or `mujo about`): the machine at a glance, the health check, pending updates, and the latest changes with an undo button next to each.
 - **Workspace overview** (`SUPER + Tab`) with live pictures of the windows.
 - **Lock screen** with password or fingerprint, and media controls.
 - **Screenshots and recording**: an area picker on `Print`, `mujo record`, and `mujo shot text` to copy text out of any part of the screen.
@@ -95,7 +96,7 @@ mujo update                  # mujo and the system, with snapshots
 mujo update rollback --yes   # put the system back as it was before that update
 ```
 
-`mujo help` lists all 30 commands; the full reference is in
+`mujo help` lists all 31 commands; the full reference is in
 [docs/cli.md](docs/cli.md).
 
 | Keys | Opens |
