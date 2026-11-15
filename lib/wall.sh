@@ -22,7 +22,7 @@ index   Make a thumbnail of each image and measure its brightness and main
         colour, so that choosing it later is instant. Done on demand too.
 pick    Choose from them. With --window inside the desktop this is the
         thumbnail strip of the Quickshell UI; in a terminal it is an fzf list
-        with a line about each image, where Enter applies the image and
+        with a preview of each image, where Enter applies the image and
         keeps the list open.
 set     Use FILE (png, jpg, jpeg or webp).
 next    The image after the current one in the wallpaper directory, by name.
@@ -75,6 +75,34 @@ wall_thumb() {
     fi
   fi
   printf '%s\n' "$thumb"
+}
+
+# wall_preview FILE: draw FILE at the cursor, as large as fits in the fzf
+# preview pane. Uses the kitty graphics protocol, which Ghostty speaks, and
+# falls back to a line of text about the file.
+wall_preview() {
+  local file=$1 png w h fit
+  local cols=${FZF_PREVIEW_COLUMNS:-${COLUMNS:-80}} rows=${FZF_PREVIEW_LINES:-${LINES:-24}}
+  png=$WALL_CACHE/$(wall_key "$file").preview.png
+  if [[ ! -s $png ]]; then
+    mkdir -p -- "$WALL_CACHE"
+    if ! magick "${file}[0]" -resize '1000x1000>' -define png:compression-level=1 "$png.tmp.png" 2>/dev/null; then
+      rm -f -- "$png.tmp.png"
+      file -b -- "$file"
+      return 0
+    fi
+    mv -f -- "$png.tmp.png" "$png"
+  fi
+  read -r w h < <(magick identify -format '%w %h' "$png" 2>/dev/null) || true
+  # Giving only the width or only the height keeps the picture's shape. A
+  # cell is about twice as tall as it is wide.
+  if (( ${w:-2} * rows * 2 >= ${h:-1} * cols )); then fit="c=$cols"; else fit="r=$rows"; fi
+  # The image travels as base64 in pieces of at most 4096 bytes; every piece
+  # but the last is marked m=1.
+  base64 -w 4096 -- "$png" | gawk -v first="a=T,f=100,q=2,$fit" '
+    NR > 1 { printf "\033_G%s;%s\033\\", (NR == 2 ? first ",m=1" : "m=1"), prev }
+    { prev = $0 }
+    END { if (NR) printf "\033_G%s;%s\033\\", (NR == 1 ? first ",m=0" : "m=0"), prev }'
 }
 
 # wall_info FILE: print "MODE ACCENT HUE" for an image, from the cache if it
@@ -259,12 +287,18 @@ cmd_wall() {
       tui_require
       [[ -n $(wall_images | head -n 1) ]] \
         || die "$EXIT_FAIL" "no images in $(wall_dir) (put some there, or see '$KARMA_NAME wall dir')"
-      local preview='file -b {1}'
+      local preview="'$KARMA_BIN' wall preview {1}"
       wall_images | gawk -F/ '{ print $0 "\t" $NF }' \
         | tui_pick --delimiter '\t' --with-nth 2 --prompt 'Wallpaper > ' \
             --header "$(tilde "$(wall_dir)")"$'\n'"Enter: apply"$'\n'"Escape: close" \
             --preview "$preview" --preview-window 'right,65%' \
             --bind "enter:execute-silent('$KARMA_BIN' wall set {1})" >/dev/null || true
+      ;;
+    preview)
+      # What `pick` shows beside the list; not meant to be typed.
+      (( $# == 1 )) || usage_error "preview needs exactly one file"
+      [[ -f $1 ]] || die "$EXIT_FAIL" "no such file: $1"
+      wall_preview "$1"
       ;;
     set)
       (( $# == 1 )) || usage_error "set needs exactly one file"

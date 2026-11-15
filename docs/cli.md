@@ -183,7 +183,7 @@ nmcli ask for the password; `--password-stdin` reads one line instead.
 | `status` (default) | no | `{wallpaper, directory, available}` |
 | `list` | no | `{directory, current, images: [{path, name, thumb}]}`; `thumb` is `null` until indexed |
 | `index` | no | Cache a thumbnail and the brightness and main colour of each image (`~/.cache/karma/wallpapers`) |
-| `pick` | - | With `--window` in the desktop: the thumbnail strip of the UI, which applies as you move. In a terminal: an fzf list with a line about each image |
+| `pick` | - | With `--window` in the desktop: the thumbnail strip of the UI, which applies as you move. In a terminal: an fzf list with a preview of each image (drawn with the kitty graphics protocol, which Ghostty supports) |
 | `set FILE` | yes | png, jpg, jpeg or webp |
 | `next`, `prev` | yes | Cycle through the directory by name |
 | `clear` | yes | No wallpaper |
