@@ -1,20 +1,33 @@
 # Colours for tmux. tmux.conf loads this file last.
 
-# Status line: no background of its own, so it sits on the terminal's.
+# Status line: plain text with no background of its own, so it sits on the
+# terminal's. A thin rule above it sets it apart from the program in the
+# pane (tmux.conf draws @mujo_status_top as the first of two rows).
 set -g status-style 'bg=default,fg={{ color.text.muted | hex }}'
-# The session name turns red while the prefix key is held. (Colours inside a
-# #{?...} test have to come from options: a bare "#" would be read as a format.)
+set -g @mujo_status_top '#[fg={{ color.border.subtle | hex }}]#{R:─,#{client_width}}'
+# The session name is the accent; it turns red while the prefix key is held
+# and yellow in copy mode. (Colours inside a #{?...} test have to come from
+# options: a bare "#" would be read as a format.)
 set -g @mujo_accent '{{ color.accent | hex }}'
 set -g @mujo_prefix '{{ color.state.error | hex }}'
-set -g status-left '#[fg=#{?client_prefix,#{@mujo_prefix},#{@mujo_accent}},bold] #{=50:session_name} #[default]'
-set -g status-right '#[fg={{ color.text.muted | hex }}] #H #[fg={{ color.text.primary | hex }}] %H:%M '
-set -g window-status-format ' #I:#W '
-set -g window-status-current-format ' #I:#W '
+set -g @mujo_copy '{{ color.state.warning | hex }}'
+set -g @mujo_session '#[fg=#{?client_prefix,#{@mujo_prefix},#{?pane_in_mode,#{@mujo_copy},#{@mujo_accent}}},bold]'
+set -g @mujo_left '#{E:@mujo_session}  #{=30:session_name}  #[fg={{ color.border.subtle | hex }},nobold]│  #[default]'
+set -g @mujo_right '#{=/50/…:pane_title}  '
+# Under Neovim's status line (@mujo_joined, see tmux.conf): the text starts
+# and ends in the same columns as Neovim's, and the right side adds the time
+# and the date.
+set -g @mujo_joined_left '#{E:@mujo_session} #{=30:session_name}  #[default]'
+set -g @mujo_joined_right '"#{=/40/…:pane_title}" %H:%M %d-%b-%y '
+set -g status-left '#{?@mujo_joined,#{E:@mujo_joined_left},#{E:@mujo_left}}'
+set -g status-right '#{?@mujo_joined,#{T:@mujo_joined_right},#{E:@mujo_right}}'
+set -g window-status-format '#{?@mujo_joined,#I:#W#{window_flags},#I #W#{?window_flags,#{window_flags}, }}'
+set -g window-status-current-format '#{?@mujo_joined,#I:#W#{window_flags},#I #W#{?window_flags,#{window_flags}, }}'
+set -g window-status-separator '  '
 set -g window-status-style 'fg={{ color.text.muted | hex }}'
-set -g window-status-current-style 'fg={{ color.accent | hex }},bold'
+set -g window-status-current-style 'fg={{ color.text.primary | hex }},bold'
 set -g window-status-activity-style 'fg={{ color.state.info | hex }}'
 set -g window-status-bell-style 'fg={{ color.state.warning | hex }}'
-set -g window-status-separator ''
 
 # Panes.
 set -g pane-border-style 'fg={{ color.border.subtle | hex }}'

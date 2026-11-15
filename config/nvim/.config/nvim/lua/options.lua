@@ -29,6 +29,13 @@ opt.timeoutlen = 400           -- how soon which-key appears
 opt.confirm = true             -- (new) ask instead of failing on unsaved changes
 opt.mouse = "a"
 
+-- (new) No command row under the status line, so the status line sits right
+-- above tmux's. The command line and messages are drawn by noice
+-- (plugins/ui.lua). The status line already shows the mode and the position.
+opt.cmdheight = 0
+opt.showmode = false
+opt.ruler = false
+
 -- Folds follow the syntax tree where a parser exists; everything starts open.
 opt.foldmethod = "expr"
 opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
@@ -51,3 +58,23 @@ opt.background = mujo_mode()
 vim.api.nvim_create_autocmd("TextYankPost", {
   callback = function() vim.hl.on_yank({ timeout = 150 }) end,
 })
+
+-- The title of the terminal (and of the tmux pane): the folder, then "nvim".
+opt.title = true
+opt.titlestring = "%{fnamemodify(getcwd(), ':t')} - nvim"
+
+-- Inside tmux, tell it that this pane runs Neovim: mujo's tmux.conf then
+-- lays its status line out to go with Neovim's (docs/tmux.md).
+if vim.env.TMUX and vim.env.TMUX_PANE then
+  local function tell_tmux(running)
+    return vim.system({
+      "tmux", "set", "-p", "-t", vim.env.TMUX_PANE, "@mujo_nvim", running and "1" or "", ";", "mujo-status",
+    })
+  end
+  vim.api.nvim_create_autocmd({ "VimEnter", "VimResume" }, {
+    callback = function() tell_tmux(true) end,
+  })
+  vim.api.nvim_create_autocmd({ "VimLeavePre", "VimSuspend" }, {
+    callback = function() tell_tmux(false):wait(500) end,
+  })
+end

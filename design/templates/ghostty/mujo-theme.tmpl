@@ -1,7 +1,15 @@
 font-family = {{ font.family }}
 font-size = {{ font.terminal_pt }}
 window-padding-x = {{ space.sm }}
-window-padding-y = {{ space.sm }}
+# No fixed padding at the bottom: the rows never fill the window exactly, and
+# what is left over is shared between the top and the bottom, which is
+# padding enough. The last row (the tmux status line) then sits near the edge.
+window-padding-y = {{ space.sm }},0
+window-padding-balance = equal
+# The padding takes the colour of the cells next to it, so a bar that runs
+# the width of the terminal (Neovim's status line, and tmux's under it)
+# reaches the window's edges instead of stopping short of them.
+window-padding-color = extend
 
 foreground = {{ term.fg | hex }}
 background = {{ term.bg | hex }}

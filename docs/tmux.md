@@ -23,8 +23,17 @@ The prefix is `Ctrl+A`.
 | `prefix t` | Show or hide the status line |
 | `prefix r` | Load `tmux.conf` again |
 
-The status line shows the session name (red while the prefix is held), the
-windows, the host name and the time.
+The status line is plain text on the terminal's own background, with a thin
+rule above it to keep it apart from the program in the pane. On the
+left are the session name in the accent colour (red while the prefix is
+held, yellow in copy mode) and the windows with their flags (`*` current,
+`-` last, `Z` zoomed), the current one bright and bold. On the right is the
+pane title.
+
+While the active pane runs Neovim, the status line is laid out to go with
+Neovim's own: an empty row instead of the rule, then the session name and
+the windows as `1:name*`, starting in the same column as Neovim's mode. On
+the right are the pane title in quotes, the time and the date.
 
 No plugin manager is used; pane movement that cooperates with Neovim is a
 few lines in `tmux.conf`.

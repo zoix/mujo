@@ -47,6 +47,7 @@ mode (read when Neovim starts), on the terminal's own background.
 | which-key | The panel that lists what a key can be followed by |
 | snacks.nvim | Picker, file explorer, start screen, notifications, terminal, lazygit |
 | mini.nvim | Status line, buffer tabs, icons, auto-pairs, surround, text objects |
+| noice (with nui) | The command line as a box in the middle of the screen; messages as notifications |
 | gitsigns | Changed lines in the margin |
 | todo-comments | Highlights TODO and FIXME |
 | persistence | Sessions per folder |
