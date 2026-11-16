@@ -115,7 +115,7 @@ ShellRoot {
         }
 
         function close(): void {
-            Ui.picker = false;
+            Ui.closePicker();
         }
     }
 

@@ -86,10 +86,36 @@ Singleton {
     // The screenshot area picker (modules/Picker.qml), on the focused screen.
     property bool picker: false
 
+    // The picker freezes the screen as it is at that moment. A panel that
+    // is open or has only just closed (the launcher, when the screenshot is
+    // chosen from it) needs time to slide away first, or it would be in the
+    // frozen picture.
+    property real panelClosedAt: 0
+    onModalChanged: {
+        if (!root.modal)
+            root.panelClosedAt = Date.now();
+    }
+
     function openPicker(): void {
         root.closeAll();
         root.screen = root.focusedScreen();
-        root.picker = true;
+        const wait = Tokens.durationSlow + 80 - (Date.now() - root.panelClosedAt);
+        if (wait > 0) {
+            pickerOpen.interval = wait;
+            pickerOpen.restart();
+        } else {
+            root.picker = true;
+        }
+    }
+
+    function closePicker(): void {
+        pickerOpen.stop();
+        root.picker = false;
+    }
+
+    Timer {
+        id: pickerOpen
+        onTriggered: root.picker = true
     }
 
     // The quick-settings panel on the right edge.
