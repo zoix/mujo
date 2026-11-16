@@ -19,6 +19,10 @@ mujo() { "$MUJO" "$@"; }
   [ "$(<"$STUB_STATE/charge-limit")" = 80 ]
   run mujo power limit --json
   [ "$(data .limit)" = 80 ]
+  # The firmware lost the limit: asking for the same one sets it again.
+  echo 100 >"$STUB_STATE/charge-limit"
+  mujo power limit 80
+  [ "$(<"$STUB_STATE/charge-limit")" = 80 ]
   mujo undo
   [ "$(<"$STUB_STATE/charge-limit")" = 100 ]
   run mujo power limit 30

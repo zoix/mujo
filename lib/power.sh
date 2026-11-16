@@ -182,6 +182,19 @@ power_cmd_limit() {
   if [[ $1 == off ]]; then new=100
   elif [[ $1 =~ ^[0-9]{2,3}%?$ ]] && (( ${1%\%} >= 50 && ${1%\%} <= 100 )); then new=${1%\%}
   else usage_error "expected a percentage from 50 to 100, or off; got '$1'"; fi
+  # framework_tool: the firmware cannot be asked without root, so the limit
+  # $MUJO_NAME remembers may no longer be the one in force. Asking for the same
+  # limit again sets it again instead of being "nothing to do".
+  if [[ $how == framework_tool && $new == "$cur" ]] && (( ! OPT_DRY_RUN )); then
+    need sudo
+    local -a again=(sudo)
+    [[ -t 0 ]] || again=(sudo -n)
+    say "Running: sudo framework_tool --charge-limit $new"
+    "${again[@]}" framework_tool --charge-limit "$new" >/dev/null || die "$EXIT_FAIL" "framework_tool could not set the charge limit (sudo needs a terminal)"
+    say "Charge limit set again: $new%"
+    jq -n --argjson l "$new" '{journal_id: null, changed: false, before: {limit: $l}, after: {limit: $l}}' | emit
+    return 0
+  fi
   local before after
   before=$(jq -cn --argjson l "$cur" '{limit: $l}')
   after=$(jq -cn --argjson l "$new" '{limit: $l}')
