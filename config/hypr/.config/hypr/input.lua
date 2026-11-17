@@ -15,6 +15,11 @@ hl.config({
             -- default (true) a finger that lands within half a second of a
             -- keystroke is ignored until the timeout ends.
             disable_while_typing = false,
+            -- A tap followed by a touch does not start a drag. A finger that
+            -- loses contact for an instant mid-movement reads as exactly
+            -- that, and the pointer began selecting text on its own. Press
+            -- the pad down to drag.
+            tap_and_drag = false,
         },
     },
 })
