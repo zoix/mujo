@@ -46,6 +46,8 @@ Audio: volume down${t}run${t}audio volume -10
 Display: brightness up${t}run${t}display brightness +10
 Display: brightness down${t}run${t}display brightness -10
 Display: night light on or off${t}run${t}display night toggle
+Display: bigger text (screen scale up)${t}run${t}display scale bigger
+Display: smaller text (screen scale down)${t}run${t}display scale smaller
 Theme: accent colour${t}accent${t}theme accent
 Theme: colours from the wallpaper${t}run${t}theme palette wallpaper
 Theme: Catppuccin colours${t}run${t}theme palette catppuccin
@@ -60,6 +62,9 @@ Focus: start 50 minutes${t}run${t}focus start 50
 Focus: stop${t}run${t}focus stop
 Weather: now${t}run${t}weather
 Power: follow the charger on or off${t}run${t}power auto toggle
+Time zone: follow where you are, on or off${t}run${t}time auto toggle
+Keyboard: built-in off with an external one, on or off${t}run${t}keyboard auto toggle
+Keyboard: flash the Voyager with the newest download${t}show${t}voyager flash
 Power: 60 Hz on battery on or off${t}run${t}power battery refresh toggle
 Power: solid panels on battery on or off${t}run${t}power battery solid toggle
 Power: charge limit 80%${t}show${t}power limit 80

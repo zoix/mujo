@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # Test double for curl: a fixed answer for the place search and the forecast,
-# and a log of what was asked. With $STUB_STATE/offline it fails.
+# the zone of this connection for `mujo time`, and a log of what was asked. With $STUB_STATE/offline it fails.
 echo "$*" >>"${STUB_STATE:?}/curl.log"
 [[ -e $STUB_STATE/offline ]] && exit 6
 case "$*" in
+  *ipinfo.io/timezone*)
+    if [[ -e $STUB_STATE/zone-here ]]; then cat "$STUB_STATE/zone-here"; else echo "Europe/Lisbon"; fi ;;
+  *ipwho.is*) echo '{"success":true,"timezone":{"id":"Europe/Paris"}}' ;;
   *geocoding*name=Nowhere*) echo '{}' ;;
   *geocoding*)
     echo '{"results":[{"name":"Springfield","latitude":39.80172,"longitude":-89.64371,"country":"United States","admin1":"Illinois"},{"name":"Springfield","latitude":44.04624,"longitude":-123.02203,"country":"United States","admin1":"Oregon"}]}' ;;

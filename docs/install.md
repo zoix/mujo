@@ -48,7 +48,8 @@ guessing. Every run is appended to `~/.local/state/mujo/install.log`.
      you have not chosen a program for in `mimeapps.list` are set, and
      `mujo uninstall` takes exactly those back.
 6. **`/etc`.** The greetd config and console palette (generated, staged in
-   `~/.local/state/mujo/theme/system/`) and `mujo-vtrgb.service`. Each file
+   `~/.local/state/mujo/theme/system/`), `mujo-vtrgb.service`, and the udev
+   rule that lets `mujo voyager flash` write to the keyboard. Each file
    is shown as a diff or in full before it is written; the previous version is
    backed up.
 7. **Services.** NetworkManager, bluetooth, `mujo-vtrgb` (palette loads at
@@ -127,9 +128,12 @@ package, the whole package is unstowed (the question lists its links); the
 files stay in your dotfiles directory and in the backup.
 
 Once mujo's `~/.zshenv` is linked, zsh reads `~/.config/zsh` and no longer
-reads `~/.zshrc`; the old file stays where it is. `local.zsh` sources your
-`~/.aliases`, sets `EDITOR`, and hooks zoxide, direnv and mise if they are
-installed. Copy anything else you want from the old file into `local.zsh`.
+reads `~/.zshrc`; the old file stays where it is. mujo's `aliases.zsh` has
+the everyday aliases (`ll`, `gs`, `lg`, `v`, ...; each only if its tool is
+installed). `local.zsh` is read after it: it sources your `~/.aliases` if
+there is one (so yours win), sets `EDITOR`, and hooks zoxide, direnv and mise
+if they are installed. Copy anything else you want from the old file into
+`local.zsh`.
 
 The installer does not reload the running Hyprland: the new configuration
 starts with the next login, which is why it ends by asking for a reboot.

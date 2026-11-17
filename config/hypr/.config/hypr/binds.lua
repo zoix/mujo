@@ -103,6 +103,8 @@ bind("XF86AudioMute", run(mujo .. "audio mute toggle"), "Mute", { locked = true 
 bind("XF86AudioMicMute", run(mujo .. "audio mute toggle --input"), "Mute the microphone", { locked = true })
 bind("XF86MonBrightnessUp", run(mujo .. "display brightness +5"), "Brightness up", { locked = true, repeating = true })
 bind("XF86MonBrightnessDown", run(mujo .. "display brightness -5"), "Brightness down", { locked = true, repeating = true })
+bind(mod .. " + equal", run(mujo .. "display scale bigger"), "Make everything on this screen bigger")
+bind(mod .. " + minus", run(mujo .. "display scale smaller"), "Make everything on this screen smaller")
 -- Media transport is not a system setting, so playerctl is called directly.
 bind("XF86AudioNext", run("playerctl next"), "Next track", { locked = true })
 bind("XF86AudioPrev", run("playerctl previous"), "Previous track", { locked = true })

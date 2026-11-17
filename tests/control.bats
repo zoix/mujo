@@ -29,7 +29,7 @@ journal_count() {
 }
 
 @test "every command has help" {
-  for c in status audio net bt display wall dnd notify power shot record calc emoji term focus weather clip launch menu keys sys services about pkg doctor update uninstall; do
+  for c in status audio net bt display wall dnd notify power shot record calc emoji term focus weather clip launch menu keys sys time services about pkg doctor update uninstall; do
     run mujo help "$c"
     [ "$status" -eq 0 ]
     [[ $output == "Usage: mujo $c"* ]]
@@ -133,6 +133,40 @@ journal_count() {
   run mujo display --json
   [ "$status" -eq 0 ]
   [ "$(data .night)" = null ]
+}
+
+@test "display scale steps through the scales that fit, is kept for Hyprland, and undo drops it" {
+  run mujo display scale
+  [ "$status" -eq 3 ]
+  export HYPRLAND_INSTANCE_SIGNATURE=test
+  lua=$(state)/scale.lua
+  run mujo display scale --json
+  [ "$(data .monitor)" = eDP-1 ]
+  [ "$(data .scale)" = 2 ]
+  [ "$(data .chosen)" = false ]
+  [ "$(data '.choices | map(tostring) | join(" ")')" = "1 1.066667 1.2 1.25 1.333333 1.5 1.6 1.666667 1.875 2 2.133333 2.4 2.5 2.666667 3" ]
+  [ ! -e "$lua" ]
+  run mujo display scale bigger --json
+  [ "$(data .after.scale)" = 2.133333 ]
+  [ "$(cat "$lua")" = 'return { ["eDP-1"] = "2.133333" }' ]
+  grep -qx reload "$STUB_STATE/hyprctl.log"
+  # a number picks the nearest scale that fits
+  run mujo display scale 1.55 --monitor eDP-1 --json
+  [ "$(data .after.scale)" = 1.5 ]
+  [ "$(cat "$lua")" = 'return { ["eDP-1"] = "1.5" }' ]
+  mujo undo
+  [ "$(cat "$lua")" = 'return { ["eDP-1"] = "2.133333" }' ]
+  run mujo display --json
+  [ "$(data .scale.monitor)" = eDP-1 ]
+  mujo display scale reset
+  [ ! -e "$lua" ]
+  [ "$(jq -c .display_scale "$XDG_CONFIG_HOME/mujo/config.json")" = '{}' ]
+  run mujo display scale reset
+  [[ $output == *"Nothing to do"* ]]
+  run mujo display scale 4
+  [ "$status" -eq 2 ]
+  run mujo display scale bigger --monitor HDMI-9
+  [ "$status" -eq 1 ]
 }
 
 # ---- wallpaper ---------------------------------------------------------------

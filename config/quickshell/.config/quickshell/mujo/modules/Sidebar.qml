@@ -37,6 +37,10 @@ Item {
         Anim {}
     }
     property int brightness: -1
+    // The scale of the screen with the focus (0: unknown), and whether it
+    // was chosen with `mujo display scale` or comes from host.lua.
+    property real screenScale: 0
+    property bool scaleChosen: false
     property string profile: ""
     property var profiles: []
     property var outputs: []
@@ -88,6 +92,8 @@ Item {
             onStreamFinished: {
                 const d = root.payload(this.text);
                 root.brightness = d && d.brightness ? d.brightness.percent : -1;
+                root.screenScale = d && d.scale ? d.scale.scale : 0;
+                root.scaleChosen = d && d.scale ? d.scale.chosen : false;
             }
         }
     }
@@ -236,6 +242,12 @@ Item {
                 label: "Follow charger"
                 on: Settings.powerAuto
                 onClicked: root.run(["power", "auto", "toggle"])
+            }
+            Toggle {
+                glyph: "\uf0ac"
+                label: "Auto time zone"
+                on: Settings.timeAuto
+                onClicked: root.run(["time", "auto", "toggle"])
             }
             Toggle {
                 glyph: "\uf108"
@@ -545,6 +557,29 @@ Item {
                 onMoved: value => {
                     root.brightness = Math.max(1, value);
                     root.run(["display", "brightness", String(Math.max(1, value))]);
+                }
+            }
+
+            Heading {
+                visible: root.screenScale > 0
+                text: "Text size  " + Math.round(root.screenScale * 100) + "%"
+            }
+            Row {
+                visible: root.screenScale > 0
+                spacing: Tokens.spaceSm
+
+                Chip {
+                    label: "Smaller"
+                    onClicked: root.run(["display", "scale", "smaller"])
+                }
+                Chip {
+                    label: "Bigger"
+                    onClicked: root.run(["display", "scale", "bigger"])
+                }
+                Chip {
+                    visible: root.scaleChosen
+                    label: "Reset"
+                    onClicked: root.run(["display", "scale", "reset"])
                 }
             }
 

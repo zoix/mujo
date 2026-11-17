@@ -849,11 +849,19 @@ system_packages() {
 # install_etc SRC DEST: install a file under /etc if it differs, showing the diff.
 install_etc() {
   local src=$1 dest=$2 real=$SYSROOT$2
-  if [[ -r $real ]] && cmp -s -- "$src" "$real"; then
+  # A folder only root may look into (polkit's rules) is read through sudo.
+  local closed=0
+  [[ -d ${real%/*} && ! -x ${real%/*} ]] && closed=1
+  if (( closed )); then
+    if sudo cmp -s -- "$src" "$real"; then
+      ok "$dest is current"
+      return 0
+    fi
+  elif [[ -r $real ]] && cmp -s -- "$src" "$real"; then
     ok "$dest is current"
     return 0
   fi
-  if [[ -e $real ]]; then
+  if [[ -e $real ]] || { (( closed )) && sudo test -e "$real"; }; then
     info "changes to $dest:"
     sudo_or_cat "$real" | diff -u --label "$dest" --label "$dest (mujo)" - "$src" | sed 's/^/       /' || true
     act "install $dest (previous version backed up)" do_install_etc "$src" "$dest" 1
@@ -892,8 +900,16 @@ system_files() {
   fi
   local before=$CHANGES
   install_etc "$REPO/system/vtrgb/mujo-vtrgb.service" /etc/systemd/system/mujo-vtrgb.service
+  # Lets `mujo time auto` change the time zone without a password prompt.
+  install_etc "$REPO/system/polkit/49-mujo-timezone.rules" /etc/polkit-1/rules.d/49-mujo-timezone.rules
   if (( CHANGES > before )); then
     act "systemctl daemon-reload" sudo systemctl daemon-reload
+  fi
+  # Lets `mujo voyager flash` write to the keyboard without a password.
+  before=$CHANGES
+  install_etc "$REPO/system/udev/70-mujo-voyager.rules" /etc/udev/rules.d/70-mujo-voyager.rules
+  if (( CHANGES > before )); then
+    act "udevadm control --reload" sudo udevadm control --reload
   fi
 }
 

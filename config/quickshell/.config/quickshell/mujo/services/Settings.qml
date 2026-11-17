@@ -25,6 +25,8 @@ Singleton {
     property bool batterySolid: false
     property bool solidNow: false
     property bool powerAuto: false
+    // `mujo time auto`: the time zone follows the network.
+    property bool timeAuto: false
     // When the focus session ends, in seconds since 1970 (0 = none).
     property real focusUntil: 0
     // Changes whenever the weather place or its units do ("" = no place).
@@ -52,6 +54,7 @@ Singleton {
             root.batterySolid = config.battery_solid === true;
             root.solidNow = config.battery_now ? config.battery_now.solid === true : false;
             root.powerAuto = config.power_auto === true;
+            root.timeAuto = config.time_auto === true;
             root.focusUntil = config.focus && config.focus.until ? config.focus.until : 0;
             root.weatherKey = config.weather ? config.weather.name + " " + config.weather.lat + " " + config.weather.lon + " " + (config.weather_units ?? "c") : "";
         } catch (error) {

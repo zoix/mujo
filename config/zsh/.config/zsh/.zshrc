@@ -1,6 +1,6 @@
 # mujo: interactive zsh. No framework; plugins come from the Arch repos.
-# Personal settings (aliases, tool hooks, PATH) go in local.zsh next to this
-# file. install.sh creates it once and never touches it again.
+# The aliases are in aliases.zsh. Personal settings (more aliases, tool hooks,
+# PATH) go in local.zsh next to this file. install.sh creates it once and never touches it again.
 
 # Colours generated from design/tokens.json by `mujo theme build`.
 [[ -r $ZDOTDIR/mujo-theme.zsh ]] && source "$ZDOTDIR/mujo-theme.zsh"
@@ -35,6 +35,7 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 
 source "$ZDOTDIR/prompt.zsh"
 
+[[ -r $ZDOTDIR/aliases.zsh ]] && source "$ZDOTDIR/aliases.zsh"
 [[ -r $ZDOTDIR/local.zsh ]] && source "$ZDOTDIR/local.zsh"
 
 # Syntax highlighting must be loaded last, after every widget is defined.

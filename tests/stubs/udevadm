@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Test double for udevadm: a laptop keyboard, a key remapper's virtual one and
+# a security key. With $STUB_STATE/usb-keyboard, a USB keyboard as well.
+echo "$*" >>"${STUB_STATE:?}/udevadm.log"
+[[ $* == "info --export-db" ]] || exit 1
+cat <<'EOF'
+P: /devices/platform/i8042/serio0/input/input2
+E: NAME="AT Translated Set 2 keyboard"
+E: ID_INPUT_KEYBOARD=1
+E: ID_BUS=i8042
+
+P: /devices/platform/i8042/serio0/input/input2/event2
+E: DEVNAME=/dev/input/event2
+E: ID_INPUT_KEYBOARD=1
+E: ID_BUS=i8042
+
+P: /devices/virtual/input/input20
+E: NAME="keyd virtual keyboard"
+E: ID_INPUT_KEYBOARD=1
+
+P: /devices/pci0000:00/usb1/1-2/input/input9
+E: NAME="Yubico YubiKey OTP+FIDO+CCID"
+E: ID_INPUT_KEYBOARD=1
+E: ID_BUS=usb
+E: ID_VENDOR_ID=1050
+
+P: /devices/platform/PNP0C0C/input/input0
+E: NAME="Power Button"
+E: ID_INPUT_KEY=1
+
+EOF
+[[ -e $STUB_STATE/usb-keyboard ]] || exit 0
+cat <<'EOF'
+P: /devices/pci0000:00/usb3/3-1/input/input4
+E: NAME="ZSA Technology Labs Voyager"
+E: ID_INPUT_KEYBOARD=1
+E: ID_BUS=usb
+E: ID_VENDOR_ID=3297
+
+EOF

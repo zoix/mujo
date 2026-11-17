@@ -245,3 +245,152 @@ EOF
   run mujo term
   [ "$status" -eq 3 ]
 }
+
+@test "time auto: the zone follows the connection only while it is on" {
+  run mujo time --json
+  [ "$(data .zone)" = Europe/Madrid ]
+  [ "$(data .auto)" = false ]
+  # off: sync reports the difference and leaves the zone alone
+  run mujo time sync --json
+  [ "$(data .changed)" = false ]
+  [ "$(data .here)" = Europe/Lisbon ]
+  [ "$(cat "$STUB_STATE/timezone")" = Europe/Madrid ]
+  # turning it on checks at once
+  mujo time auto on
+  [ "$(jq -r .time_auto "$(conf)/mujo/config.json")" = true ]
+  [ "$(cat "$STUB_STATE/timezone")" = Europe/Lisbon ]
+  run mujo time sync --json
+  [ "$(data .changed)" = false ]
+  # an answer that is not a zone falls back to the second service
+  echo "<html>rate limited</html>" >"$STUB_STATE/zone-here"
+  run mujo time sync --json
+  [ "$(data .zone)" = Europe/Paris ]
+  [ "$(data .previous)" = Europe/Lisbon ]
+  # --dry-run changes nothing
+  echo "Asia/Tokyo" >"$STUB_STATE/zone-here"
+  run mujo time sync --dry-run --json
+  [ "$(data .changed)" = false ]
+  [ "$(cat "$STUB_STATE/timezone")" = Europe/Paris ]
+  # without the polkit rule: exit 3 and a pointer to install.sh
+  touch "$STUB_STATE/timezone-denied"
+  run mujo time sync
+  [ "$status" -eq 3 ]
+  [[ $output == *"install.sh"* ]]
+  rm "$STUB_STATE/timezone-denied"
+  # offline: a failure, and the zone stays
+  touch "$STUB_STATE/offline"
+  run mujo time sync
+  [ "$status" -eq 1 ]
+  [ "$(cat "$STUB_STATE/timezone")" = Europe/Paris ]
+  rm "$STUB_STATE/offline"
+  mujo undo
+  [ "$(jq -r .time_auto "$(conf)/mujo/config.json")" = false ]
+  run mujo time nonsense
+  [ "$status" -eq 2 ]
+}
+
+@test "keyboard auto: the built-in keyboard is off only while an external one is connected" {
+  export HYPRLAND_INSTANCE_SIGNATURE=test
+  export MUJO_BOOT_ID_FILE=$BATS_TEST_TMPDIR/boot_id
+  echo boot-1 >"$MUJO_BOOT_ID_FILE"
+  lua=$(state)/keyboard.lua
+  # the virtual keyboard, the security key and the power button do not count
+  run mujo keyboard --json
+  [ "$(data .auto)" = false ]
+  [ "$(data .off)" = false ]
+  [ "$(data '.builtin | join(",")')" = "AT Translated Set 2 keyboard" ]
+  [ "$(data '.external | length')" = 0 ]
+  # off: an external keyboard changes nothing
+  touch "$STUB_STATE/usb-keyboard"
+  run mujo keyboard sync --json
+  [ "$(data .changed)" = false ]
+  [ "$(data '.external[0]')" = "ZSA Technology Labs Voyager" ]
+  [ ! -e "$lua" ]
+  # turning it on syncs at once
+  mujo keyboard auto on
+  [ "$(cat "$lua")" = 'return { boot = "boot-1", off = { "at-translated-set-2-keyboard" } }' ]
+  grep -qx reload "$STUB_STATE/hyprctl.log"
+  run mujo keyboard --json
+  [ "$(data .off)" = true ]
+  run mujo keyboard sync --json
+  [ "$(data .changed)" = false ]
+  # unplugged: back on; --dry-run leaves the file
+  rm "$STUB_STATE/usb-keyboard"
+  run mujo keyboard sync --dry-run --json
+  [ "$(data .changed)" = false ]
+  [ -e "$lua" ]
+  run mujo keyboard sync --json
+  [ "$(data .changed)" = true ]
+  [ "$(data .off)" = false ]
+  [ ! -e "$lua" ]
+  # a file from an earlier boot does not count, and is written again
+  touch "$STUB_STATE/usb-keyboard"
+  mujo keyboard sync
+  echo boot-2 >"$MUJO_BOOT_ID_FILE"
+  run mujo keyboard --json
+  [ "$(data .off)" = false ]
+  run mujo keyboard sync --json
+  [ "$(data .changed)" = true ]
+  grep -q boot-2 "$lua"
+  # turning it off brings the keyboard back although one is still plugged in
+  mujo keyboard auto off
+  [ ! -e "$lua" ]
+  mujo undo
+  [ -e "$lua" ]
+  run mujo keyboard nonsense
+  [ "$status" -eq 2 ]
+}
+
+@test "voyager flash: a checked file is written once the keyboard is in its bootloader" {
+  export XDG_DOWNLOAD_DIR=$BATS_TEST_TMPDIR/downloads MUJO_VOYAGER_WAIT=1
+  usb=$MUJO_SYSROOT/sys/bus/usb/devices/3-1
+  mkdir -p "$XDG_DOWNLOAD_DIR" "$usb" "$MUJO_SYSROOT/dev/bus/usb/003"
+  echo 3297 >"$usb/idVendor"; echo 1977 >"$usb/idProduct"
+  echo 3 >"$usb/busnum"; echo 7 >"$usb/devnum"
+  # nothing to flash
+  run mujo voyager flash
+  [ "$status" -eq 1 ]
+  [[ $output == *"no zsa_voyager_"* ]]
+  # a file that is not firmware is refused
+  head -c 4096 /dev/zero >"$XDG_DOWNLOAD_DIR/zsa_voyager_old.bin"
+  run mujo voyager flash
+  [ "$status" -eq 1 ]
+  [[ $output == *"does not look like"* ]]
+  # the newest one is taken
+  fw=$XDG_DOWNLOAD_DIR/zsa_voyager_new.bin
+  { printf '\x00\x04\x00\x20\xbd\x22\x00\x08'; head -c 4096 /dev/zero; } >"$fw"
+  touch -d '1 hour ago' "$XDG_DOWNLOAD_DIR/zsa_voyager_old.bin"
+  run mujo voyager flash --dry-run --json
+  [ "$(data .file)" = "$fw" ]
+  [ "$(data .flashed)" = false ]
+  [ ! -e "$STUB_STATE/dfu-util.log" ]
+  # reset was not pressed: nothing is written
+  run mujo voyager flash
+  [ "$status" -eq 1 ]
+  [[ $output == *"nothing was written"* ]]
+  [ ! -e "$STUB_STATE/dfu-util.log" ]
+  # in the bootloader, but without the udev rule: exit 3
+  echo 0791 >"$usb/idProduct"
+  run mujo voyager flash
+  [ "$status" -eq 3 ]
+  [[ $output == *"install.sh"* ]]
+  # allowed: written, and the keyboard is back
+  touch "$MUJO_SYSROOT/dev/bus/usb/003/007"
+  run mujo voyager flash --json
+  [ "$(data .flashed)" = true ]
+  [ "$(data .back)" = true ]
+  [ "$(cat "$STUB_STATE/dfu-util.log")" = "-d 3297:0791 -a 0 -s 0x08002000:leave -D $fw" ]
+  # an exit code after a complete download is not a failure
+  echo 0791 >"$usb/idProduct"
+  touch "$STUB_STATE/dfu-leaves"
+  run mujo voyager flash "$fw"
+  [ "$status" -eq 0 ]
+  rm "$STUB_STATE/dfu-leaves"
+  # a real failure is one
+  echo 0791 >"$usb/idProduct"
+  touch "$STUB_STATE/dfu-fails"
+  run mujo voyager flash "$fw"
+  [ "$status" -eq 1 ]
+  run mujo voyager
+  [ "$status" -eq 2 ]
+}

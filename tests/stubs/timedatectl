@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Test double for timedatectl: the zone lives in $STUB_STATE/timezone.
+# With $STUB_STATE/timezone-denied, setting it fails (no polkit rule).
+echo "$*" >>"${STUB_STATE:?}/timedatectl.log"
+f=$STUB_STATE/timezone
+[[ -f $f ]] || echo "Europe/Madrid" >"$f"
+case "$*" in
+  show*) cat "$f" ;;
+  *set-timezone*)
+    [[ -e $STUB_STATE/timezone-denied ]] && exit 1
+    echo "${@: -1}" >"$f"
+    ;;
+esac

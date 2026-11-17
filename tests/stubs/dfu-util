@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Test double for dfu-util: "writes" by turning the bootloader device in
+# $MUJO_SYSROOT back into a keyboard. With $STUB_STATE/dfu-fails it fails;
+# with $STUB_STATE/dfu-leaves it succeeds but exits 74, as the real one may.
+echo "$*" >>"${STUB_STATE:?}/dfu-util.log"
+if [[ -e $STUB_STATE/dfu-fails ]]; then
+  echo "dfu-util: Cannot open DFU device 3297:0791" >&2
+  exit 74
+fi
+echo "File downloaded successfully"
+for f in "${MUJO_SYSROOT:?}"/sys/bus/usb/devices/*/idProduct; do
+  [[ $(<"$f") == 0791 ]] && echo 1977 >"$f"
+done
+[[ -e $STUB_STATE/dfu-leaves ]] && exit 74
+exit 0

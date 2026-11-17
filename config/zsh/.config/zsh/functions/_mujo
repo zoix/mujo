@@ -54,7 +54,7 @@ _mujo() {
     'audio:volume, mute, output and input device'
     'net:Wi-Fi status, scan, connect, forget'
     'bt:Bluetooth status and power'
-    'display:brightness and night light'
+    'display:brightness, night light and screen scale'
     'theme:design tokens: build, check, accent, reduce-motion'
     'wall:set or cycle the wallpaper'
     'dnd:do not disturb for notifications'
@@ -73,6 +73,9 @@ _mujo() {
     'pkg:search, install and remove packages'
     'sys:processor, memory, temperature, disk, uptime'
     'services:background services you enabled, and their state'
+    'time:time zone; follow where you are'
+    'keyboard:built-in keyboard off while an external one is connected'
+    'voyager:flash a ZSA Voyager keyboard with a firmware file'
     'doctor:check dependencies, services, links and tokens'
     'update:update mujo and the system'
     'uninstall:remove mujo and restore the backups'
@@ -152,9 +155,11 @@ _mujo() {
           ;;
         display)
           if (( CURRENT == 2 )); then
-            _values 'display subcommand' status brightness night
+            _values 'display subcommand' status brightness night scale
           elif [[ $words[2] == night ]]; then
             _values 'state' on off toggle --temp
+          elif [[ $words[2] == scale ]]; then
+            _values 'scale' bigger smaller reset --monitor
           fi
           ;;
         wall)
@@ -176,6 +181,15 @@ _mujo() {
         record) _values 'record subcommand or option' toggle start stop status region screen --audio --dir ;;
         emoji) (( CURRENT == 2 )) && _values 'emoji subcommand' pick list copy ;;
         power) (( CURRENT == 2 )) && _values 'action' list lock suspend logout reboot shutdown profile awake limit auto battery sync ;;
+        time) (( CURRENT == 2 )) && _values 'action' auto sync ;;
+        keyboard) (( CURRENT == 2 )) && _values 'action' auto sync watch ;;
+        voyager)
+          if (( CURRENT == 2 )); then
+            _values 'action' flash
+          else
+            _files -g '*.bin'
+          fi
+          ;;
         shot) _values 'mode or option' region window screen text --no-save --no-copy --dir --lang ;;
         clip) (( CURRENT == 2 )) && _values 'clip subcommand' pick list copy clear ;;
         launch)

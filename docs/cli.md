@@ -9,7 +9,7 @@ has `--dry-run`.
 | `mujo audio` | Volume, mute, default output and input | PipeWire (`wpctl`, `pw-dump`) |
 | `mujo net` | Wi-Fi status, scan, connect, forget, radio; `net tui` | NetworkManager (`nmcli`) |
 | `mujo bt` | Bluetooth status and power; `bt tui` opens bluetui | `bluetoothctl` |
-| `mujo display` | Brightness; night light | `brightnessctl`; Hyprland + `hyprsunset` |
+| `mujo display` | Brightness; night light; screen scale | `brightnessctl`; Hyprland + `hyprsunset` |
 | `mujo theme` | Build, check, accent, reduce-motion | nothing |
 | `mujo wall` | Set or cycle the wallpaper | nothing |
 | `mujo dnd` | Do not disturb for notifications | nothing |
@@ -23,6 +23,7 @@ has `--dry-run`.
 | `mujo log` / `undo` | Action journal | nothing |
 | `mujo pkg` | Search, install and remove packages with fzf | `pacman`, `sudo`; `yay` or `paru` for the AUR |
 | `mujo sys` | Processor, memory, temperature, disk, uptime | nothing |
+| `mujo time` | Time zone; `time auto` keeps it right while travelling | `timedatectl`; `curl` for the lookup |
 | `mujo services` | Background services you enabled (Docker, Tailscale, ...) and their state | `systemctl` |
 | `mujo doctor` | Check packages, links, theme, services, session | nothing |
 | `mujo update` | Update mujo (git) and the system (pacman), with a summary; snapshots and rollback | `git`; `pacman` and `sudo`; `snapper` for snapshots |
@@ -138,13 +139,24 @@ change uses the node name, which survives a restart; ids do not.
 
 | Subcommand | Mutates | Notes |
 | --- | --- | --- |
-| `status` (default) | no | `{brightness: {device, percent} \| null, night: {on, temperature} \| null}` |
+| `status` (default) | no | `{brightness: {device, percent} \| null, night: {on, temperature} \| null, scale: {monitor, scale, chosen, choices} \| null}` |
 | `brightness [N\|+N\|-N]` | yes | Percent, clamped to 1-100. Without a value: `{device, percent}` |
 | `night [on\|off\|toggle] [--temp K]` | yes | 1000-10000 K, default 4000; needs Hyprland |
+| `scale [bigger\|smaller\|N\|reset] [--monitor NAME]` | yes | How big a screen draws everything; needs Hyprland. Without a value: `{monitor, scale, chosen, choices}` |
 
 The night light is hyprsunset, started on first use. The temperature is kept
 in `config.json` (`night_temperature`); whether it is on is not restored at
 the next login.
+
+`scale` acts on the screen with the focus unless `--monitor` names one.
+`choices` are the scales from 1 to 3 at which that screen's resolution divides
+into whole pixels; `bigger` and `smaller` step through them and a number picks
+the nearest. The choice is kept in `config.json` (`display_scale`, by screen
+name) and in `~/.local/state/mujo/scale.lua`, which `~/.config/hypr/scale.lua`
+reads: it replaces the scale of that screen's line in `host.lua`, whose mode
+and position stay. `reset` drops the choice. `chosen` tells whether there is
+one. State keys in `before`/`after`: `monitor`, `scale`, `chosen`.
+SUPER + = and SUPER + - are bound to `bigger` and `smaller`.
 
 ## mujo net
 
@@ -388,6 +400,73 @@ give the speed), or `null` when offline. `sys --window` opens the dashboard.
 over the last 24 hours as `[seconds ago, percent]`, oldest first, from
 UPower's own record (empty without one). `captures` lists the six newest
 screenshots and recordings (`kind` is `screenshot` or `recording`).
+
+## mujo time
+
+`time` returns `{zone, auto}`. `time auto [on|off|toggle]` mutates
+`time_auto` in `config.json` (journaled). While it is on, the interface runs
+`time sync` shortly after start and each time the network changes.
+
+`time sync` asks which zone this connection is in and, with auto on, sets it
+(`timedatectl set-timezone`), restarts the interface so its clock follows,
+and notifies. Not journaled. `data`:
+
+```json
+{"auto": true, "changed": true, "zone": "Europe/Lisbon", "here": "Europe/Lisbon", "previous": "Europe/Madrid"}
+```
+
+The lookup goes by network address: `ipinfo.io/timezone`, then `ipwho.is`
+when that gives no usable answer. Both see the address and nothing else.
+A VPN's exit decides the answer, so turn auto off behind one. Setting the
+zone without a password needs `/etc/polkit-1/rules.d/49-mujo-timezone.rules`,
+which `install.sh` installs (wheel members at the machine may set the time
+zone; nothing else); without it `time sync` exits 3.
+
+## mujo keyboard
+
+`keyboard` returns `{auto, off, builtin, external}`: the names of the
+keyboards that are connected and whether the built-in one is off right now.
+`keyboard auto [on|off|toggle]` mutates `keyboard_auto` in `config.json`
+(journaled) and syncs at once.
+
+`keyboard sync` looks at the keyboards udev knows (`ID_INPUT_KEYBOARD=1`). A
+USB or Bluetooth one is external, any other is built-in; virtual keyboards
+and Yubico security keys are left out. With auto on and an external one
+connected it writes `~/.local/state/mujo/keyboard.lua`, which `keyboard.lua`
+in the Hyprland config turns into `hl.device({ name, enabled = false })` for
+each built-in keyboard; otherwise it removes the file. Then it reloads
+Hyprland and notifies. Not journaled. `data` is that of `keyboard` plus
+`changed`.
+
+`keyboard watch` syncs, then again after every input device that comes or
+goes (`udevadm monitor`). Hyprland starts it with the session. The file
+carries the boot id and is ignored in any other boot, so a keyboard pulled
+while the machine was off never leaves the laptop without one.
+
+## mujo voyager
+
+`voyager flash [FILE] [--wait SECONDS]` writes a firmware file from Oryx to a
+ZSA Voyager. Without `FILE` it takes the newest `zsa_voyager_*.bin` in the
+downloads folder. The file must look like Voyager firmware (size, and a
+start address after the bootloader). It then waits, 60 seconds by default,
+for the keyboard to appear in its bootloader (USB `3297:0791`, after the
+reset button), runs
+
+```
+dfu-util -d 3297:0791 -a 0 -s 0x08002000:leave -D FILE
+```
+
+and waits for the keyboard to come back. Not journaled. `data`:
+
+```json
+{"file": "/home/me/Downloads/zsa_voyager_abc.bin", "bytes": 64312, "flashed": true, "back": true}
+```
+
+With `--dry-run` only the file is chosen and checked (`flashed: false`).
+Writing without a password needs `/etc/udev/rules.d/70-mujo-voyager.rules`,
+which `install.sh` installs (the person logged in at the machine may write
+to a Voyager in its bootloader; nothing else); without it the command exits
+3. No keyboard in its bootloader in time, or a failed write, exits 1.
 
 ## mujo services
 
