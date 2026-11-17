@@ -243,6 +243,14 @@ Item {
                 on: Settings.powerAuto
                 onClicked: root.run(["power", "auto", "toggle"])
             }
+            // Setting it asks for the password, so it opens a terminal.
+            Toggle {
+                visible: Battery.present
+                glyph: "\uf132"
+                label: Settings.chargeLimit < 100 ? "Charge to " + Settings.chargeLimit + "%" : "Charge limit"
+                on: Settings.chargeLimit < 100
+                onClicked: root.run(["menu", "run", "Power: charge limit on or off"])
+            }
             Toggle {
                 glyph: "\uf0ac"
                 label: "Auto time zone"

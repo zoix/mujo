@@ -12,7 +12,7 @@ Usage: $MUJO_NAME power [list]
        $MUJO_NAME power logout | reboot | shutdown --yes
        $MUJO_NAME power profile [power-saver | balanced | performance]
        $MUJO_NAME power awake [on | off | toggle]
-       $MUJO_NAME power limit [PERCENT | off]
+       $MUJO_NAME power limit [PERCENT | off | toggle]
        $MUJO_NAME power auto [on | off | toggle]
        $MUJO_NAME power battery [refresh | solid] [on | off | toggle]
 
@@ -180,8 +180,11 @@ power_cmd_limit() {
     return 0
   fi
   if [[ $1 == off ]]; then new=100
+  elif [[ $1 == toggle ]]; then
+    # On again: the limit that was in use before it was switched off.
+    if (( cur < 100 )); then new=100; else new=$(config_read | jq -r '.charge_limit_last // 80'); fi
   elif [[ $1 =~ ^[0-9]{2,3}%?$ ]] && (( ${1%\%} >= 50 && ${1%\%} <= 100 )); then new=${1%\%}
-  else usage_error "expected a percentage from 50 to 100, or off; got '$1'"; fi
+  else usage_error "expected a percentage from 50 to 100, off or toggle; got '$1'"; fi
   # framework_tool: the firmware cannot be asked without root, so the limit
   # $MUJO_NAME remembers may no longer be the one in force. Asking for the same
   # limit again sets it again instead of being "nothing to do".
@@ -212,6 +215,7 @@ power_cmd_limit() {
   fi
   mujo_lock
   config_set charge_limit "$new"
+  (( new >= 100 )) || config_set charge_limit_last "$new"
   change_end "power limit: $cur% -> $new%" "$before" "$after" "$(json_array power limit "$cur")"
 }
 

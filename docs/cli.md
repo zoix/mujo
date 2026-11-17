@@ -223,7 +223,8 @@ returns `{dnd}`. While it is on the UI shows only critical notifications.
 [on|off|toggle]` keeps the session from locking by itself by stopping the idle
 daemon. Both are journaled and can be undone.
 
-`power limit [PERCENT|off]` stops charging at 50 to 100 percent
+`power limit [PERCENT|off|toggle]` stops charging at 50 to 100 percent
+(`toggle` switches it off, or back on at the limit used last, 80 at first)
 (`{limit, method}`; `method` is `kernel` when the battery has a
 `charge_control_end_threshold` file, `framework_tool` when that tool is
 installed, otherwise `none`). Setting it runs `sudo`, so it needs a

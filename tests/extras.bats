@@ -25,6 +25,12 @@ mujo() { "$MUJO" "$@"; }
   [ "$(<"$STUB_STATE/charge-limit")" = 80 ]
   mujo undo
   [ "$(<"$STUB_STATE/charge-limit")" = 100 ]
+  # toggle: on again at the limit used last (80 before any was set)
+  mujo power limit 70
+  mujo power limit toggle
+  [ "$(<"$STUB_STATE/charge-limit")" = 100 ]
+  mujo power limit toggle
+  [ "$(<"$STUB_STATE/charge-limit")" = 70 ]
   run mujo power limit 30
   [ "$status" -eq 2 ]
   run mujo power limit lots

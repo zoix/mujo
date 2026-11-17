@@ -1,4 +1,5 @@
-// Status icons: network, Bluetooth, do-not-disturb, battery. (Volume has
+// Status icons: network, Bluetooth, do-not-disturb, battery (with a small
+// shield under the level while a charge limit is set). (Volume has
 // no icon: the keys show the level on the right edge, and quick settings
 // has the slider.)
 // Each opens the terminal UI that controls it, through mujo.
@@ -176,7 +177,8 @@ Rectangle {
             visible: Battery.present
             implicitHeight: battery.implicitHeight + Tokens.spaceSm
             onHoveredChanged: root.hover(batteryButton, "battery")
-            onClicked: Ui.toggleLauncher("actions")
+            // The charge limit on or off (asks for the password in a terminal).
+            onClicked: Mujo.run(["menu", "run", "Power: charge limit on or off"])
 
             Column {
                 id: battery
@@ -196,6 +198,15 @@ Rectangle {
                     color: Tokens.textMuted
                     font.family: Tokens.fontFamily
                     font.pixelSize: Tokens.fontXs
+                }
+
+                // A shield while a charge limit is set (`mujo power limit`).
+                Glyph {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    visible: Settings.chargeLimit < 100
+                    font.pixelSize: Tokens.fontXs
+                    text: "\uf132"
+                    color: Tokens.accent
                 }
             }
         }

@@ -69,6 +69,7 @@ Power: 60 Hz on battery on or off${t}run${t}power battery refresh toggle
 Power: solid panels on battery on or off${t}run${t}power battery solid toggle
 Power: charge limit 80%${t}show${t}power limit 80
 Power: charge limit off${t}show${t}power limit off
+Power: charge limit on or off${t}show${t}power limit toggle
 Wallpaper: choose${t}tui${t}wall pick
 Theme: dark, light or follow the wallpaper${t}mode${t}theme mode
 Wallpaper: desktop clock on or off${t}run${t}wall clock toggle

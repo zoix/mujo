@@ -27,6 +27,8 @@ Singleton {
     property bool powerAuto: false
     // `mujo time auto`: the time zone follows the network.
     property bool timeAuto: false
+    // `mujo power limit`: where charging stops, in percent (100 = no limit).
+    property int chargeLimit: 100
     // When the focus session ends, in seconds since 1970 (0 = none).
     property real focusUntil: 0
     // Changes whenever the weather place or its units do ("" = no place).
@@ -55,6 +57,7 @@ Singleton {
             root.solidNow = config.battery_now ? config.battery_now.solid === true : false;
             root.powerAuto = config.power_auto === true;
             root.timeAuto = config.time_auto === true;
+            root.chargeLimit = typeof config.charge_limit === "number" ? config.charge_limit : 100;
             root.focusUntil = config.focus && config.focus.until ? config.focus.until : 0;
             root.weatherKey = config.weather ? config.weather.name + " " + config.weather.lat + " " + config.weather.lon + " " + (config.weather_units ?? "c") : "";
         } catch (error) {

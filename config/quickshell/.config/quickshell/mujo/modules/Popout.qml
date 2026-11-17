@@ -82,7 +82,7 @@ Item {
             if (!Battery.present)
                 return ["No battery"];
             const left = Battery.charging ? device.timeToFull : device.timeToEmpty;
-            return [Battery.percent + "%, " + (Battery.charging ? "charging" : "on battery"), left > 0 ? root.duration(left) + (Battery.charging ? " until full" : " left") : (Battery.charging ? "Plugged in" : "")].filter(line => line !== "");
+            return [Battery.percent + "%, " + (Battery.charging ? "charging" : "on battery"), left > 0 ? root.duration(left) + (Battery.charging ? " until full" : " left") : (Battery.charging ? "Plugged in" : ""), Settings.chargeLimit < 100 ? "Charging stops at " + Settings.chargeLimit + "%" : "No charge limit"].filter(line => line !== "");
         }
         if (kind === "window") {
             if (!root.win)
