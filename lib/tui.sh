@@ -92,10 +92,14 @@ tui_pick() {
 # interface, which is a service; without a scope every app it launched would
 # belong to that service and be killed whenever the service restarts.
 tui_detach() {
+  # MUJO_ROOT and MUJO_BIN are this run's own. A terminal that inherited them
+  # would pin every mujo typed in it to this copy, even after the repository
+  # has moved; without them each run finds itself from its own link.
+  local -a clean=(env -u MUJO_ROOT -u MUJO_BIN)
   if command -v systemd-run >/dev/null 2>&1 && [[ -S ${XDG_RUNTIME_DIR:-/nonexistent}/bus ]]; then
-    setsid -f systemd-run --user --scope --quiet --collect -- "$@" >/dev/null 2>&1 </dev/null 3>&- 9>&-
+    setsid -f systemd-run --user --scope --quiet --collect -- "${clean[@]}" "$@" >/dev/null 2>&1 </dev/null 3>&- 9>&-
   else
-    setsid -f "$@" >/dev/null 2>&1 </dev/null 3>&- 9>&-
+    setsid -f "${clean[@]}" "$@" >/dev/null 2>&1 </dev/null 3>&- 9>&-
   fi
 }
 
