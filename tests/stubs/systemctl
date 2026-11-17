@@ -1,3 +1,24 @@
 #!/usr/bin/env bash
 # Test double for systemctl: records what was asked instead of doing it.
+# Enabled units live in $STUB_STATE/units ("unit active-state description"
+# per line); list-unit-files and show answer from that file.
 echo "$*" >>"${STUB_STATE:?}/systemctl.log"
+f=$STUB_STATE/units
+case ${1:-} in
+  list-unit-files)
+    [[ -f $f ]] && while read -r unit _; do echo "$unit enabled enabled"; done <"$f"
+    ;;
+  show)
+    for arg in "$@"; do
+      [[ $arg == *.service || $arg == *.socket ]] || continue
+      line=$(grep -m1 "^$arg " "$f" 2>/dev/null) || line=""
+      if [[ -n $line ]]; then
+        read -r unit active description <<<"$line"
+        printf 'Id=%s\nLoadState=loaded\nActiveState=%s\nDescription=%s\n\n' "$unit" "$active" "$description"
+      else
+        printf 'Id=%s\nLoadState=not-found\nActiveState=inactive\nDescription=%s\n\n' "$arg" "$arg"
+      fi
+    done
+    ;;
+esac
+exit 0

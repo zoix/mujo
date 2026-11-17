@@ -65,6 +65,8 @@ source "$MUJO_ROOT/lib/weather.sh"
 source "$MUJO_ROOT/lib/pkg.sh"
 # shellcheck source=../lib/sys.sh
 source "$MUJO_ROOT/lib/sys.sh"
+# shellcheck source=../lib/services.sh
+source "$MUJO_ROOT/lib/services.sh"
 # shellcheck source=../lib/doctor.sh
 source "$MUJO_ROOT/lib/doctor.sh"
 # shellcheck source=../lib/update.sh

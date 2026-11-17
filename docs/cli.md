@@ -23,6 +23,7 @@ has `--dry-run`.
 | `mujo log` / `undo` | Action journal | nothing |
 | `mujo pkg` | Search, install and remove packages with fzf | `pacman`, `sudo`; `yay` or `paru` for the AUR |
 | `mujo sys` | Processor, memory, temperature, disk, uptime | nothing |
+| `mujo services` | Background services you enabled (Docker, Tailscale, ...) and their state | `systemctl` |
 | `mujo doctor` | Check packages, links, theme, services, session | nothing |
 | `mujo update` | Update mujo (git) and the system (pacman), with a summary; snapshots and rollback | `git`; `pacman` and `sudo`; `snapper` for snapshots |
 | `mujo uninstall` | Remove mujo's links and restore the backups | `sudo` for the `/etc` part |
@@ -387,6 +388,20 @@ give the speed), or `null` when offline. `sys --window` opens the dashboard.
 over the last 24 hours as `[seconds ago, percent]`, oldest first, from
 UPower's own record (empty without one). `captures` lists the six newest
 screenshots and recordings (`kind` is `screenshot` or `recording`).
+
+## mujo services
+
+Read-only. The system services and sockets that are enabled, without the
+base desktop's own (systemd's units, the network, Bluetooth, the login
+screen). A service and its socket are one entry. `data`:
+
+```json
+{"services": [{"name": "docker", "state": "ready", "description": "Docker Application Container Engine",
+               "units": ["docker.service", "docker.socket"]}]}
+```
+
+`state` is `running`, `ready` (only the socket is up; the service starts on
+first use), `stopped` or `failed`. The sidebar's System page shows the list.
 
 ## mujo about
 

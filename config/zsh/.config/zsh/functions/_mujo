@@ -72,6 +72,7 @@ _mujo() {
     'keys:keybinding cheat sheet'
     'pkg:search, install and remove packages'
     'sys:processor, memory, temperature, disk, uptime'
+    'services:background services you enabled, and their state'
     'doctor:check dependencies, services, links and tokens'
     'update:update mujo and the system'
     'uninstall:remove mujo and restore the backups'

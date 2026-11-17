@@ -29,7 +29,7 @@ journal_count() {
 }
 
 @test "every command has help" {
-  for c in status audio net bt display wall dnd notify power shot record calc emoji term focus weather clip launch menu keys sys about pkg doctor update uninstall; do
+  for c in status audio net bt display wall dnd notify power shot record calc emoji term focus weather clip launch menu keys sys services about pkg doctor update uninstall; do
     run mujo help "$c"
     [ "$status" -eq 0 ]
     [[ $output == "Usage: mujo $c"* ]]
@@ -773,4 +773,24 @@ snapper_config() {
   [ "$(data .audio)" = null ]
   [ "$(data .network)" = null ]
   [ "$(data .bluetooth)" = null ]
+}
+
+@test "services lists what is enabled, one line for a service and its socket" {
+  run mujo services --json
+  [ "$(data '.services | length')" = 0 ]
+  printf '%s\n' "docker.socket active Docker Socket" "docker.service inactive Docker Engine" \
+    "tailscaled.service active Tailscale node agent" "sshd.service failed OpenSSH Daemon" \
+    "cups.service inactive CUPS Scheduler" "NetworkManager.service active Network Manager" \
+    "systemd-timesyncd.service active Network Time" "getty@.service inactive Getty" >"$STUB_STATE/units"
+  run mujo services --json
+  [ "$(data '[.services[].name] | join(" ")')" = "cups docker sshd tailscaled" ]
+  [ "$(data '.services[] | select(.name == "docker") | .state')" = ready ]
+  [ "$(data '.services[] | select(.name == "docker") | .units | join(" ")')" = "docker.service docker.socket" ]
+  [ "$(data '.services[] | select(.name == "tailscaled") | .state')" = running ]
+  [ "$(data '.services[] | select(.name == "sshd") | .state')" = failed ]
+  [ "$(data '.services[] | select(.name == "cups") | .state')" = stopped ]
+  run mujo services
+  [[ $output == *"docker      ready (starts on first use)"* ]]
+  run mujo services extra
+  [ "$status" -eq 2 ]
 }

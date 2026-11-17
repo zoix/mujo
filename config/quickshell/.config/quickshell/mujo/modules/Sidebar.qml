@@ -1,7 +1,7 @@
 // Quick settings: a panel on the right edge with three pages.
 //   Quick   on/off tiles and the notification history
 //   Look    light or dark, palette, accent, motion
-//   System  volume, output device, brightness, power profile
+//   System  volume, output device, brightness, power profile, services
 // Tab or the arrow keys change page.
 // It shows the current state and runs the mujo CLI for every change.
 import QtQuick
@@ -40,6 +40,8 @@ Item {
     property string profile: ""
     property var profiles: []
     property var outputs: []
+    // Enabled background services, from `mujo services`.
+    property var services: []
     readonly property var accents: Object.keys(Tokens.accentColors)
 
     implicitWidth: Tokens.notificationWidth + Tokens.spaceMd + Tokens.spaceMd
@@ -58,6 +60,7 @@ Item {
         displayReader.running = true;
         profileReader.running = true;
         audioReader.running = true;
+        servicesReader.running = true;
     }
 
     function run(args: list<string>): void {
@@ -110,6 +113,25 @@ Item {
                 root.outputs = d ? d.outputs : [];
             }
         }
+    }
+
+    Process {
+        id: servicesReader
+        command: [Mujo.bin, "services", "--json"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const d = root.payload(this.text);
+                root.services = d ? d.services : [];
+            }
+        }
+    }
+
+    // While the panel is open the list follows a service that starts or stops.
+    Timer {
+        interval: 5000
+        repeat: true
+        running: root.active && root.page === "sound"
+        onTriggered: servicesReader.running = true
     }
 
     readonly property var pages: ["quick", "look", "sound"]
@@ -455,8 +477,36 @@ Item {
             width: parent.width
             spacing: Tokens.spaceSm
 
-            Heading {
-                text: "Volume  " + Audio.volume + "%" + (Audio.muted ? "  (muted)" : "")
+            Item {
+                width: parent.width
+                implicitHeight: volumeHeading.implicitHeight
+
+                Heading {
+                    id: volumeHeading
+                    text: "Volume  " + Audio.volume + "%" + (Audio.muted ? "  (muted)" : "")
+                }
+
+                // The mixer (every stream and device), behind a small icon
+                // at the end of the title's line.
+                Glyph {
+                    anchors.right: parent.right
+                    anchors.bottom: volumeHeading.bottom
+                    text: "\uf1de"
+                    font.pixelSize: Tokens.fontMd
+                    color: mixerArea.containsMouse ? Tokens.accent : Tokens.textMuted
+
+                    MouseArea {
+                        id: mixerArea
+                        anchors.fill: parent
+                        anchors.margins: -Tokens.spaceSm
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            Mujo.open(["audio", "tui"]);
+                            Ui.closeAll();
+                        }
+                    }
+                }
             }
             Slide {
                 value: Audio.volume
@@ -518,11 +568,75 @@ Item {
                 }
             }
 
-            Chip {
-                label: "Open the mixer"
-                onClicked: {
-                    Mujo.open(["audio", "tui"]);
-                    Ui.closeAll();
+            Heading {
+                text: "Services"
+            }
+            Text {
+                visible: root.services.length === 0
+                width: parent.width
+                text: "None enabled yet. One appears here after 'systemctl enable'."
+                color: Tokens.textMuted
+                wrapMode: Text.WordWrap
+                textFormat: Text.PlainText
+                font.family: Tokens.fontFamily
+                font.pixelSize: Tokens.fontXs
+            }
+            Column {
+                visible: root.services.length > 0
+                width: parent.width
+                spacing: Tokens.spaceXs
+
+                Repeater {
+                    model: root.services
+
+                    delegate: Rectangle {
+                        id: service
+
+                        required property var modelData
+                        readonly property string state_: modelData.state
+
+                        width: parent.width
+                        implicitHeight: serviceName.implicitHeight + Tokens.spaceSm + Tokens.spaceSm
+                        radius: Tokens.radiusMd
+                        color: Tokens.bgBase
+
+                        Rectangle {
+                            id: serviceDot
+                            x: Tokens.spaceMd
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: Tokens.spaceSm
+                            height: Tokens.spaceSm
+                            radius: Tokens.radiusFull
+                            color: service.state_ === "running" ? Tokens.stateSuccess : service.state_ === "failed" ? Tokens.stateError : service.state_ === "ready" ? Tokens.stateInfo : Tokens.textMuted
+                        }
+
+                        Text {
+                            id: serviceName
+                            anchors.left: serviceDot.right
+                            anchors.leftMargin: Tokens.spaceSm
+                            anchors.right: serviceState.left
+                            anchors.rightMargin: Tokens.spaceSm
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: service.modelData.name
+                            color: Tokens.textPrimary
+                            elide: Text.ElideRight
+                            textFormat: Text.PlainText
+                            font.family: Tokens.fontFamily
+                            font.pixelSize: Tokens.fontSm
+                        }
+
+                        Text {
+                            id: serviceState
+                            anchors.right: parent.right
+                            anchors.rightMargin: Tokens.spaceMd
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: service.state_ === "ready" ? "Starts on first use" : service.state_ === "running" ? "Running" : service.state_ === "failed" ? "Failed" : "Stopped"
+                            color: service.state_ === "failed" ? Tokens.stateError : Tokens.textMuted
+                            textFormat: Text.PlainText
+                            font.family: Tokens.fontFamily
+                            font.pixelSize: Tokens.fontXs
+                        }
+                    }
                 }
             }
         }
