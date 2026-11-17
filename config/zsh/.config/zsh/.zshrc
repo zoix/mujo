@@ -30,6 +30,25 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 # Its colours come from FZF_DEFAULT_OPTS_FILE (set in .zshenv).
 (( $+commands[fzf] )) && source <(fzf --zsh)
 
+# Up with something typed opens the same history list as Ctrl-R, already
+# searching for it. On an empty line, and while stepping back from one, Up
+# and Down go through the history one command at a time as usual.
+if (( $+widgets[fzf-history-widget] )); then
+  _mujo_up() {
+    if [[ -z $BUFFER || $BUFFER == *$'\n'* ]] \
+      || { (( _mujo_stepping )) && [[ $LASTWIDGET == (_mujo_up|down-line-or-history) ]]; }; then
+      _mujo_stepping=1
+      zle up-line-or-history
+    else
+      _mujo_stepping=0
+      zle fzf-history-widget
+    fi
+  }
+  zle -N _mujo_up
+  bindkey '^[[A' _mujo_up
+  bindkey '^[OA' _mujo_up
+fi
+
 [[ -r /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]] \
   && source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 
