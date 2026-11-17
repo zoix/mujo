@@ -38,6 +38,10 @@ Singleton {
         if (charging)
             warned = 100;
         sync();
+        // And once more: UPower may say so before the kernel's own record of
+        // the charger has caught up (also after waking from sleep), and the
+        // first check then still sees the old power source.
+        recheck.restart();
     }
 
     function sync(): void {
@@ -51,6 +55,7 @@ Singleton {
     onPresentChanged: sync()
 
     Timer {
+        id: recheck
         interval: 5000
         running: true
         onTriggered: root.sync()
