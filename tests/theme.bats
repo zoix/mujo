@@ -11,6 +11,7 @@ load helpers
   [ -f "$(conf)/ghostty/mujo-theme" ]
   [ -f "$(conf)/btop/themes/mujo.theme" ]
   [ -f "$(conf)/yazi/theme.toml" ]
+  [ -f "$(conf)/zathura/mujo-theme" ]
   [ -f "$(conf)/fzf/mujo.fzfrc" ]
   [ -f "$(conf)/zsh/mujo-theme.zsh" ]
   [ -f "$(conf)/gtk-3.0/gtk.css" ]

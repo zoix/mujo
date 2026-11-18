@@ -5,3 +5,4 @@ design/templates/quickshell/tokens.json.tmpl|accentColors|the swatches of the ac
 lib/theme.jq|_hsl\(|the wallpaper palette generator names the palette entries it replaces
 config/icons/.local/share/icons/hicolor/scalable/apps/mujo.svg|#[0-9a-f]{6}|the logo keeps its own colours whatever the theme
 config/quickshell/.config/quickshell/mujo/components/Logo.qml|^ +[a-zA-Z]+: [0-9]+$|the logo is drawn on its own 96-unit grid and scaled to the size asked for
+design/templates/zathura/mujo-theme.tmpl|"rgba\(\{\{|zathura takes a see-through highlight only as rgba(); the colour inside is a token

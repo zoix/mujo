@@ -81,6 +81,17 @@
       ]
     },
     {
+      "id": "zathura",
+      "description": "zathura colours and font (included from zathurarc)",
+      "template": "zathura/mujo-theme.tmpl",
+      "target": "@config/zathura/mujo-theme",
+      "scope": "user",
+      "comment": "#",
+      "lint": [
+        "config/zathura"
+      ]
+    },
+    {
       "id": "fzf",
       "description": "fzf options file (FZF_DEFAULT_OPTS_FILE)",
       "template": "fzf/mujo.fzfrc.tmpl",

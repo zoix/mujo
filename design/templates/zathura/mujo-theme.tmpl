@@ -1,0 +1,40 @@
+set font "{{ font.family }} {{ font.ui_pt }}"
+
+set default-bg "{{ color.bg.base | hex }}"
+set default-fg "{{ color.text.primary | hex }}"
+
+set statusbar-bg "{{ color.bg.base | hex }}"
+set statusbar-fg "{{ color.text.muted | hex }}"
+set inputbar-bg "{{ color.bg.base | hex }}"
+set inputbar-fg "{{ color.text.primary | hex }}"
+
+set notification-bg "{{ color.bg.raised | hex }}"
+set notification-fg "{{ color.text.primary | hex }}"
+set notification-warning-bg "{{ color.bg.raised | hex }}"
+set notification-warning-fg "{{ color.state.warning | hex }}"
+set notification-error-bg "{{ color.bg.raised | hex }}"
+set notification-error-fg "{{ color.state.error | hex }}"
+
+set completion-bg "{{ color.bg.raised | hex }}"
+set completion-fg "{{ color.text.primary | hex }}"
+set completion-group-bg "{{ color.bg.raised | hex }}"
+set completion-group-fg "{{ color.text.muted | hex }}"
+set completion-highlight-bg "{{ color.bg.control | hex }}"
+set completion-highlight-fg "{{ color.accent | hex }}"
+
+set index-bg "{{ color.bg.base | hex }}"
+set index-fg "{{ color.text.primary | hex }}"
+set index-active-bg "{{ color.bg.control | hex }}"
+set index-active-fg "{{ color.accent | hex }}"
+
+# Search matches and link hints: see-through, so the text under them stays readable.
+set highlight-color "rgba({{ color.state.warning | rgb }}, 0.35)"
+set highlight-active-color "rgba({{ color.accent | rgb }}, 0.45)"
+set highlight-fg "{{ color.text.primary | hex }}"
+
+set render-loading-bg "{{ color.bg.base | hex }}"
+set render-loading-fg "{{ color.text.muted | hex }}"
+
+# Pages keep their own colours until Ctrl+R; then they take these.
+set recolor-lightcolor "{{ color.bg.base | hex }}"
+set recolor-darkcolor "{{ color.text.primary | hex }}"

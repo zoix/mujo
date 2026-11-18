@@ -753,14 +753,16 @@ user_steps() {
     info "gsettings skipped (no session bus); settings.ini covers GTK apps"
   fi
 
-  # Pictures open in imv and videos in mpv, instead of in the browser. Only
-  # types without a choice of yours in mimeapps.list are set.
+  # Pictures open in imv, videos in mpv and PDFs in zathura, instead of in
+  # the browser. Only types without a choice of yours in mimeapps.list are
+  # set.
   local apps=${MUJO_SYSROOT:-}/usr/share/applications mimeapps=${XDG_CONFIG_HOME:-$HOME/.config}/mimeapps.list
   local entry app type
   local -a unset_types
   for entry in \
     "imv-dir.desktop image/png image/jpeg image/webp image/gif image/bmp image/tiff image/avif" \
-    "mpv.desktop video/mp4 video/x-matroska video/webm video/quicktime video/x-msvideo video/mpeg audio/mpeg audio/flac audio/ogg audio/x-wav"; do
+    "mpv.desktop video/mp4 video/x-matroska video/webm video/quicktime video/x-msvideo video/mpeg audio/mpeg audio/flac audio/ogg audio/x-wav" \
+    "org.pwmt.zathura.desktop application/pdf"; do
     app=${entry%% *}
     if [[ ! -f $apps/$app ]] || ! command -v xdg-mime >/dev/null 2>&1; then
       info "file types for ${app%.desktop} skipped (it is not installed)"

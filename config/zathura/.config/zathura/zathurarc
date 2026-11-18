@@ -1,0 +1,17 @@
+# zathura: mujo's PDF viewer.
+# Colours and font come from mujo-theme, which `mujo theme build` generates
+# from design/tokens.json. Do not put colours here.
+include mujo-theme
+
+# Selecting text copies it to the system clipboard, without a notification.
+set selection-clipboard clipboard
+set selection-notification false
+
+# Open at the width of the window; the compositor draws the border.
+set adjust-open width
+set guioptions s
+set statusbar-home-tilde true
+set window-title-basename true
+
+# Ctrl+R recolours the pages to the theme; pictures keep their colours.
+set recolor-keephue true

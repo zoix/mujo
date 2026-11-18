@@ -117,7 +117,7 @@ All keys: [docs/keybinds.md](docs/keybinds.md).
 
 `design/tokens.json` is the only place a colour, size, font or duration is
 written. `mujo theme build` renders it into Quickshell, Hyprland, Ghostty,
-tmux, btop, yazi, fzf, zsh, GTK 3 and 4, the greetd login screen and the
+tmux, btop, yazi, zathura, fzf, zsh, GTK 3 and 4, the greetd login screen and the
 console palette. `mujo theme check` fails if any of them drifts.
 
 ```sh

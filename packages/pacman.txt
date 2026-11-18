@@ -26,6 +26,8 @@ yazi                        # file manager
 tmux                        # terminal multiplexer
 imv                         # image viewer (opens pictures from yazi)
 mpv                         # video and audio player (opens recordings)
+zathura                     # PDF viewer (opens PDFs from yazi)
+zathura-pdf-mupdf           # its PDF backend
 btop                        # system monitor
 bluetui                     # Bluetooth TUI
 wiremix                     # audio mixer TUI
