@@ -35,9 +35,12 @@ set -g pane-active-border-style 'fg={{ color.accent | hex }}'
 set -g display-panes-colour '{{ color.text.muted | hex }}'
 set -g display-panes-active-colour '{{ color.accent | hex }}'
 
-# Messages and the command prompt.
-set -g message-style 'bg={{ color.bg.raised | hex }},fg={{ color.text.primary | hex }}'
-set -g message-command-style 'bg={{ color.bg.raised | hex }},fg={{ color.accent | hex }}'
+# Messages and the command prompt: plain text on the terminal's background,
+# like the status line they stand in for. The fill is what clears the rest
+# of the row: without one, tmux leaves the window names showing after the
+# text.
+set -g message-style 'bg=default,fg={{ color.text.primary | hex }},fill=terminal'
+set -g message-command-style 'bg=default,fg={{ color.accent | hex }},fill=terminal'
 
 # Copy mode: the selection and search matches.
 set -g mode-style 'bg={{ term.selection_bg | hex }},fg={{ term.fg | hex }}'
