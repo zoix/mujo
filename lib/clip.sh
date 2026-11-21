@@ -50,8 +50,10 @@ clip_cmd_list() {
     esac
   done
   local entries
-  entries=$(cliphist list 2>/dev/null | head -n "$limit" \
-    | jq -cRn '[inputs | split("\t") | {id: .[0], preview: (.[1:] | join("\t"))}]') || entries='[]'
+  # jq reads the whole list and cuts it itself: a 'head' here closes the pipe
+  # early, cliphist dies of SIGPIPE and pipefail turns that into "empty".
+  entries=$(cliphist list 2>/dev/null \
+    | jq -cRn --argjson n "$limit" '[inputs | split("\t") | {id: .[0], preview: (.[1:] | join("\t"))}] | .[:$n]') || entries='[]'
   if [[ $entries == "[]" ]]; then
     say "The clipboard history is empty."
   else
