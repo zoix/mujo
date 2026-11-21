@@ -189,6 +189,12 @@ Singleton {
         root.sidebar = !root.sidebar;
     }
 
+    // The pointer rests on a tray icon: its menu opens like any pop-out.
+    function hoverTray(menu: var, screen: string, y: real): void {
+        root.trayMenu = menu;
+        root.hoverIcon("tray", screen, y);
+    }
+
     function showTrayMenu(menu: var, screen: string, y: real): void {
         root.trayMenu = menu;
         root.popoutScreen = screen;

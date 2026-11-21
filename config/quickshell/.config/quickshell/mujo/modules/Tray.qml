@@ -1,11 +1,12 @@
-// System tray. Left click activates an item, right click opens its menu
-// in the pop-out beside the bar.
+// System tray. Resting the pointer on an item, or a right click, opens its
+// menu in the pop-out beside the bar; a left click activates the item.
 import QtQuick
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Services.SystemTray
 import qs.theme
 import qs.components
+import qs.services
 
 Column {
     id: root
@@ -35,8 +36,12 @@ Column {
                 else
                     modelData.secondaryActivate();
             }
+            // Moving to the next icon reports "entered" before "left", so a
+            // leave only counts while the pop-out still shows this menu.
             onHoveredChanged: {
-                if (!hovered)
+                if (hovered && modelData.hasMenu)
+                    Ui.hoverTray(modelData.menu, root.screen.name, button.mapToItem(null, 0, button.height / 2).y);
+                else if (!hovered && Ui.trayMenu === modelData.menu)
                     Ui.leaveIcon("tray");
             }
 

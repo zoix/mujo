@@ -37,6 +37,10 @@ Item {
     property var menuStack: []
     readonly property var menuHandle: menuStack.length > 0 ? menuStack[menuStack.length - 1] : Ui.trayMenu
 
+    // Another icon's menu starts at its top level.
+    readonly property var trayRoot: Ui.trayMenu
+    onTrayRootChanged: menuStack = []
+
     onKindChanged: {
         menuStack = [];
         if (kind === "about")
