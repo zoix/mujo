@@ -31,7 +31,11 @@ case $all in
   *"connection up id "*) echo "${all##*connection up id }" >"$d/ssid" ;;
   *"device wifi connect "*)
     name=${all##*device wifi connect }; name=${name%% password *}
-    [[ $name == Locked && $all != *"password hunter2"* ]] && { echo "Error: secrets were required"; exit 4; }
+    # Like the real one, a failed attempt with a password leaves the network saved.
+    if [[ $name == Locked && $all != *"password hunter2"* ]]; then
+      [[ $all == *" password "* ]] && echo "$name" >>"$d/saved"
+      echo "Error: secrets were required"; exit 4
+    fi
     echo "$name" >"$d/ssid"; echo "$name" >>"$d/saved"
     ;;
   *"device disconnect"*) : >"$d/ssid" ;;

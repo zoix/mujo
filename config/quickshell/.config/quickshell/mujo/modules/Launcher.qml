@@ -235,7 +235,9 @@ Item {
         }
     }
 
-    function choose(): void {
+    // choose(true): Shift+Enter. For a saved network, ask for its password
+    // again (it was changed, or mistyped when the network was saved).
+    function choose(again: bool): void {
         const view = root.strip ? thumbs : list;
         const entry = root.results[view.currentIndex];
         if (root.passwordFor !== "") {
@@ -266,7 +268,7 @@ Item {
         } else if (root.mode === "wifi") {
             if (entry.in_use) {
                 Ui.closeAll();
-            } else if (entry.saved || entry.security === "open") {
+            } else if (entry.security === "open" || entry.saved && !again) {
                 Mujo.run(["net", "connect", entry.ssid]);
                 Ui.closeAll();
             } else {
@@ -568,7 +570,7 @@ Item {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onEntered: list.currentIndex = entryRow.index
-                    onClicked: root.choose()
+                    onClicked: root.choose(false)
                 }
             }
         }
@@ -700,7 +702,7 @@ Item {
                     } else if (event.key === Qt.Key_Escape) {
                         Ui.closeAll();
                     } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                        root.choose();
+                        root.choose((event.modifiers & Qt.ShiftModifier) !== 0);
                     } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Right && root.strip || ctrl && event.key === Qt.Key_N || ctrl && event.key === Qt.Key_J) {
                         root.move(1);
                     } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Left && root.strip || ctrl && event.key === Qt.Key_P || ctrl && event.key === Qt.Key_K) {
@@ -721,7 +723,7 @@ Item {
                 anchors.left: input.left
                 anchors.verticalCenter: parent.verticalCenter
                 visible: input.text === ""
-                text: root.passwordFor !== "" ? "Password for " + root.passwordFor + ", then Enter" : root.mode === "apps" ? "Search apps; Tab or > for mujo commands" : root.mode === "actions" ? "Search commands; Tab for apps" : root.mode === "clipboard" ? "Search the clipboard; Enter copies" : root.mode === "keys" ? "Search keybindings; Enter runs one" : root.mode === "wifi" ? "Search networks; Enter connects" : root.mode === "calc" ? "Calculate; Enter copies the result" : root.mode === "emoji" ? "Search emoji; Enter copies" : "Left and right to choose; Escape closes"
+                text: root.passwordFor !== "" ? "Password for " + root.passwordFor + ", then Enter" : root.mode === "apps" ? "Search apps; Tab or > for mujo commands" : root.mode === "actions" ? "Search commands; Tab for apps" : root.mode === "clipboard" ? "Search the clipboard; Enter copies" : root.mode === "keys" ? "Search keybindings; Enter runs one" : root.mode === "wifi" ? "Search networks; Enter connects, Shift+Enter new password" : root.mode === "calc" ? "Calculate; Enter copies the result" : root.mode === "emoji" ? "Search emoji; Enter copies" : "Left and right to choose; Escape closes"
                 color: Tokens.textMuted
                 font.family: Tokens.fontFamily
                 font.pixelSize: Tokens.fontMd

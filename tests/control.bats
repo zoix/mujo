@@ -431,9 +431,18 @@ journal_count() {
 @test "net connect reads a password from stdin and never journals it" {
   run mujo net connect Locked </dev/null
   [ "$status" -eq 1 ]
+  # a wrong password: the network is not kept, so it can be tried again
+  run bash -c "echo wrong | '$MUJO' net connect Locked --password-stdin"
+  [ "$status" -eq 1 ]
+  ! grep -qx Locked "$STUB_STATE/saved"
   run bash -c "echo hunter2 | '$MUJO' net connect Locked --password-stdin"
   [ "$status" -eq 0 ]
   ! grep -q hunter2 "$(state)/journal.jsonl"
+  # a password for a saved network replaces the saved one
+  mujo net connect HomeNet
+  run bash -c "echo hunter2 | '$MUJO' net connect Locked --password-stdin"
+  [ "$status" -eq 0 ]
+  [ "$(grep -cx Locked "$STUB_STATE/saved")" = 1 ]
 }
 
 @test "net forget needs --yes and cannot be undone" {
@@ -556,6 +565,14 @@ journal_count() {
   mujo clip clear --yes
   run mujo clip list --json
   [ "$(data '.entries | length')" = 0 ]
+}
+
+@test "clip list still answers when the history is longer than the limit" {
+  # Well over a megabyte, so the stub is still writing when a reader stops early.
+  seq 20000 -1 1 | sed 's/.*/&\tentry & with some padding to fill the pipe/' >"$STUB_STATE/clip"
+  run mujo clip list --limit 50 --json
+  [ "$(data '.entries | length')" = 50 ]
+  [ "$(data '.entries[0].id')" = 20000 ]
 }
 
 # ---- launcher ----------------------------------------------------------------

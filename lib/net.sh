@@ -18,7 +18,10 @@ scan        Networks in range, strongest first.
 connect     Join a network. A saved network needs no password. For a new one
             the password is asked on the terminal, or read from stdin with
             --password-stdin (it is then visible to other processes of this
-            user while nmcli runs). The password is never journaled.
+            user while nmcli runs). The password is never journaled. A new
+            network that could not be joined is not saved, so the password
+            is asked again next time; --password-stdin for a saved network
+            replaces its password.
 disconnect  Leave the current Wi-Fi network.
 forget      Delete a saved network and its password. Cannot be undone.
 wifi        Show or switch the Wi-Fi radio.
@@ -172,8 +175,15 @@ net_cmd_connect() {
   after=$(jq -cn --arg s "$ssid" '{ssid: $s}')
   change_begin "net connect: ${cur:-not connected} -> $ssid" "$before" "$after" || return 0
 
-  local out rc=0
-  if net_saved | grep -Fxq -- "$ssid"; then
+  local out rc=0 saved=0
+  net_saved | grep -Fxq -- "$ssid" && saved=1
+  # A password for a network that is already saved replaces the saved one
+  # (the network's password was changed, or the saved one was mistyped).
+  if (( saved && from_stdin )); then
+    nmcli connection delete id "$ssid" >/dev/null 2>&1 || true
+    saved=0
+  fi
+  if (( saved )); then
     out=$(nmcli -w 30 connection up id "$ssid" 2>&1) || rc=$?
   elif (( from_stdin )); then
     local password
@@ -186,6 +196,11 @@ net_cmd_connect() {
     out=$(nmcli -w 30 device wifi connect "$ssid" 2>&1) || rc=$?
   fi
   if (( rc != 0 )); then
+    # nmcli keeps a network it could not join, wrong password and all, and
+    # would never ask for the password again. It is not kept.
+    if (( ! saved )) && net_saved | grep -Fxq -- "$ssid"; then
+      nmcli connection delete id "$ssid" >/dev/null 2>&1 || true
+    fi
     ui_notify "Wi-Fi" "Could not connect to $ssid"
     die "$EXIT_FAIL" "could not connect to '$ssid': $out"
   fi
