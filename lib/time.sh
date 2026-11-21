@@ -115,7 +115,10 @@ time_cmd_auto() {
   change_end "time auto: $wc -> $wn" "$before" "$after" "$(json_array time auto "$wc")"
   if [[ $new == true ]]; then
     flock -u 9 2>/dev/null || true
-    "$MUJO_BIN" time sync >/dev/null 2>&1 3>&1 || true
+    # Auto is on either way; a first check that fails must not pass unseen.
+    local err
+    err=$("$MUJO_BIN" time sync 2>&1 >/dev/null 3>/dev/null) \
+      || warn "the zone was not set now: ${err#"$MUJO_NAME: "}"
   fi
 }
 
