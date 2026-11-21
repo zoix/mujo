@@ -189,6 +189,7 @@ closed. You are welcome to fork it and make it your own.
 - [Keybindings](docs/keybinds.md)
 - [CLI reference](docs/cli.md)
 - [Design tokens and templates](docs/tokens.md)
+- [Integrations](docs/integrations.md): programs that work with mujo, such as the Tempo time tracker
 - [Neovim](docs/neovim.md) · [tmux](docs/tmux.md)
 
 ## Thanks
